@@ -23,7 +23,7 @@ class QRScanController extends Controller
     }
 
     // ============================================
-    // 🔥 TIMER FUNCTIONS - GUNA DATABASE timer_settings
+    // 🔥 TIMER FUNCTIONS
     // ============================================
 
     private function getTimerForToday()
@@ -276,7 +276,7 @@ class QRScanController extends Controller
     }
 
     // ============================================
-    // STEP 2: CONFIRM CHILD - DENGAN CHECK-IN!
+    // STEP 2: CONFIRM CHILD - REDIRECT KE ADD ANOTHER
     // ============================================
     public function confirmChild($childId)
     {
@@ -286,7 +286,7 @@ class QRScanController extends Controller
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
             $now = Carbon::now('Asia/Kuala_Lumpur');
             
-            // 🔥 Cari parent ID
+            // Cari parent ID
             $parentId = null;
             if ($user) {
                 $parent = ParentModel::where('user_id', $user->id)->first();
@@ -305,7 +305,7 @@ class QRScanController extends Controller
                 $parentId = $firstParent ? $firstParent->id : 1;
             }
             
-            // 🔥🔥🔥 CHECK ATTENDANCE - JIKA BELUM CHECK-IN, BUAT CHECK-IN 🔥🔥🔥
+            // CHECK ATTENDANCE - AUTO CHECK-IN
             $existing = Attendance::where('child_id', $child->id)
                 ->whereDate('date', $today)
                 ->first();
@@ -313,7 +313,6 @@ class QRScanController extends Controller
             $hasCheckin = $existing && $existing->checkin_time;
             $hasCheckout = $existing && $existing->checkout_time;
             
-            // 🔥 AUTO CHECK-IN jika belum check-in
             if (!$hasCheckin && !$hasCheckout) {
                 if ($existing) {
                     $existing->update([
@@ -337,7 +336,7 @@ class QRScanController extends Controller
                 }
             }
             
-            // 🔥 Redirect ke add-another
+            // 🔥 REDIRECT KE AddAnotherChildController
             return redirect()->route('kiosk.add.another', $childId);
             
         } catch (\Exception $e) {
@@ -348,259 +347,7 @@ class QRScanController extends Controller
     }
 
     // ============================================
-    // STEP 3: ADD ANOTHER CHILD - FULLY FIXED!
-    // 🔥🔥🔥 GUNA TIMER SETTING UNTUK CAN CHECKOUT! 🔥🔥🔥
-    // ============================================
-    public function showAddAnother($childId)
-    {
-        $child = Child::with(['parent', 'classroom'])->findOrFail($childId);
-        $user = auth()->user();
-        $parent = null;
-        $allChildren = collect();
-        $otherChildren = collect();
-        $parentIdForView = 0;
-        $allCheckedInData = [];
-        $childCheckedIn = false;
-        $childCheckedOut = false;
-        
-        $now = Carbon::now('Asia/Kuala_Lumpur');
-        $userRole = $user ? $user->role : 'unknown';
-        $today = $now->toDateString();
-        
-        // 🔥🔥🔥 AMBIL TIMER SETTING UNTUK CAN CHECKOUT 🔥🔥🔥
-        $timerSetting = TimerSetting::where('day_name', $now->format('l'))->first();
-        $canCheckout = false;
-        $isCheckoutMode = false;
-        $checkoutStartTime = '--:--';
-        $checkoutEndTime = '--:--';
-        
-        if ($timerSetting) {
-            $currentTimeInt = (int) $now->format('Hi');
-            $eveningStartInt = (int) str_replace(':', '', $timerSetting->evening_start);
-            $eveningEndInt = (int) str_replace(':', '', $timerSetting->evening_end);
-            $checkoutStartTime = date('H:i', strtotime($timerSetting->evening_start));
-            $checkoutEndTime = date('H:i', strtotime($timerSetting->evening_end));
-            
-            // 🔥🔥🔥 BOLEH CHECKOUT JIKA DAH MELEPASI EVENING START! 🔥🔥🔥
-            // (Dalam slot = On Time, Lepas slot = Late Checkout — tetap boleh!)
-            if ($currentTimeInt >= $eveningStartInt) {
-                $canCheckout = true;
-                $isCheckoutMode = true;
-            }
-        }
-        
-        // 🔥 CHECK ATTENDANCE FOR CURRENT CHILD
-        $childAttendance = Attendance::where('child_id', $child->id)
-            ->whereDate('date', $today)
-            ->first();
-        
-        $childCheckedIn = $childAttendance && $childAttendance->checkin_time ? true : false;
-        $childCheckedOut = $childAttendance && $childAttendance->checkout_time ? true : false;
-        
-        // 🔥 GET CHILDREN BASED ON ROLE
-        if ($user) {
-            // MAIN PARENT
-            if (in_array($user->role, ['parent', 'parent1', 'main_parent'])) {
-                $parent = ParentModel::where('user_id', $user->id)->first();
-                if ($parent) {
-                    $parentIdForView = $parent->id;
-                    $allChildren = Child::where(function($query) use ($parent) {
-                        $query->where('parent_id', $parent->id)
-                              ->orWhere('second_parent_id', $parent->id);
-                    })->where('is_active', true)->get();
-                }
-            }
-            
-            // SECOND PARENT
-            if (in_array($user->role, ['second_parent', 'parent2'])) {
-                $secondParent = SecondParent::where('user_id', $user->id)->first();
-                if ($secondParent) {
-                    $parentIdForView = $secondParent->id;
-                    $mainParent = ParentModel::find($secondParent->parent_id);
-                    if ($mainParent) {
-                        $allChildren = Child::where(function($query) use ($mainParent) {
-                            $query->where('parent_id', $mainParent->id)
-                                  ->orWhere('second_parent_id', $mainParent->id);
-                        })->where('is_active', true)->get();
-                    }
-                }
-            }
-            
-            // GUARDIAN
-            if ($user->role === 'guardian') {
-                $guardian = Guardian::where('user_id', $user->id)->first();
-                if ($guardian) {
-                    $parentIdForView = $guardian->id;
-                    $allChildren = Child::where('guardian_id', $guardian->id)
-                        ->where('is_active', true)->get();
-                }
-            }
-            
-            // ADMIN / TEACHER
-            if (in_array($user->role, ['admin', 'teacher'])) {
-                $parentIdForView = $user->id;
-                $allChildren = Child::where('is_active', true)->get();
-            }
-        }
-        
-        // 🔥 INCLUDE CURRENT CHILD IN ALL CHILDREN
-        if (!$allChildren->contains('id', $child->id)) {
-            $allChildren->push($child);
-        }
-        
-        // 🔥 FILTER OTHER CHILDREN (excluding current)
-        $otherChildren = $allChildren->filter(function($c) use ($childId) {
-            return $c->id != $childId;
-        })->map(function($c) use ($today) {
-            $attendance = Attendance::where('child_id', $c->id)
-                ->whereDate('date', $today)
-                ->first();
-            
-            return (object) [
-                'id' => $c->id,
-                'name' => $c->name,
-                'classroom' => $c->classroom,
-                'checked_in_today' => $attendance && $attendance->checkin_time ? true : false,
-                'checked_out_today' => $attendance && $attendance->checkout_time ? true : false
-            ];
-        });
-        
-        // 🔥🔥🔥 BUILD CHECKED-IN DATA (INCLUDING CURRENT CHILD) 🔥🔥🔥
-        // Current child
-        if ($childCheckedIn && !$childCheckedOut) {
-            $allCheckedInData[] = [
-                'name' => $child->name,
-                'classroom' => $child->classroom->name ?? '-',
-                'time' => $childAttendance ? Carbon::parse($childAttendance->checkin_time)->format('h:i A') : '',
-                'initial' => strtoupper(substr($child->name, 0, 1)),
-                'is_current' => true
-            ];
-        }
-        
-        // Other children
-        foreach ($otherChildren as $otherChild) {
-            if ($otherChild->checked_in_today && !$otherChild->checked_out_today) {
-                $att = Attendance::where('child_id', $otherChild->id)
-                    ->whereDate('date', $today)
-                    ->first();
-                $allCheckedInData[] = [
-                    'name' => $otherChild->name,
-                    'classroom' => $otherChild->classroom->name ?? '-',
-                    'time' => $att ? Carbon::parse($att->checkin_time)->format('h:i A') : '',
-                    'initial' => strtoupper(substr($otherChild->name, 0, 1)),
-                    'is_current' => false
-                ];
-            }
-        }
-        
-        // 🔥 SORT: Current child first
-        usort($allCheckedInData, function($a, $b) {
-            if ($a['is_current'] && !$b['is_current']) return -1;
-            if (!$a['is_current'] && $b['is_current']) return 1;
-            return strcmp($a['name'], $b['name']);
-        });
-        
-        $roleData = $this->getRoleData($userRole);
-        
-        // 🔥🔥🔥 PASS ALL DATA TO VIEW 🔥🔥🔥
-        return view('kiosk.add-another', compact(
-            'child', 'parent', 'allChildren', 'otherChildren', 
-            'canCheckout', 'userRole', 'roleData', 'parentIdForView',
-            'allCheckedInData', 'childCheckedIn', 'childCheckedOut',
-            'isCheckoutMode', 'checkoutStartTime', 'checkoutEndTime'
-        ));
-    }
-
-    // ============================================
-    // HELPER: GET ROLE DATA
-    // ============================================
-    private function getRoleData($role)
-    {
-        $roleMap = [
-            'parent1' => [
-                'class' => 'main-parent', 
-                'badge_class' => 'main-parent', 
-                'badge_text' => '👨‍👩‍👦 Main Parent', 
-                'icon' => '👨‍👩‍👦', 
-                'display_name' => 'Main Parent',
-                'name_class' => 'main',
-                'border_class' => 'main-parent-border',
-                'avatar_class' => 'main-parent-avatar',
-                'tag_class' => 'main-parent-tag'
-            ],
-            'parent' => [
-                'class' => 'main-parent', 
-                'badge_class' => 'main-parent', 
-                'badge_text' => '👨‍👩‍👦 Main Parent', 
-                'icon' => '👨‍👩‍👦', 
-                'display_name' => 'Main Parent',
-                'name_class' => 'main',
-                'border_class' => 'main-parent-border',
-                'avatar_class' => 'main-parent-avatar',
-                'tag_class' => 'main-parent-tag'
-            ],
-            'parent2' => [
-                'class' => 'second-parent', 
-                'badge_class' => 'second-parent', 
-                'badge_text' => '👫 Second Parent', 
-                'icon' => '👫', 
-                'display_name' => 'Second Parent',
-                'name_class' => 'second',
-                'border_class' => 'second-parent-border',
-                'avatar_class' => 'second-parent-avatar',
-                'tag_class' => 'second-parent-tag'
-            ],
-            'second_parent' => [
-                'class' => 'second-parent', 
-                'badge_class' => 'second-parent', 
-                'badge_text' => '👫 Second Parent', 
-                'icon' => '👫', 
-                'display_name' => 'Second Parent',
-                'name_class' => 'second',
-                'border_class' => 'second-parent-border',
-                'avatar_class' => 'second-parent-avatar',
-                'tag_class' => 'second-parent-tag'
-            ],
-            'guardian' => [
-                'class' => 'guardian', 
-                'badge_class' => 'guardian', 
-                'badge_text' => '🛡️ Guardian', 
-                'icon' => '🛡️', 
-                'display_name' => 'Guardian',
-                'name_class' => 'guardian',
-                'border_class' => 'guardian-border',
-                'avatar_class' => 'guardian-avatar',
-                'tag_class' => 'guardian-tag'
-            ],
-            'admin' => [
-                'class' => 'admin', 
-                'badge_class' => 'admin', 
-                'badge_text' => '👑 Admin', 
-                'icon' => '👑', 
-                'display_name' => 'Admin',
-                'name_class' => 'admin',
-                'border_class' => 'admin-border',
-                'avatar_class' => 'admin-avatar',
-                'tag_class' => 'admin-tag'
-            ],
-            'teacher' => [
-                'class' => 'admin', 
-                'badge_class' => 'admin', 
-                'badge_text' => '👨‍🏫 Teacher', 
-                'icon' => '👨‍🏫', 
-                'display_name' => 'Teacher',
-                'name_class' => 'teacher',
-                'border_class' => 'admin-border',
-                'avatar_class' => 'admin-avatar',
-                'tag_class' => 'admin-tag'
-            ],
-        ];
-        
-        return $roleMap[$role] ?? $roleMap['parent1'];
-    }
-
-    // ============================================
-    // STEP 4: SHOW CHECKIN PAGE - DENGAN TIMER SETTING
+    // STEP 3: SHOW CHECKIN PAGE
     // ============================================
     public function showCheckinPage($childId)
     {
@@ -616,7 +363,6 @@ class QRScanController extends Controller
         $hour = (int)$now->format('H');
         $currentTime = $now->format('h:i A');
         
-        // 🔥🔥🔥 AMBIL TIMER SETTING DARI DATABASE 🔥🔥🔥
         $timerSetting = TimerSetting::where('day_name', $now->format('l'))->first();
         
         $today = $now->toDateString();
@@ -630,8 +376,6 @@ class QRScanController extends Controller
         $slot = $this->getCurrentSlot();
         $isLate = $slot && $slot['slot'] === 'morning' ? $this->isLateForCheckin() : false;
         
-        // 🔥🔥🔥 TENTUKAN CHECKOUT - GUNA TIMER DARI DATABASE 🔥🔥🔥
-        // 🔥 BOLEH CHECKOUT JIKA DAH MELEPASI EVENING START!
         $canCheckout = false;
         if ($timerSetting) {
             $currentTimeInt = (int) $now->format('Hi');
@@ -751,8 +495,7 @@ class QRScanController extends Controller
     }
 
     // ============================================
-    // STEP 5: SUBMIT ATTENDANCE - CHECK-IN BOLEH BILA-BILA!
-    // 🔥🔥🔥 CHECKOUT JUGA BOLEH BILA-BILA (LATE CHECKOUT JIKA LUAR SLOT) 🔥🔥🔥
+    // STEP 4: SUBMIT ATTENDANCE
     // ============================================
     public function submitAttendance(Request $request)
     {
@@ -778,7 +521,6 @@ class QRScanController extends Controller
             }
             
             if ($request->action == 'checkin') {
-                // 🔥 CHECK: Already checked in today
                 $existing = Attendance::where('child_id', $child->id)
                     ->whereDate('date', $today)
                     ->first();
@@ -790,7 +532,6 @@ class QRScanController extends Controller
                     ]);
                 }
                 
-                // 🔥🔥🔥 CHECK-IN BOLEH BILA-BILA MASA! TAK BLOCK! 🔥🔥🔥
                 $isLate = $this->isLateForCheckin();
                 $withinGrace = $this->isWithinGracePeriod('checkin');
                 
@@ -849,7 +590,7 @@ class QRScanController extends Controller
                 ]);
                 
             } else {
-                // 🔥🔥🔥 CHECKOUT - BOLEH BILA-BILA! 🔥🔥🔥
+                // CHECKOUT
                 $attendance = Attendance::where('child_id', $child->id)
                     ->whereDate('date', $today)
                     ->first();
@@ -868,8 +609,6 @@ class QRScanController extends Controller
                     ]);
                 }
                 
-                // 🔥🔥🔥 TAKDE RESTRICTION! CHECKOUT BOLEH BILA-BILA! 🔥🔥🔥
-                // TAPI kita detect sama ada late checkout atau tidak
                 $timer = $this->getTimerForToday();
                 $isLateCheckout = false;
                 $lateCheckoutMessage = '✅ Check-out berjaya (On Time)';
@@ -879,7 +618,6 @@ class QRScanController extends Controller
                     $eveningStartInt = (int) str_replace(':', '', $timer->evening_start);
                     $eveningEndInt = (int) str_replace(':', '', $timer->evening_end);
                     
-                    // 🔥 Kalau luar evening slot → Late Checkout (still boleh!)
                     if (!($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt)) {
                         $isLateCheckout = true;
                         $lateCheckoutMessage = '⏰ Check-out berjaya (Late Checkout)';
@@ -918,217 +656,6 @@ class QRScanController extends Controller
             
         } catch (\Exception $e) {
             Log::error('submitAttendance Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Ralat: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    // ============================================
-    // STEP 6: CHECK-IN ALL CHILDREN
-    // ============================================
-    public function checkinAll(Request $request)
-    {
-        try {
-            $request->validate([
-                'parent_id' => 'required|integer',
-                'child_ids' => 'required|array',
-                'child_ids.*' => 'exists:children,id'
-            ]);
-            
-            $now = Carbon::now('Asia/Kuala_Lumpur');
-            $today = $now->toDateString();
-            $results = [];
-            
-            $isLate = $this->isLateForCheckin();
-            $withinGrace = $this->isWithinGracePeriod('checkin');
-            
-            $status = 'present';
-            $statusNote = '✅ Check-in berjaya';
-            
-            if ($isLate && $withinGrace) {
-                $status = 'late';
-                $statusNote = '⏰ Late check-in (within grace period)';
-            } else if ($isLate && !$withinGrace) {
-                $status = 'late';
-                $statusNote = '⏰ Late check-in (past grace period)';
-            }
-            
-            $checkedCount = 0;
-            $lateCount = 0;
-            $alreadyCount = 0;
-            
-            foreach ($request->child_ids as $childId) {
-                $child = Child::find($childId);
-                if (!$child) continue;
-                
-                $existing = Attendance::where('child_id', $childId)
-                    ->whereDate('date', $today)
-                    ->first();
-                    
-                if ($existing && $existing->checkin_time) {
-                    $results[] = [
-                        'name' => $child->name,
-                        'status' => 'already_checked',
-                        'time' => date('h:i A', strtotime($existing->checkin_time))
-                    ];
-                    $alreadyCount++;
-                    continue;
-                }
-                
-                if ($existing) {
-                    $existing->update([
-                        'checkin_time' => $now->format('H:i:s'),
-                        'status' => $status,
-                        'status_note' => $statusNote,
-                        'drop_off_by' => 'Parent ID: ' . $request->parent_id,
-                        'is_verified' => true
-                    ]);
-                } else {
-                    Attendance::create([
-                        'child_id' => $childId,
-                        'parent_id' => $request->parent_id,
-                        'date' => $today,
-                        'checkin_time' => $now->format('H:i:s'),
-                        'status' => $status,
-                        'status_note' => $statusNote,
-                        'drop_off_by' => 'Parent ID: ' . $request->parent_id,
-                        'is_verified' => true
-                    ]);
-                }
-                
-                $this->sendTelegramNotification($child, $request->parent_id, 'checkin', $isLate, null);
-                
-                if ($isLate) {
-                    $lateCount++;
-                    $results[] = [
-                        'name' => $child->name,
-                        'status' => 'late',
-                        'time' => $now->format('h:i A')
-                    ];
-                } else {
-                    $checkedCount++;
-                    $results[] = [
-                        'name' => $child->name,
-                        'status' => 'checked_in',
-                        'time' => $now->format('h:i A')
-                    ];
-                }
-            }
-            
-            return response()->json([
-                'success' => true,
-                'message' => $isLate ? '⏰ Semua anak berjaya check-in! (Late)' : '✅ Semua anak berjaya check-in! (On Time)',
-                'results' => $results,
-                'checked_count' => $checkedCount,
-                'late_count' => $lateCount,
-                'already_count' => $alreadyCount,
-                'status_note' => $statusNote
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error('checkinAll Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Ralat: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    // ============================================
-    // STEP 7: CHECKOUT ALL CHILDREN
-    // 🔥🔥🔥 BOLEH BILA-BILA! (LATE CHECKOUT JIKA LUAR SLOT) 🔥🔥🔥
-    // ============================================
-    public function checkoutAll(Request $request)
-    {
-        try {
-            $request->validate([
-                'parent_id' => 'required|exists:parents,id',
-                'child_ids' => 'required|array',
-                'child_ids.*' => 'exists:children,id'
-            ]);
-            
-            $parent = ParentModel::find($request->parent_id);
-            $now = Carbon::now('Asia/Kuala_Lumpur');
-            $today = $now->toDateString();
-            $results = [];
-            
-            // 🔥🔥🔥 TAKDE RESTRICTION! CHECKOUT BOLEH BILA-BILA! 🔥🔥🔥
-            $timer = $this->getTimerForToday();
-            $isLateCheckout = false;
-            
-            if ($timer) {
-                $currentTimeInt = (int) $now->format('Hi');
-                $eveningStartInt = (int) str_replace(':', '', $timer->evening_start);
-                $eveningEndInt = (int) str_replace(':', '', $timer->evening_end);
-                
-                // 🔥 Kalau luar evening slot → Late Checkout (still boleh!)
-                if (!($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt)) {
-                    $isLateCheckout = true;
-                }
-            }
-            
-            $status = 'checkout';
-            $statusNote = '✅ Check-out berjaya';
-            
-            if ($isLateCheckout) {
-                $status = 'late_checkout';
-                $statusNote = '⏰ Late Checkout';
-            }
-            
-            foreach ($request->child_ids as $childId) {
-                $child = Child::find($childId);
-                
-                $attendance = Attendance::where('child_id', $childId)
-                    ->whereDate('date', $today)
-                    ->first();
-                    
-                if (!$attendance || !$attendance->checkin_time) {
-                    $results[] = [
-                        'name' => $child->name,
-                        'status' => 'not_checked_in',
-                        'time' => ''
-                    ];
-                    continue;
-                }
-                
-                if ($attendance->checkout_time) {
-                    $results[] = [
-                        'name' => $child->name,
-                        'status' => 'already_checked',
-                        'time' => date('h:i A', strtotime($attendance->checkout_time))
-                    ];
-                    continue;
-                }
-                
-                $attendance->update([
-                    'checkout_time' => $now->format('H:i:s'),
-                    'status' => $status,
-                    'status_note' => $statusNote,
-                    'pickup_by' => 'Parent ID: ' . $request->parent_id,
-                ]);
-                
-                $this->sendTelegramNotification($child, $request->parent_id, 'checkout', $isLateCheckout);
-                
-                $results[] = [
-                    'name' => $child->name,
-                    'status' => 'checkout',
-                    'time' => $now->format('h:i A')
-                ];
-            }
-            
-            return response()->json([
-                'success' => true,
-                'message' => $isLateCheckout ? '⏰ Semua anak berjaya check-out! (Late)' : '✅ Semua anak berjaya check-out! (On Time)',
-                'results' => $results,
-                'checkout_count' => collect($results)->where('status', 'checkout')->count(),
-                'already_count' => collect($results)->where('status', 'already_checked')->count(),
-                'status_note' => $statusNote
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error('checkoutAll Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Ralat: ' . $e->getMessage()
@@ -1180,7 +707,7 @@ class QRScanController extends Controller
     }
 
     // ============================================
-    // 🔥🔥🔥 CALENDAR FUNCTIONS - SAVE FORMAT BETUL! 🔥🔥🔥
+    // TIMER SETTINGS
     // ============================================
 
     public function getTimerSettings()

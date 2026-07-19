@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Parent Dashboard</title>
 
     <style>
@@ -225,9 +226,12 @@
             margin-right: 10px;
         }
 
+        /* ============================================
+           🔥 STATUS BADGE - LENGKAP
+           ============================================ */
         .status-badge {
             display: inline-block;
-            padding: 3px 12px;
+            padding: 4px 14px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
@@ -238,14 +242,34 @@
             color: #276749;
         }
 
-        .status-absent {
-            background: #fed7d7;
-            color: #9b2c2c;
+        .status-checkedin {
+            background: #c6f6d5;
+            color: #276749;
+        }
+
+        .status-checkout {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-checkedout {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-late_checkout {
+            background: #fef3c7;
+            color: #92400e;
         }
 
         .status-late {
             background: #feebc8;
             color: #9c6b1e;
+        }
+
+        .status-absent {
+            background: #fed7d7;
+            color: #9b2c2c;
         }
 
         .status-pending {
@@ -358,7 +382,7 @@
         </div>
         <div class="card">
             <h3>📅 Attendance Today</h3>
-            <h2>{{ $children ? $children->sum(function($child) { return $child->attendances->where('date', today())->where('status', 'present')->count(); }) : 0 }}</h2>
+            <h2>{{ $attendanceToday ?? 0 }}</h2>
         </div>
         <div class="card">
             <h3>💳 Invoice</h3>
@@ -394,6 +418,29 @@
                 </thead>
                 <tbody>
                     @foreach($children as $index => $child)
+                        @php
+                            // 🔥🔥🔥 STATUS LOGIC - BETUL 🔥🔥🔥
+                            $today = \Carbon\Carbon::now('Asia/Kuala_Lumpur')->toDateString();
+                            $attendance = \App\Models\Attendance::where('child_id', $child->id)
+                                ->whereDate('date', $today)
+                                ->first();
+                            
+                            if ($attendance) {
+                                if ($attendance->checkout_time || $attendance->status === 'checkout' || $attendance->status === 'late_checkout') {
+                                    $statusText = 'Checked Out';
+                                    $statusClass = 'status-checkedout';
+                                } elseif ($attendance->checkin_time || $attendance->status === 'present' || $attendance->status === 'late') {
+                                    $statusText = 'Checked In';
+                                    $statusClass = 'status-checkedin';
+                                } else {
+                                    $statusText = 'Pending';
+                                    $statusClass = 'status-pending';
+                                }
+                            } else {
+                                $statusText = 'Pending';
+                                $statusClass = 'status-pending';
+                            }
+                        @endphp
                         <tr>
                             <td>{{ $index + 1 }}</td>
                             <td>
@@ -402,16 +449,9 @@
                             </td>
                             <td>{{ $child->classroom->name ?? 'Not assigned' }}</td>
                             <td>
-                                @php
-                                    $todayStatus = $child->attendances->where('date', today())->first();
-                                @endphp
-                                @if($todayStatus)
-                                    <span class="status-badge status-{{ $todayStatus->status }}">
-                                        {{ ucfirst($todayStatus->status) }}
-                                    </span>
-                                @else
-                                    <span class="status-badge status-pending">Pending</span>
-                                @endif
+                                <span class="status-badge {{ $statusClass }}">
+                                    {{ $statusText }}
+                                </span>
                             </td>
                         </tr>
                     @endforeach

@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;  // ⭐ TAMBAH INI
 
 class ParentDashboardController extends Controller
 {
@@ -33,17 +34,14 @@ class ParentDashboardController extends Controller
             }
         }
         
-        // SECOND PARENT - GUNA SECOND PARENT UNTUK NAMA
+        // SECOND PARENT
         if ($user->role === 'parent2') {
             $secondParent = SecondParent::where('user_id', Auth::id())->first();
             if ($secondParent) {
-                // Dapatkan children dari main parent
                 $mainParent = ParentModel::find($secondParent->parent_id);
                 if ($mainParent) {
                     $children = $mainParent->children;
                 }
-                // ✅ SECOND PARENT GUNA NAMA SENDIRI
-                // $secondParent dah ada nama dia sendiri
             } else {
                 return redirect()->route('profile.edit')->with('error', 'Sila lengkapkan profil second parent anda.');
             }
@@ -64,22 +62,58 @@ class ParentDashboardController extends Controller
         }
 
         $totalChildren = $children->count();
+        $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
         
-        $todayAttendance = Attendance::whereIn('child_id', $children->pluck('id'))
-            ->whereDate('date', today())
-            ->get();
+        // 🔥 AMBIL ATTENDANCE HARI INI UNTUK SEMUA ANAK (SATU QUERY)
+        $childIds = $children->pluck('id')->toArray();
+        $attendances = Attendance::whereIn('child_id', $childIds)
+            ->whereDate('date', $today)
+            ->get()
+            ->keyBy('child_id');
+        
+        // 🔥 KIRA ATTENDANCE TODAY (CHECKED IN SAHAJA)
+        $attendanceToday = $attendances->filter(function($att) {
+            return $att->checkin_time && !$att->checkout_time;
+        })->count();
+        
+        // 🔥 UPDATE STATUS UNTUK SETIAP ANAK
+        foreach ($children as $child) {
+            $att = $attendances->get($child->id);
+            
+            if ($att) {
+                // 🔥 SEMAK STATUS DARI DATABASE
+                if ($att->checkout_time || $att->status === 'checkout' || $att->status === 'late_checkout') {
+                    $child->status_today = 'Checked Out';
+                    $child->status_class = 'checkout';
+                    $child->status_color = 'bg-yellow-100 text-yellow-800';
+                } elseif ($att->checkin_time || $att->status === 'present' || $att->status === 'late') {
+                    $child->status_today = 'Checked In';
+                    $child->status_class = 'checkin';
+                    $child->status_color = 'bg-green-100 text-green-800';
+                } else {
+                    $child->status_today = 'Pending';
+                    $child->status_class = 'pending';
+                    $child->status_color = 'bg-gray-100 text-gray-800';
+                }
+            } else {
+                $child->status_today = 'Pending';
+                $child->status_class = 'pending';
+                $child->status_color = 'bg-gray-100 text-gray-800';
+            }
+        }
         
         $unreadNotifications = 0;
 
-        return view('parent.dashboard', compact(
-            'parent',
-            'secondParent',
-            'guardian',
-            'children',
-            'totalChildren',
-            'todayAttendance',
-            'unreadNotifications'
-        ));
+       return view('parent.dashboard', compact(
+    'parent',
+    'secondParent',
+    'guardian',
+    'children',
+    'totalChildren',
+    'attendanceToday',      // ⭐ GUNA NI (bukan todayAttendance)
+    'unreadNotifications'
+));
+
     }
 
     public function children()
@@ -89,6 +123,7 @@ class ParentDashboardController extends Controller
         $secondParent = null;
         $guardian = null;
         $children = collect();
+        $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
 
         if (in_array($user->role, ['parent', 'parent1'])) {
             $parent = ParentModel::where('user_id', Auth::id())->first();
@@ -111,6 +146,33 @@ class ParentDashboardController extends Controller
             $guardian = Guardian::where('user_id', Auth::id())->first();
             if ($guardian) {
                 $children = $guardian->children()->with('classroom')->get();
+            }
+        }
+        
+        // 🔥 UPDATE STATUS UNTUK SETIAP ANAK
+        $childIds = $children->pluck('id')->toArray();
+        $attendances = Attendance::whereIn('child_id', $childIds)
+            ->whereDate('date', $today)
+            ->get()
+            ->keyBy('child_id');
+        
+        foreach ($children as $child) {
+            $att = $attendances->get($child->id);
+            
+            if ($att) {
+                if ($att->checkout_time || $att->status === 'checkout' || $att->status === 'late_checkout') {
+                    $child->status_today = 'Checked Out';
+                    $child->status_color = 'bg-yellow-100 text-yellow-800';
+                } elseif ($att->checkin_time || $att->status === 'present' || $att->status === 'late') {
+                    $child->status_today = 'Checked In';
+                    $child->status_color = 'bg-green-100 text-green-800';
+                } else {
+                    $child->status_today = 'Pending';
+                    $child->status_color = 'bg-gray-100 text-gray-800';
+                }
+            } else {
+                $child->status_today = 'Pending';
+                $child->status_color = 'bg-gray-100 text-gray-800';
             }
         }
 
