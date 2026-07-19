@@ -85,11 +85,10 @@
     <div class="qr-card">
         <h2>📱 QR Code Check-in / Check-out</h2>
         <p>Scan QR code ini untuk check in / check out</p>
-        
 @php
-    $scanUrl = 'https://acer-bit-rivers-powerful.trycloudflare.com/attendance/scan';
+    $scanUrl = 'https://photo-routers-clinics-documented.trycloudflare.com/attendance/search';
 @endphp
-        
+
         <div class="qr-code">
             <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ urlencode($scanUrl) }}" alt="QR Code">
         </div>
@@ -101,16 +100,18 @@
         
         <a href="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data={{ urlencode($scanUrl) }}" 
            download="qrcode-attendance.png" 
-           class="btn-download" style="margin-top:15px">
+           class="btn-download">
             ⬇️ Download QR Code
         </a>
 
         <div class="info-box">
-            ✅ Parents boleh scan guna <strong>data sendiri</strong> — tak perlu WiFi taska
+            ✅ Parents boleh scan guna <strong>data sendiri</strong> — tak perlu WiFi taska<br>
+            ✅ Boleh scan dari rumah, kedai, mana-mana sahaja!
         </div>
 
         <div class="warning-box">
-            ⚠️ Jangan tutup terminal cloudflare — URL akan bertukar kalau restart
+            ⚠️ URL ini hanya valid selagi terminal cloudflared dibuka.<br>
+            ⚠️ Jangan tutup terminal yang running cloudflared!
         </div>
     </div>
 </div>

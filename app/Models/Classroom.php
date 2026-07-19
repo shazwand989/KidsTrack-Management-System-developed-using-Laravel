@@ -32,7 +32,9 @@ class Classroom extends Model
         'capacity' => 'integer'
     ];
 
-    // Relationships
+    // ============================================
+    // RELATIONSHIPS
+    // ============================================
     public function teacher()
     {
         return $this->belongsTo(Teacher::class);
@@ -43,36 +45,39 @@ class Classroom extends Model
         return $this->hasMany(Child::class);
     }
 
-    // Helper Methods - Statistics
+    // ============================================
+    // HELPER METHODS - STATISTICS
+    // ============================================
     public function getTotalChildrenAttribute()
     {
-        return $this->children()->count();
+        return $this->children()->where('is_active', true)->count();
     }
 
     public function getTotalPresentAttribute()
     {
-        return $this->children()->whereHas('attendances', function($q) {
-            $q->whereDate('date', today())->where('status', 'present');
-        })->count();
+        $today = now('Asia/Kuala_Lumpur')->toDateString();
+        return $this->children()
+            ->whereHas('attendances', function($q) use ($today) {
+                $q->whereDate('date', $today)
+                  ->whereIn('status', ['present', 'checkin', 'late']);
+            })
+            ->count();
     }
 
-    public function getTotalDropOffAttribute()
+    public function getTotalCheckoutAttribute()
     {
-        return $this->children()->whereHas('attendances', function($q) {
-            $q->whereDate('date', today())->whereNotNull('drop_off_time');
-        })->count();
+        $today = now('Asia/Kuala_Lumpur')->toDateString();
+        return $this->children()
+            ->whereHas('attendances', function($q) use ($today) {
+                $q->whereDate('date', $today)
+                  ->where('status', 'checkout');
+            })
+            ->count();
     }
 
-    public function getTotalPickupAttribute()
+    public function getTotalAbsentAttribute()
     {
-        return $this->children()->whereHas('attendances', function($q) {
-            $q->whereDate('date', today())->whereNotNull('pickup_time');
-        })->count();
-    }
-
-    public function getTotalNotPickupAttribute()
-    {
-        return $this->getTotalPresentAttribute() - $this->getTotalPickupAttribute();
+        return $this->getTotalChildrenAttribute() - $this->getTotalPresentAttribute();
     }
 
     public function getCapacityPercentageAttribute()
@@ -94,9 +99,16 @@ class Classroom extends Model
         return '❌ Inactive';
     }
 
-    // Scopes
+    // ============================================
+    // SCOPES
+    // ============================================
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
+    }
+
+    public function scopeInactive($query)
+    {
+        return $query->where('status', 'inactive');
     }
 }

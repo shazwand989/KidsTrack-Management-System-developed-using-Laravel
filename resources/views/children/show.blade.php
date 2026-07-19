@@ -171,7 +171,6 @@
         background: rgba(255,255,255,0.3);
     }
 
-    /* Content Sections */
     .content-section {
         padding: 28px;
     }
@@ -298,6 +297,10 @@
         font-weight: 800;
         color: #1e293b;
         margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
     }
 
     .parent-phone {
@@ -346,6 +349,111 @@
         font-style: italic;
     }
 
+    .qr-code-container {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        padding: 10px 0;
+        flex-wrap: wrap;
+    }
+
+    .qr-code-box {
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        border: 2px solid #e5e7eb;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .qr-code-box img {
+        width: 150px;
+        height: 150px;
+    }
+
+    .qr-details {
+        flex: 1;
+    }
+
+    .qr-details .qr-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .qr-details .qr-value {
+        color: #6b7280;
+        font-size: 13px;
+        word-break: break-all;
+        display: block;
+        background: #f3f4f6;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin-top: 4px;
+    }
+
+    .qr-details .qr-value a {
+        color: #6d28d9;
+        text-decoration: none;
+    }
+
+    .qr-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-qr {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    .btn-qr.btn-success {
+        background: #16a34a;
+        color: white;
+    }
+
+    .btn-qr.btn-success:hover {
+        background: #15803d;
+    }
+
+    .btn-qr.btn-primary {
+        background: #6d28d9;
+        color: white;
+    }
+
+    .btn-qr.btn-primary:hover {
+        background: #5b21b6;
+    }
+
+    .btn-qr.btn-secondary {
+        background: #6b7280;
+        color: white;
+    }
+
+    .btn-qr.btn-secondary:hover {
+        background: #4b5563;
+    }
+
+    .btn-qr.btn-warning {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .btn-qr.btn-warning:hover {
+        background: #d97706;
+    }
+
     @media (max-width: 768px) {
         .info-grid {
             grid-template-columns: 1fr;
@@ -364,6 +472,7 @@
             margin-left: 0;
             width: 100%;
             justify-content: center;
+            flex-wrap: wrap;
         }
         
         .info-row {
@@ -374,6 +483,11 @@
         
         .info-value {
             text-align: left;
+        }
+
+        .qr-code-container {
+            flex-direction: column;
+            align-items: center;
         }
     }
 </style>
@@ -395,11 +509,17 @@
                 <div class="profile-info">
                     <h1>{{ $child->name }}</h1>
                     <p><span>🆔</span> IC: {{ $child->ic_number }}</p>
-                    <p><span>📅</span> {{ $child->dob ? $child->dob->format('d M Y') . ' (' . $child->age . ' years old)' : $child->age . ' years old' }}</p>
+                    <p><span>📅</span> 
+                        @if($child->dob)
+                            {{ \Carbon\Carbon::parse($child->dob)->format('d M Y') }} ({{ $child->age }} years old)
+                        @else
+                            {{ $child->age }} years old
+                        @endif
+                    </p>
                     
                     <div class="profile-badges">
                         <span class="badge-nursery">
-                            <span>🏫</span> {{ $child->nursery_type_label }}
+                            <span>🏫</span> {{ $child->classroom->name ?? 'No Classroom' }}
                         </span>
                         <span class="status-badge {{ $child->is_active ? 'active' : 'inactive' }}">
                             {{ $child->is_active ? '✅ Active' : '❌ Inactive' }}
@@ -445,7 +565,7 @@
                     @if($child->dob)
                     <div class="info-row">
                         <div class="info-label"><span>🎂</span> Date of Birth</div>
-                        <div class="info-value">{{ $child->dob->format('d M Y') }}</div>
+                        <div class="info-value">{{ \Carbon\Carbon::parse($child->dob)->format('d M Y') }}</div>
                     </div>
                     @endif
                 </div>
@@ -462,24 +582,26 @@
                     </div>
                 </div>
                 
-                {{-- Nursery Information --}}
+                {{-- Classroom Information --}}
                 <div class="info-card">
                     <div class="info-card-header">
                         <span>🏫</span>
-                        <h3>Nursery Information</h3>
+                        <h3>Classroom Information</h3>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📋</span> Nursery Type</div>
-                        <div class="info-value">{{ $child->nursery_type_label }}</div>
+                        <div class="info-label"><span>📋</span> Classroom</div>
+                        <div class="info-value">{{ $child->classroom->name ?? 'Not Assigned' }}</div>
+                    </div>
+                    @if($child->classroom)
+                    <div class="info-row">
+                        <div class="info-label"><span>📅</span> Age Group</div>
+                        <div class="info-value">{{ $child->classroom->min_age }}-{{ $child->classroom->max_age }} yrs</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📅</span> Enrollment Date</div>
-                        <div class="info-value">{{ $child->enrollment_date ? $child->enrollment_date->format('d M Y') : '-' }}</div>
+                        <div class="info-label"><span>🆔</span> Classroom Code</div>
+                        <div class="info-value">{{ $child->classroom->code ?? '-' }}</div>
                     </div>
-                    <div class="info-row">
-                        <div class="info-label"><span>⚙️</span> Status</div>
-                        <div class="info-value">{{ $child->is_active ? 'Active' : 'Inactive' }}</div>
-                    </div>
+                    @endif
                 </div>
                 
                 {{-- Enrollment Details --}}
@@ -499,6 +621,10 @@
                     <div class="info-row">
                         <div class="info-label"><span>🔄</span> Last Updated</div>
                         <div class="info-value">{{ $child->updated_at->format('d M Y, h:i A') }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label"><span>⚙️</span> Status</div>
+                        <div class="info-value">{{ $child->is_active ? 'Active' : 'Inactive' }}</div>
                     </div>
                 </div>
             </div>
@@ -530,7 +656,7 @@
                     </div>
                 </div>
                 
-                {{-- Second Parent --}}
+                {{-- SECOND PARENT --}}
                 @if($child->secondParent)
                 <div class="parent-card">
                     <div class="parent-avatar">
@@ -594,8 +720,66 @@
                 </div>
                 @endif
             </div>
+
+            {{-- QR CODE SECTION --}}
+            <div class="info-card" style="margin-bottom: 20px;">
+                <div class="info-card-header">
+                    <span>📱</span>
+                    <h3>QR Code</h3>
+                </div>
+                
+                <div class="qr-code-container">
+                    <div class="qr-code-box">
+                        @if($child->qr_code)
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode($child->qr_code) }}" 
+                                 alt="QR Code">
+                            <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+                                Scan for check-in/out
+                            </div>
+                        @else
+                            <div style="padding: 30px; text-align: center; color: #9ca3af;">
+                                <div style="font-size: 40px;">📱</div>
+                                <p style="margin: 10px 0;">No QR Code generated</p>
+                                <a href="{{ route('child.qr.generate', $child->id) }}" class="btn-qr btn-primary">
+                                    Generate QR Code
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                    
+                    @if($child->qr_code)
+                    <div class="qr-details">
+                        <div style="margin-bottom: 8px;">
+                            <span class="qr-label">QR Data:</span>
+                            <span class="qr-value">{{ $child->qr_code }}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <span class="qr-label">QR URL:</span>
+                            <span class="qr-value">
+                                <a href="{{ $child->qr_code_url ?? url('/scan-qr/'.$child->qr_code) }}" target="_blank">
+                                    {{ $child->qr_code_url ?? url('/scan-qr/'.$child->qr_code) }}
+                                </a>
+                            </span>
+                        </div>
+                        <div class="qr-actions">
+                            <a href="{{ route('child.qr.download', $child->id) }}" class="btn-qr btn-success">
+                                📥 Download PNG
+                            </a>
+                            <a href="{{ route('child.qr.show', $child->id) }}" class="btn-qr btn-primary">
+                                🔍 View Full QR
+                            </a>
+                            <button onclick="printQR()" class="btn-qr btn-secondary">
+                                🖨️ Print QR
+                            </button>
+                            <a href="{{ route('child.qr.generate', $child->id) }}" class="btn-qr btn-warning">
+                                🔄 Regenerate QR
+                            </a>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+            </div>
             
-            {{-- Additional Information --}}
             @if($child->medical_notes || $child->dietary)
             <div class="additional-section">
                 <div class="additional-title">
@@ -626,5 +810,21 @@
     </div>
     
 </div>
+
+<script>
+function printQR() {
+    var qrContent = document.querySelector('.qr-code-box').innerHTML;
+    var printWindow = window.open('', '', 'height=400,width=400');
+    printWindow.document.write('<html><head><title>Print QR Code</title>');
+    printWindow.document.write('<style>body{text-align:center;padding:20px;font-family:Arial,sans-serif;}img{max-width:300px;}</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<h2>QR Code - {{ $child->name }}</h2>');
+    printWindow.document.write(qrContent);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+}
+</script>
 
 @endsection

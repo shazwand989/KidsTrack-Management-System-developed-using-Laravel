@@ -1,7 +1,7 @@
 @extends('layouts.template')
 
-@section('title', 'Parents List')
-@section('page-title', 'Parents')
+@section('title', 'Loving Guardians')
+@section('page-title', 'Loving Guardians')
 
 @section('content')
 
@@ -11,6 +11,8 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 24px;
+        flex-wrap: wrap;
+        gap: 15px;
     }
 
     .pg-header-left h2 {
@@ -62,7 +64,7 @@
         cursor: pointer;
     }
 
-    .btn-register:hover { opacity: .9; color: white; transform: translateY(-1px); }
+    .btn-register:hover { opacity: .9; transform: translateY(-1px); }
 
     .stat-row {
         display: grid;
@@ -84,23 +86,21 @@
     }
 
     .stat-card:hover { transform: translateY(-3px); }
-    .stat-card.pink  { border-left-color: #FF6B6B; }
-    .stat-card.rose  { border-left-color: #f43f5e; }
-    .stat-card.blue  { border-left-color: #3b82f6; }
-    .stat-card.amber { border-left-color: #f59e0b; }
 
     .stat-icon {
         width: 46px; height: 46px;
         border-radius: 13px;
-        display: flex; align-items: center; justify-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 20px;
         flex-shrink: 0;
     }
 
-    .stat-icon.pink  { background: #FFF5F2; color: #FF6B6B; }
-    .stat-icon.rose  { background: #fff1f2; color: #f43f5e; }
-    .stat-icon.blue  { background: #eff6ff; color: #3b82f6; }
-    .stat-icon.amber { background: #fffbeb; color: #f59e0b; }
+    .stat-icon.pink { background: #FFF5F2; color: #FF6B6B; }
+    .stat-icon.blue { background: #eff6ff; color: #3b82f6; }
+    .stat-icon.green { background: #f0fdf4; color: #16a34a; }
+    .stat-icon.orange { background: #fffbeb; color: #f59e0b; }
 
     .stat-num { font-size: 26px; font-weight: 800; color: #1e293b; line-height: 1; margin-bottom: 3px; }
     .stat-label { font-size: 12px; color: #94a3b8; font-weight: 600; }
@@ -115,9 +115,10 @@
         gap: 12px;
         margin-bottom: 20px;
         border: 1px solid #FFF0EC;
+        flex-wrap: wrap;
     }
 
-    .search-wrap { flex: 1; position: relative; }
+    .search-wrap { flex: 1; position: relative; min-width: 200px; }
 
     .search-wrap span {
         position: absolute;
@@ -136,8 +137,6 @@
         font-size: 13px;
         color: #1e293b;
         outline: none;
-        transition: .2s;
-        font-family: 'Inter', sans-serif;
         background: #fffcfb;
     }
 
@@ -152,23 +151,26 @@
         font-weight: 600;
         outline: none;
         background: #fffcfb;
-        font-family: 'Inter', sans-serif;
         cursor: pointer;
-        min-width: 150px;
+        min-width: 140px;
     }
 
-    .filter-select:focus { border-color: #FF9E7D; }
     .record-count { font-size: 13px; font-weight: 700; color: #94a3b8; white-space: nowrap; }
 
     .table-card {
         background: white;
         border-radius: 20px;
         box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-        overflow: hidden;
+        overflow-x: auto;
         border: 1px solid #FFF0EC;
     }
 
-    .pg-table { width: 100%; border-collapse: collapse; }
+    .pg-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 900px;
+    }
+
     .pg-table thead tr { background: #FFF5F2; }
 
     .pg-table thead th {
@@ -185,43 +187,29 @@
     .pg-table tbody tr { border-bottom: 1px solid #FFF5F2; transition: background .15s; cursor: pointer; }
     .pg-table tbody tr:last-child { border-bottom: none; }
     .pg-table tbody tr:hover { background: #FFFAF9; }
-
     .pg-table tbody td { padding: 14px 18px; font-size: 13px; color: #475569; border: none; vertical-align: middle; }
 
-    .guardian-cell { display: flex; align-items: center; gap: 12px; }
+    .parent-cell { display: flex; align-items: center; gap: 12px; }
 
-    .guardian-avatar {
-        width: 40px; height: 40px;
-        border-radius: 11px;
+    .parent-avatar {
+        width: 45px; height: 45px;
+        border-radius: 12px;
         background: linear-gradient(135deg, #FF6B6B, #FF9E7D);
         color: white;
         font-size: 16px;
         font-weight: 800;
-        display: flex; align-items: center; justify-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         text-transform: uppercase;
         flex-shrink: 0;
         overflow: hidden;
     }
 
-    .guardian-avatar img { width:100%; height:100%; object-fit:cover; }
+    .parent-avatar img { width:100%; height:100%; object-fit:cover; }
 
-    .guardian-name { font-weight: 700; color: #1e293b; font-size: 13px; margin: 0 0 2px; }
-    .guardian-sub { font-size: 11px; color: #94a3b8; margin: 0; }
-
-    .relation-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 700;
-    }
-
-    .relation-badge.mother   { background: #fff1f2; color: #f43f5e; }
-    .relation-badge.father   { background: #eff6ff; color: #3b82f6; }
-    .relation-badge.guardian { background: #f0fdf4; color: #16a34a; }
-    .relation-badge.other    { background: #FFF5F2; color: #FF6B6B; }
+    .parent-name { font-weight: 800; color: #1e293b; font-size: 14px; margin: 0 0 2px; }
+    .parent-sub { font-size: 11px; color: #94a3b8; margin: 0; }
 
     .status-badge {
         display: inline-flex;
@@ -233,22 +221,26 @@
         font-weight: 700;
     }
 
-    .status-badge.verified   { background: #f0fdf4; color: #16a34a; }
-    .status-badge.unverified { background: #FFF5F2; color: #FF6B6B; }
-    .status-badge.emergency  { background: #fffbeb; color: #d97706; }
+    .status-badge.verified { background: #f0fdf4; color: #16a34a; }
+    .status-badge.pending { background: #fffbeb; color: #d97706; }
+    .status-badge.emergency { background: #fef2f2; color: #dc2626; }
 
-    .qr-badge {
+    .relation-badge {
         display: inline-flex;
         align-items: center;
-        gap: 5px;
-        padding: 5px 10px;
-        border-radius: 10px;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 20px;
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 600;
         background: #f8fafc;
         color: #64748b;
         border: 1px solid #e2e8f0;
     }
+
+    .relation-badge.main { background: #eff6ff; color: #3b82f6; border-color: #bfdbfe; }
+    .relation-badge.second { background: #f0fdf4; color: #16a34a; border-color: #bbf7d0; }
+    .relation-badge.guardian { background: #fef3c7; color: #d97706; border-color: #fde68a; }
 
     .action-btns { display: flex; gap: 6px; }
 
@@ -256,7 +248,9 @@
         width: 32px; height: 32px;
         border-radius: 9px;
         border: none;
-        display: flex; align-items: center; justify-content: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         font-size: 13px;
         cursor: pointer;
         text-decoration: none;
@@ -274,8 +268,7 @@
     .empty-icon { font-size: 52px; color: #FFD4C8; margin-bottom: 16px; }
     .empty-state h5 { font-size: 16px; font-weight: 700; color: #1e293b; margin-bottom: 6px; }
     .empty-state p { font-size: 13px; color: #94a3b8; margin-bottom: 20px; }
-    .empty-state a { color: #FF6B6B; font-weight: 700; text-decoration: none; font-size: 14px; }
-    .empty-state a:hover { text-decoration: underline; }
+    .empty-state a { color: #FF6B6B; font-weight: 700; text-decoration: none; }
 
     .table-footer {
         padding: 14px 20px;
@@ -283,6 +276,10 @@
         font-size: 12px;
         color: #94a3b8;
         font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     .alert-success {
@@ -295,12 +292,18 @@
         color: #16a34a;
         font-weight: 700;
     }
+
+    @media (max-width: 768px) {
+        .stat-row { grid-template-columns: repeat(2, 1fr); }
+        .filter-bar { flex-direction: column; align-items: stretch; }
+        .record-count { text-align: center; }
+    }
 </style>
 
-{{-- Alert --}}
+{{-- Alert Success --}}
 @if(session('success'))
 <div class="alert-success">
-    <span style="margin-right:6px;">✅</span>{{ session('success') }}
+    <span>✅</span> {{ session('success') }}
 </div>
 @endif
 
@@ -308,50 +311,50 @@
 <div class="pg-header">
     <div class="pg-header-left">
         <h2><span>👨‍👩‍👧‍👦</span> Loving Guardians</h2>
-        <p>Registered parents & guardians in the system</p>
+        <p>View, update, and manage parent and guardian records.</p>
     </div>
     <div class="pg-header-right">
         <a href="#" class="btn-export">
             <span>⬇️</span> Export CSV
         </a>
         <a href="{{ route('parents.create') }}" class="btn-register">
-            <span>➕</span> Register Guardian
+            <span>➕</span> Register Parent
         </a>
     </div>
 </div>
 
 {{-- Stat Cards --}}
 @php
-    $total     = $parents->count();
-    $mothers   = $parents->where('relation', 'mother')->count();
-    $fathers   = $parents->where('relation', 'father')->count();
-    $emergency = $parents->where('emergency', 1)->count();
+    $total = $parents->count();
+    $verified = $parents->where('verified', true)->count();
+    $emergency = $parents->where('emergency', true)->count();
+    $pending = $parents->where('verified', false)->count();
 @endphp
 
 <div class="stat-row">
-    <div class="stat-card pink">
-        <div class="stat-icon pink"><span>👥</span></div>
+    <div class="stat-card">
+        <div class="stat-icon pink"><span>👨‍👩‍👧‍👦</span></div>
         <div>
             <div class="stat-num">{{ $total }}</div>
-            <div class="stat-label">Total Guardians</div>
+            <div class="stat-label">Total Parents</div>
         </div>
     </div>
-    <div class="stat-card rose">
-        <div class="stat-icon rose"><span>👩</span></div>
+    <div class="stat-card">
+        <div class="stat-icon green"><span>✅</span></div>
         <div>
-            <div class="stat-num">{{ $mothers }}</div>
-            <div class="stat-label">Mothers</div>
+            <div class="stat-num">{{ $verified }}</div>
+            <div class="stat-label">Verified</div>
         </div>
     </div>
-    <div class="stat-card blue">
-        <div class="stat-icon blue"><span>👨</span></div>
+    <div class="stat-card">
+        <div class="stat-icon orange"><span>⏳</span></div>
         <div>
-            <div class="stat-num">{{ $fathers }}</div>
-            <div class="stat-label">Fathers</div>
+            <div class="stat-num">{{ $pending }}</div>
+            <div class="stat-label">Pending</div>
         </div>
     </div>
-    <div class="stat-card amber">
-        <div class="stat-icon amber"><span>⚠️</span></div>
+    <div class="stat-card">
+        <div class="stat-icon blue"><span>🚨</span></div>
         <div>
             <div class="stat-num">{{ $emergency }}</div>
             <div class="stat-label">Emergency Contact</div>
@@ -364,20 +367,13 @@
     <div class="search-wrap">
         <span>🔍</span>
         <input type="text" class="search-input" id="searchInput"
-            placeholder="Search name, phone...">
+            placeholder="Search name, phone, email...">
     </div>
-    <select class="filter-select" id="filterRelation">
-        <option value="">All Relations</option>
-        <option value="mother">Mother</option>
-        <option value="father">Father</option>
-        <option value="guardian">Guardian</option>
-        <option value="other">Other</option>
-    </select>
     <select class="filter-select" id="filterStatus">
         <option value="">All Status</option>
-        <option value="verified">Verified</option>
-        <option value="unverified">Unverified</option>
-        <option value="emergency">Emergency</option>
+        <option value="verified">✅ Verified</option>
+        <option value="pending">⏳ Pending</option>
+        <option value="emergency">🚨 Emergency</option>
     </select>
     <span class="record-count" id="recordCount">{{ $total }} records</span>
 </div>
@@ -388,12 +384,11 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th>Guardian</th>
-                <th>Relation</th>
+                <th>Parent / Guardian</th>
                 <th>Phone</th>
-                <th>Second Parent</th>
+                <th>Email</th>
+                <th>Type</th>
                 <th>Status</th>
-                <th>QR Check-in</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -401,87 +396,70 @@
             @forelse($parents as $i => $parent)
             <tr>
                 <td style="color:#94a3b8; font-weight:700;">{{ $i + 1 }}</td>
-
-                {{-- Guardian --}}
+                
+                {{-- Parent Info --}}
                 <td>
-                    <div class="guardian-cell">
-                        <div class="guardian-avatar">
+                    <div class="parent-cell">
+                        <div class="parent-avatar">
                             @if($parent->photo)
-                                <img src="{{ asset('storage/'.$parent->photo) }}" alt="">
+                                <img src="{{ Storage::url($parent->photo) }}" alt="">
                             @else
                                 {{ strtoupper(substr($parent->name, 0, 1)) }}
                             @endif
                         </div>
                         <div>
-                            <p class="guardian-name">{{ $parent->name }}</p>
-                            <p class="guardian-sub">{{ $parent->age ? $parent->age.' yrs' : '' }}{{ $parent->age && $parent->phone ? ' · ' : '' }}{{ $parent->phone ?? '' }}</p>
+                            <p class="parent-name">{{ $parent->name }}</p>
+                            <p class="parent-sub">ID: #{{ str_pad($parent->id, 4, '0', STR_PAD_LEFT) }}</p>
                         </div>
                     </div>
                 </td>
-
-                {{-- Relation --}}
-                <td>
-                    @php $rel = strtolower($parent->relation ?? 'other'); @endphp
-                    <span class="relation-badge {{ $rel }}">
-                        @if($rel === 'mother')
-                            <span>👩</span> Mother
-                        @elseif($rel === 'father')
-                            <span>👨</span> Father
-                        @elseif($rel === 'guardian')
-                            <span>🛡️</span> Guardian
-                        @else
-                            <span>👤</span> {{ ucfirst($rel) ?: 'Other' }}
-                        @endif
-                    </span>
-                </td>
-
+                
                 {{-- Phone --}}
                 <td>{{ $parent->phone ?? '-' }}</td>
-
-                {{-- Second Parent --}}
+                
+                {{-- Email --}}
+                <td>{{ $parent->user->email ?? '-' }}</td>
+                
+                {{-- Type --}}
                 <td>
-                    @if($parent->secondParent)
-                        <div class="guardian-cell">
-                            <div class="guardian-avatar" style="width:30px;height:30px;font-size:12px;border-radius:8px;">
-                                @if($parent->secondParent->photo)
-                                    <img src="{{ asset('storage/'.$parent->secondParent->photo) }}" alt="">
-                                @else
-                                    {{ strtoupper(substr($parent->secondParent->name, 0, 1)) }}
-                                @endif
-                            </div>
-                            <span style="font-size:12px; color:#475569; font-weight:600;">
-                                {{ $parent->secondParent->name }}
-                            </span>
-                        </div>
-                    @else
-                        <span style="font-size:12px; color:#cbd5e1;">—</span>
-                    @endif
-                </td>
-
-                {{-- Status --}}
-                <td>
-                    @if($parent->emergency)
-                        <span class="status-badge emergency">
-                            <span>⚠️</span> Emergency
-                        </span>
-                    @elseif($parent->verified)
-                        <span class="status-badge verified">
-                            <span>✅</span> Verified
-                        </span>
-                    @else
-                        <span class="status-badge unverified">
-                            <span>⏰</span> Unverified
-                        </span>
-                    @endif
-                </td>
-
-                {{-- QR --}}
-                <td>
-                    <span class="qr-badge">
-                        <span>📱</span> QR-{{ str_pad($parent->id, 4, '0', STR_PAD_LEFT) }}
+                    @php
+                        $type = 'parent';
+                        $typeLabel = 'Parent';
+                        $typeClass = 'main';
+                        
+                        if ($parent->user) {
+                            if ($parent->user->role == 'parent2') {
+                                $type = 'second';
+                                $typeLabel = 'Second Parent';
+                                $typeClass = 'second';
+                            } elseif ($parent->user->role == 'guardian') {
+                                $type = 'guardian';
+                                $typeLabel = 'Guardian';
+                                $typeClass = 'guardian';
+                            }
+                        }
+                    @endphp
+                    <span class="relation-badge {{ $typeClass }}">
+                        @if($typeClass == 'main') 👨‍👩‍👦
+                        @elseif($typeClass == 'second') 👫
+                        @elseif($typeClass == 'guardian') 🛡️
+                        @endif
+                        {{ $typeLabel }}
                     </span>
                 </td>
-
+                
+                {{-- Status --}}
+                <td>
+                    @if($parent->verified)
+                        <span class="status-badge verified">✅ Verified</span>
+                    @else
+                        <span class="status-badge pending">⏳ Pending</span>
+                    @endif
+                    @if($parent->emergency)
+                        <span class="status-badge emergency">🚨 Emergency</span>
+                    @endif
+                </td>
+                
                 {{-- Actions --}}
                 <td>
                     <div class="action-btns">
@@ -498,7 +476,7 @@
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="act-btn delete" title="Delete"
-                                onclick="return confirm('Delete {{ addslashes($parent->name) }}?')">
+                                onclick="return confirm('Delete {{ addslashes($parent->name) }}? This action cannot be undone.')">
                                 <span>🗑️</span>
                             </button>
                         </form>
@@ -507,14 +485,12 @@
             </tr>
             @empty
             <tr>
-                <td colspan="8">
+                <td colspan="7">
                     <div class="empty-state">
-                        <div class="empty-icon">
-                            <span>👨‍👩‍👧‍👦</span>
-                        </div>
-                        <h5>No records found.</h5>
-                        <p>Start by registering your first guardian.</p>
-                        <a href="{{ route('parents.create') }}">+ Register new guardian</a>
+                        <div class="empty-icon">👨‍👩‍👧‍👦</div>
+                        <h5>No parents registered yet</h5>
+                        <p>Start by registering your first parent to the nursery.</p>
+                        <a href="{{ route('parents.create') }}">➕ Register New Parent</a>
                     </div>
                 </td>
             </tr>
@@ -525,30 +501,31 @@
     @if($parents->count() > 0)
     <div class="table-footer">
         <span>ℹ️</span>
-        Click any row to view full profile &nbsp;·&nbsp; {{ $total }} total records
+        <span>Click any row to view full profile</span>
+        <span>{{ $total }} total parents</span>
     </div>
     @endif
 </div>
 
 <script>
+    // Search and Filter functionality
     document.getElementById('searchInput').addEventListener('input', filterTable);
-    document.getElementById('filterRelation').addEventListener('change', filterTable);
     document.getElementById('filterStatus').addEventListener('change', filterTable);
 
     function filterTable() {
-        const search   = document.getElementById('searchInput').value.toLowerCase();
-        const relation = document.getElementById('filterRelation').value.toLowerCase();
-        const status   = document.getElementById('filterStatus').value.toLowerCase();
-        const rows     = document.querySelectorAll('#tableBody tr');
-        let visible    = 0;
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const status = document.getElementById('filterStatus').value.toLowerCase();
+        const rows = document.querySelectorAll('#tableBody tr');
+        let visible = 0;
 
         rows.forEach(row => {
+            if (row.querySelector('.empty-state')) return;
+            
             const text = row.innerText.toLowerCase();
-            const matchSearch   = text.includes(search);
-            const matchRelation = relation === '' || text.includes(relation);
-            const matchStatus   = status === ''   || text.includes(status);
-
-            if (matchSearch && matchRelation && matchStatus) {
+            const matchSearch = search === '' || text.includes(search);
+            const matchStatus = status === '' || text.includes(status);
+            
+            if (matchSearch && matchStatus) {
                 row.style.display = '';
                 visible++;
             } else {
@@ -557,12 +534,35 @@
         });
 
         document.getElementById('recordCount').textContent = visible + ' records';
+        
+        // Show empty message if no results
+        const tbody = document.getElementById('tableBody');
+        const existingEmpty = tbody.querySelector('.empty-row-message');
+        
+        if (visible === 0 && !existingEmpty && rows.length > 0) {
+            const emptyRow = document.createElement('tr');
+            emptyRow.className = 'empty-row-message';
+            emptyRow.innerHTML = `
+                <td colspan="7">
+                    <div class="empty-state" style="padding: 40px;">
+                        <div class="empty-icon">🔍</div>
+                        <h5>No matching records found</h5>
+                        <p>Try adjusting your search or filter criteria</p>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(emptyRow);
+        } else if (visible > 0 && existingEmpty) {
+            existingEmpty.remove();
+        }
     }
 
+    // Row click to view profile
     document.querySelectorAll('#tableBody tr').forEach(row => {
         row.addEventListener('click', function(e) {
             if (e.target.closest('.action-btns')) return;
-            const viewBtn = row.querySelector('.act-btn.view');
+            if (this.querySelector('.empty-state')) return;
+            const viewBtn = this.querySelector('.act-btn.view');
             if (viewBtn) viewBtn.click();
         });
     });

@@ -286,10 +286,12 @@
     <form action="{{ route('parents.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
 
+    {{-- ============================================ --}}
     {{-- MAIN PARENT --}}
+    {{-- ============================================ --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <i class="fas fa-user"></i> Main Parent
+            <i class="fas fa-user"></i> Main Parent <span class="req">*</span>
         </div>
 
         <div class="card-inner">
@@ -313,6 +315,22 @@
                     <input type="text" name="name" value="{{ old('name') }}"
                         placeholder="e.g. Mrs. Sarah bt Ali">
                     @error('name')<span class="invalid-msg">{{ $message }}</span>@enderror
+                </div>
+
+                {{-- EMAIL MAIN PARENT --}}
+                <div class="rg-group">
+                    <label class="rg-label">Email Address <span class="req">*</span></label>
+                    <input type="email" name="email" value="{{ old('email') }}"
+                        placeholder="sarah@example.com">
+                    @error('email')<span class="invalid-msg">{{ $message }}</span>@enderror
+                </div>
+
+                {{-- PASSWORD MAIN PARENT --}}
+                <div class="rg-group">
+                    <label class="rg-label">Password <span class="req">*</span></label>
+                    <input type="password" name="password" 
+                        placeholder="Min 8 characters">
+                    @error('password')<span class="invalid-msg">{{ $message }}</span>@enderror
                 </div>
 
                 <div class="rg-2col">
@@ -339,10 +357,12 @@
         </div>
     </div>
 
+    {{-- ============================================ --}}
     {{-- SECOND PARENT --}}
+    {{-- ============================================ --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <i class="fas fa-user-friends"></i> Second Parent
+            <i class="fas fa-user-friends"></i> Second Parent (Optional)
         </div>
 
         <div class="card-inner">
@@ -361,6 +381,22 @@
             </div>
 
             <div>
+                {{-- EMAIL SECOND PARENT --}}
+                <div class="rg-group">
+                    <label class="rg-label">Email Address</label>
+                    <input type="email" name="second_email" value="{{ old('second_email') }}"
+                        placeholder="second@example.com">
+                    @error('second_email')<span class="invalid-msg">{{ $message }}</span>@enderror
+                </div>
+
+                {{-- PASSWORD SECOND PARENT --}}
+                <div class="rg-group">
+                    <label class="rg-label">Password</label>
+                    <input type="password" name="second_password" 
+                        placeholder="Min 8 characters">
+                    @error('second_password')<span class="invalid-msg">{{ $message }}</span>@enderror
+                </div>
+
                 <div class="rg-2col">
                     <div>
                         <label class="rg-label">Full Name</label>
@@ -390,10 +426,12 @@
         </div>
     </div>
 
+    {{-- ============================================ --}}
     {{-- GUARDIAN --}}
+    {{-- ============================================ --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <i class="fas fa-shield-alt"></i> Guardian
+            <i class="fas fa-shield-alt"></i> Guardian (Optional)
         </div>
 
         <div class="card-inner">
@@ -412,6 +450,22 @@
             </div>
 
             <div>
+                {{-- EMAIL GUARDIAN --}}
+                <div class="rg-group">
+                    <label class="rg-label">Email Address</label>
+                    <input type="email" name="guardian_email" value="{{ old('guardian_email') }}"
+                        placeholder="guardian@example.com">
+                    @error('guardian_email')<span class="invalid-msg">{{ $message }}</span>@enderror
+                </div>
+
+                {{-- PASSWORD GUARDIAN --}}
+                <div class="rg-group">
+                    <label class="rg-label">Password</label>
+                    <input type="password" name="guardian_password" 
+                        placeholder="Min 8 characters">
+                    @error('guardian_password')<span class="invalid-msg">{{ $message }}</span>@enderror
+                </div>
+
                 <div class="rg-2col">
                     <div>
                         <label class="rg-label">Full Name</label>
@@ -441,7 +495,9 @@
         </div>
     </div>
 
+    {{-- ============================================ --}}
     {{-- SPECIAL SETTINGS --}}
+    {{-- ============================================ --}}
     <div class="rg-card">
         <div class="rg-section-title">
             <i class="fas fa-sliders-h"></i> Special Settings
@@ -449,24 +505,30 @@
 
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
             <label class="check-row">
-                <input type="checkbox" name="verified" {{ old('verified') ? 'checked' : '' }}>
+                {{-- HIDDEN INPUT UNTUK FALSE VALUE --}}
+                <input type="hidden" name="verified" value="0">
+                <input type="checkbox" name="verified" value="1" {{ old('verified') ? 'checked' : '' }}>
                 <div class="check-row-text">
-                    <p>Verified</p>
+                    <p>✅ Verified</p>
                     <small>Identity has been confirmed</small>
                 </div>
             </label>
 
             <label class="check-row" style="margin-bottom:0;">
-                <input type="checkbox" name="emergency" {{ old('emergency') ? 'checked' : '' }}>
+                {{-- HIDDEN INPUT UNTUK FALSE VALUE --}}
+                <input type="hidden" name="emergency" value="0">
+                <input type="checkbox" name="emergency" value="1" {{ old('emergency') ? 'checked' : '' }}>
                 <div class="check-row-text">
-                    <p>Emergency Contact</p>
+                    <p>⚠️ Emergency Contact</p>
                     <small>Contact in case of emergency</small>
                 </div>
             </label>
         </div>
     </div>
 
-    {{-- Actions --}}
+    {{-- ============================================ --}}
+    {{-- ACTIONS --}}
+    {{-- ============================================ --}}
     <div class="rg-actions">
         <button type="submit" class="btn-save">
             <i class="fas fa-save"></i> Save Parent

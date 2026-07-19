@@ -70,6 +70,8 @@
             z-index: 100;
             overflow: hidden;
             display: none;
+            max-height: 300px;
+            overflow-y: auto;
         }
         .dropdown.show { display: block; }
 
@@ -202,6 +204,21 @@
             border-top: 1px solid #f0f0f0;
             margin: 20px 0;
         }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #FF6B6B;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -225,8 +242,9 @@
                 placeholder="Taip nama anak..."
                 autocomplete="off"
                 autofocus
+                onkeyup="searchChild(this.value)"
             >
-            <span id="loadingIcon" style="display:none">⏳</span>
+            <span id="loadingIcon" style="display:none"><div class="loading-spinner"></div></span>
 
             <div class="dropdown" id="dropdown"></div>
         </div>
@@ -273,143 +291,174 @@
 </div>
 
 <script>
-    const searchInput   = document.getElementById('searchInput');
-    const dropdown      = document.getElementById('dropdown');
-    const loadingIcon   = document.getElementById('loadingIcon');
-    const selectedChild = document.getElementById('selectedChild');
-    const phoneSection  = document.getElementById('phoneSection');
-    const divider       = document.getElementById('divider');
-    const errorMsg      = document.getElementById('errorMsg');
-    const submitBtn     = document.getElementById('submitBtn');
-
-    const searchUrl = '{{ url("/attendance/search/results") }}';
-    const verifyUrl = '{{ url("/attendance/child") }}';
+    // Global variables
+    let selectedChildId = null;
+    let selectedChildName = null;
+    let typingTimer;
+    
+    const searchUrl = window.location.origin + '/attendance/search/results';
+    const verifyUrl = window.location.origin + '/attendance/child';
     const csrfToken = '{{ csrf_token() }}';
 
-    let selectedChildId   = null;
-    let selectedChildName = null;
-    let timer;
-
-    // ── Search ──────────────────────────────────────
-    searchInput.addEventListener('input', () => {
-        clearTimeout(timer);
-        const q = searchInput.value.trim();
-
-        if (q.length < 2) {
+    // MAIN SEARCH FUNCTION - FIXED VERSION
+    function searchChild(query) {
+        // Clear timeout
+        clearTimeout(typingTimer);
+        
+        // Get elements
+        const dropdown = document.getElementById('dropdown');
+        const loadingIcon = document.getElementById('loadingIcon');
+        
+        if (query.length < 2) {
             dropdown.classList.remove('show');
             dropdown.innerHTML = '';
             return;
         }
-
-        loadingIcon.style.display = 'inline';
-
-        timer = setTimeout(async () => {
+        
+        // Show loading
+        loadingIcon.style.display = 'inline-block';
+        
+        // Wait for user to stop typing
+        typingTimer = setTimeout(async () => {
             try {
-                const res  = await fetch(`${searchUrl}?q=${encodeURIComponent(q)}`, {
+                // Build URL
+                const url = searchUrl + '?q=' + encodeURIComponent(query);
+                console.log('Fetching:', url);
+                
+                // Fetch data
+                const response = await fetch(url, {
                     headers: {
                         'Accept': 'application/json',
                         'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
-                const data = await res.json();
-
-                loadingIcon.style.display = 'none';
-
-                if (data.length === 0) {
-                    dropdown.innerHTML = '<div class="hint-text">😕 Tiada anak dijumpai</div>';
-                    dropdown.classList.add('show');
-                    return;
+                
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
                 }
-
-                dropdown.innerHTML = data.map(child => `
-                    <div class="dropdown-item" onclick="selectChild(${child.id}, '${child.name}', '${child.classroom}', '${child.age}', '${child.initial}', '${child.photo || ''}')">
-                        <div class="avatar">
-                            ${child.photo
-                                ? `<img src="${child.photo}" alt="${child.name}">`
-                                : child.initial
-                            }
-                        </div>
-                        <div class="item-info">
-                            <div class="name">${child.name}</div>
-                            <div class="meta">🏫 ${child.classroom} • 👶 ${child.age} thn</div>
-                        </div>
-                    </div>
-                `).join('');
-
-                dropdown.classList.add('show');
-
-            } catch (err) {
+                
+                const data = await response.json();
+                console.log('Data received:', data);
+                
+                // Hide loading
                 loadingIcon.style.display = 'none';
-                dropdown.innerHTML = '<div class="hint-text">⚠️ Ralat. Cuba semula.</div>';
+                
+                // Generate HTML
+                let html = '';
+                
+                if (data.length === 0) {
+                    html = '<div class="hint-text">😕 Tiada anak dijumpai</div>';
+                } else {
+                    data.forEach(child => {
+                        html += `
+                            <div class="dropdown-item" onclick="selectChild(${child.id}, '${escapeJS(child.name)}', '${escapeJS(child.classroom)}', ${child.age}, '${escapeJS(child.initial)}', '${escapeJS(child.photo || '')}')">
+                                <div class="avatar">
+                                    ${child.photo ? `<img src="${child.photo}" alt="${escapeHTML(child.name)}">` : escapeHTML(child.initial || child.name.charAt(0))}
+                                </div>
+                                <div class="item-info">
+                                    <div class="name">${escapeHTML(child.name)}</div>
+                                    <div class="meta">🏫 ${escapeHTML(child.classroom)} • 👶 ${child.age} thn</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                dropdown.innerHTML = html;
+                dropdown.classList.add('show');
+                
+            } catch (error) {
+                console.error('Search error:', error);
+                loadingIcon.style.display = 'none';
+                const dropdown = document.getElementById('dropdown');
+                dropdown.innerHTML = '<div class="hint-text">⚠️ Ralat: ' + error.message + '</div>';
                 dropdown.classList.add('show');
             }
-        }, 350);
-    });
-
-    // Tutup dropdown bila klik luar
-    document.addEventListener('click', (e) => {
-        if (!document.getElementById('searchWrap').contains(e.target)) {
-            dropdown.classList.remove('show');
-        }
-    });
-
-    // ── Pilih anak ──────────────────────────────────
+        }, 500);
+    }
+    
+    // Helper functions
+    function escapeHTML(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    function escapeJS(str) {
+        if (!str) return '';
+        return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+    
+    // Select child function
     function selectChild(id, name, classroom, age, initial, photo) {
-        selectedChildId   = id;
+        selectedChildId = id;
         selectedChildName = name;
-
-        // Tunjuk selected child
-        document.getElementById('selectedAvatar').innerHTML = photo
-            ? `<img src="${photo}" alt="${name}">`
-            : initial;
+        
+        // Update UI
+        const avatar = document.getElementById('selectedAvatar');
+        if (photo) {
+            avatar.innerHTML = `<img src="${photo}" alt="${escapeHTML(name)}">`;
+        } else {
+            avatar.innerHTML = escapeHTML(initial || name.charAt(0).toUpperCase());
+        }
+        
         document.getElementById('selectedName').textContent = name;
         document.getElementById('selectedMeta').textContent = `🏫 ${classroom} • 👶 ${age} thn`;
-
-        selectedChild.classList.add('show');
-        searchInput.value = name;
-        dropdown.classList.remove('show');
-
-        // Tunjuk phone section
-        divider.style.display = 'block';
-        phoneSection.classList.add('show');
+        
+        // Show selected child section
+        document.getElementById('selectedChild').classList.add('show');
+        document.getElementById('searchInput').value = name;
+        document.getElementById('dropdown').classList.remove('show');
+        
+        // Show phone section
+        document.getElementById('divider').style.display = 'block';
+        document.getElementById('phoneSection').classList.add('show');
         document.getElementById('phoneInput').focus();
-
+        
         hideError();
     }
-
-    // ── Clear selection ──────────────────────────────
+    
+    // Clear selection
     function clearSelection() {
-        selectedChildId   = null;
+        selectedChildId = null;
         selectedChildName = null;
-        searchInput.value = '';
-        selectedChild.classList.remove('show');
-        phoneSection.classList.remove('show');
-        divider.style.display = 'none';
+        document.getElementById('searchInput').value = '';
+        document.getElementById('selectedChild').classList.remove('show');
+        document.getElementById('phoneSection').classList.remove('show');
+        document.getElementById('divider').style.display = 'none';
         document.getElementById('phoneInput').value = '';
         hideError();
-        searchInput.focus();
+        document.getElementById('searchInput').focus();
     }
-
-    // ── Submit verify ────────────────────────────────
+    
+    // Submit verification
     async function submitVerify() {
         const phone = document.getElementById('phoneInput').value.trim();
-
+        
         if (!selectedChildId) {
             showError('Sila pilih anak dahulu.');
             return;
         }
-
+        
         if (!phone) {
             showError('Sila masukkan no telefon.');
             return;
         }
-
-        submitBtn.disabled    = true;
+        
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        const originalText = submitBtn.textContent;
         submitBtn.textContent = '⏳ Mengesahkan...';
         hideError();
-
+        
         try {
-            const res = await fetch(`${verifyUrl}/${selectedChildId}/verify`, {
+            const response = await fetch(`${verifyUrl}/${selectedChildId}/verify`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -419,38 +468,52 @@
                 },
                 body: JSON.stringify({ phone: phone })
             });
-
-            const data = await res.json();
-
+            
+            const data = await response.json();
+            console.log('Verify response:', data);
+            
             if (data.success) {
-                // Redirect ke child profile
                 window.location.href = `${verifyUrl}/${selectedChildId}`;
             } else {
-                showError(data.message || 'No phone tidak sepadan. Cuba semula.');
-                submitBtn.disabled    = false;
-                submitBtn.textContent = '🔓 Sahkan & Teruskan';
+                showError(data.message || 'No telefon tidak sepadan. Cuba semula.');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
             }
-
-        } catch (err) {
+        } catch (error) {
+            console.error('Verify error:', error);
             showError('Ralat sambungan. Cuba semula.');
-            submitBtn.disabled    = false;
-            submitBtn.textContent = '🔓 Sahkan & Teruskan';
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
         }
     }
-
-    // Allow enter key on phone input
-    document.getElementById('phoneInput')?.addEventListener('keypress', (e) => {
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        const searchWrap = document.getElementById('searchWrap');
+        if (searchWrap && !searchWrap.contains(e.target)) {
+            document.getElementById('dropdown').classList.remove('show');
+        }
+    });
+    
+    // Enter key on phone input
+    document.getElementById('phoneInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') submitVerify();
     });
-
+    
+    // Error handling
     function showError(msg) {
+        const errorMsg = document.getElementById('errorMsg');
         errorMsg.textContent = '⚠️ ' + msg;
         errorMsg.classList.add('show');
+        setTimeout(() => {
+            errorMsg.classList.remove('show');
+        }, 5000);
     }
-
+    
     function hideError() {
-        errorMsg.classList.remove('show');
+        document.getElementById('errorMsg').classList.remove('show');
     }
 </script>
+
 </body>
 </html>

@@ -399,11 +399,16 @@
             <div class="profile-info">
                 <h1>{{ $parent->name }}</h1>
                 <p><span>📞</span> {{ $parent->phone ?? '-' }}</p>
-                <p><span>✉️</span> {{ $parent->email ?? 'No email' }}</p>
+                <p><span>✉️</span> {{ $parent->user->email ?? 'No email' }}</p>
                 
                 <div class="profile-badges">
                     <span class="badge-status">
-                        <span>👨‍👩‍👧‍👦</span> Main Parent
+                        <span>👨‍👩‍👧‍👦</span> 
+                        @if($parent->user)
+                            {{ $parent->user->role == 'parent1' ? 'Main Parent' : 'Parent' }}
+                        @else
+                            Main Parent
+                        @endif
                     </span>
                     @if($parent->verified)
                         <span class="badge-status">✅ Verified</span>
@@ -444,6 +449,10 @@
                         <div class="info-value">{{ $parent->name }}</div>
                     </div>
                     <div class="info-row">
+                        <div class="info-label"><span>✉️</span> Email</div>
+                        <div class="info-value">{{ $parent->user->email ?? '-' }}</div>
+                    </div>
+                    <div class="info-row">
                         <div class="info-label"><span>📊</span> Age</div>
                         <div class="info-value">{{ $parent->age ?? '-' }} years old</div>
                     </div>
@@ -467,6 +476,10 @@
                         <div class="info-row">
                             <div class="info-label"><span>📛</span> Full Name</div>
                             <div class="info-value">{{ $parent->secondParent->name ?? '-' }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label"><span>✉️</span> Email</div>
+                            <div class="info-value">{{ $parent->secondParent->user->email ?? '-' }}</div>
                         </div>
                         <div class="info-row">
                             <div class="info-label"><span>📊</span> Age</div>
@@ -497,6 +510,10 @@
                         <div class="info-row">
                             <div class="info-label"><span>📛</span> Full Name</div>
                             <div class="info-value">{{ $parent->guardian->name ?? '-' }}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label"><span>✉️</span> Email</div>
+                            <div class="info-value">{{ $parent->guardian->user->email ?? '-' }}</div>
                         </div>
                         <div class="info-row">
                             <div class="info-label"><span>📊</span> Age</div>
@@ -617,6 +634,12 @@
                             {{ $parent->emergency ? '⚠️ Yes' : '❌ No' }}
                         </span>
                     </div>
+                    <div class="settings-row">
+                        <span class="settings-label">👑 Role:</span>
+                        <span class="status-badge verified">
+                            {{ $parent->user->role ?? 'parent1' }}
+                        </span>
+                    </div>
                 </div>
                 
                 {{-- QUICK INFO CARD --}}
@@ -644,8 +667,6 @@
         </div>
         
     </div>
-
-</div>
 
 </div>
 

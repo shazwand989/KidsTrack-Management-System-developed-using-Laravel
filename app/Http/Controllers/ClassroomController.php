@@ -7,9 +7,13 @@ use App\Models\Teacher;
 use App\Models\Child;
 use App\Models\Attendance;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ClassroomController extends Controller
 {
+    // ============================================
+    // INDEX - Senarai semua kelas
+    // ============================================
     public function index()
     {
         $classrooms = Classroom::with('teacher')->latest()->get();
@@ -26,12 +30,18 @@ class ClassroomController extends Controller
         return view('classrooms.index', compact('classrooms', 'stats'));
     }
 
+    // ============================================
+    // CREATE - Papar borang tambah kelas
+    // ============================================
     public function create()
     {
         $teachers = Teacher::active()->get();
         return view('classrooms.create', compact('teachers'));
     }
 
+    // ============================================
+    // STORE - Simpan kelas baru
+    // ============================================
     public function store(Request $request)
     {
         $request->validate([
@@ -55,52 +65,65 @@ class ClassroomController extends Controller
             ->with('success', 'Classroom created successfully!');
     }
 
-    public function show(Classroom $classroom)
+    // ============================================
+    // SHOW - Papar detail kelas dengan seatmap
+    // ============================================
+    public function show($id)
     {
-        // Load teacher relationship
-        $classroom->load('teacher');
+        // Cari classroom
+        $classroom = Classroom::with('teacher')->findOrFail($id);
         
-        // Get children that belong to this classroom
-        $children = Child::where('classroom_id', $classroom->id)
+        // Dapatkan children dalam kelas ini
+        $children = Child::where('classroom_id', $id)
             ->where('is_active', true)
             ->get();
 
-        // Ambil attendance hari ni
-        $today = today()->toDateString();
+        // 📌 AMBIL ATTENDANCE HARI INI
+        $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
         $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
             ->whereDate('date', $today)
             ->get()
             ->keyBy('child_id');
 
-        // Calculate statistics
-        $checkinCount  = $attendances->where('status', 'checkin')->count();
-        $checkoutCount = $attendances->where('status', 'checkout')->count();
-        $absentCount   = $children->count() - $checkinCount - $checkoutCount;
+        // 📌 KIRA STATISTIK
+        $totalChildren = $children->count();
+        $totalCheckin = $attendances->whereIn('status', ['present', 'checkin', 'late'])->count();
+        $totalCheckout = $attendances->where('status', 'checkout')->count();
+        $totalAbsent = $totalChildren - $totalCheckin;
 
         $stats = [
-            'total_children'      => $children->count(),
-            'total_present'       => $checkinCount,
-            'total_checkout'      => $checkoutCount,
-            'total_absent'        => $absentCount,
+            'total_children' => $totalChildren,
+            'total_present' => $totalCheckin,
+            'total_checkout' => $totalCheckout,
+            'total_absent' => $totalAbsent > 0 ? $totalAbsent : 0,
             'capacity_percentage' => $classroom->capacity > 0
-                ? round(($children->count() / $classroom->capacity) * 100)
+                ? round(($totalChildren / $classroom->capacity) * 100)
                 : 0,
         ];
 
         return view('classrooms.show', compact('classroom', 'children', 'attendances', 'stats'));
     }
 
-    public function edit(Classroom $classroom)
+    // ============================================
+    // EDIT - Papar borang edit kelas
+    // ============================================
+    public function edit($id)
     {
+        $classroom = Classroom::findOrFail($id);
         $teachers = Teacher::active()->get();
         return view('classrooms.edit', compact('classroom', 'teachers'));
     }
 
-    public function update(Request $request, Classroom $classroom)
+    // ============================================
+    // UPDATE - Kemaskini kelas
+    // ============================================
+    public function update(Request $request, $id)
     {
+        $classroom = Classroom::findOrFail($id);
+        
         $request->validate([
             'name' => 'required|string|max:255',
-            'code' => 'required|string|unique:classrooms,code,' . $classroom->id,
+            'code' => 'required|string|unique:classrooms,code,' . $id,
             'age_group' => 'required|string|max:100',
             'min_age' => 'required|integer|min:0',
             'max_age' => 'required|integer|min:0|gt:min_age',
@@ -115,13 +138,18 @@ class ClassroomController extends Controller
 
         $classroom->update($request->all());
 
-        return redirect()->route('classrooms.show', $classroom)
+        return redirect()->route('classrooms.show', $classroom->id)
             ->with('success', 'Classroom updated successfully!');
     }
 
-    public function destroy(Classroom $classroom)
+    // ============================================
+    // DESTROY - Padam kelas
+    // ============================================
+    public function destroy($id)
     {
+        $classroom = Classroom::findOrFail($id);
         $classroom->delete();
+        
         return redirect()->route('classrooms.index')
             ->with('success', 'Classroom deleted successfully!');
     }

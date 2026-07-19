@@ -180,7 +180,7 @@
         font-weight: 700;
     }
 
-    .rg-actions { display: flex; gap: 10px; margin-top: 4px; }
+    .rg-actions { display: flex; gap: 10px; margin-top: 4px; flex-wrap: wrap; }
 
     .btn-update {
         background: linear-gradient(to right, #FF6B6B, #FF9E7D) !important;
@@ -238,7 +238,6 @@
 
     .btn-delete:hover { background: #fee2e2 !important; color: #b91c1c !important; }
 
-    /* Classroom Grid Styles */
     .classroom-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -288,7 +287,6 @@
     .classroom-name { font-size: 13px; font-weight: 800; color: #1e293b; margin-bottom: 3px; }
     .classroom-age { font-size: 10px; color: #94a3b8; }
 
-    /* Dropdown Guardian Styles */
     .guardian-select {
         border: 1.5px solid #FFE4D6;
         border-radius: 14px;
@@ -393,9 +391,45 @@
         text-align: center;
         margin-top: 5px;
     }
+
+    .text-muted {
+        color: #94a3b8;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    .debug-box {
+        background: #f0f4ff;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        border: 2px solid #4facfe;
+        font-family: monospace;
+    }
+    .debug-box strong { color: #2563eb; }
+    .debug-box .count { color: #16a34a; font-weight: bold; }
 </style>
 
 <div class="rg-wrap">
+
+    {{-- DEBUG BOX --}}
+    <div class="debug-box">
+        <strong>🔍 DEBUG DATA:</strong><br>
+        Parents: <span class="count">{{ $parents->count() }}</span> |
+        Second Parents: <span class="count">{{ $secondParents->count() }}</span> |
+        Guardians: <span class="count">{{ $guardians->count() }}</span>
+        <hr style="margin: 8px 0; border-color: #dbeafe;">
+        <strong>Second Parents List:</strong><br>
+        @foreach($secondParents as $sp)
+            • {{ $sp->name }} (ID: {{ $sp->id }}, Parent ID: {{ $sp->parent_id }})<br>
+        @endforeach
+        <hr style="margin: 8px 0; border-color: #dbeafe;">
+        <strong>Current Child Data:</strong><br>
+        • Parent ID: {{ $child->parent_id }}<br>
+        • Second Parent ID: {{ $child->second_parent_id ?? 'NULL' }}<br>
+        • Guardian ID: {{ $child->guardian_id ?? 'NULL' }}
+    </div>
 
     {{-- Breadcrumb --}}
     <div class="rg-breadcrumb">
@@ -492,7 +526,7 @@
         </div>
     </div>
 
-    {{-- CLASSROOM ASSIGNMENT (fetch from classrooms table) --}}
+    {{-- CLASSROOM ASSIGNMENT --}}
     <div class="rg-card">
         <div class="rg-section-title">
             <span>🏫</span> Classroom Assignment
@@ -549,7 +583,7 @@
                 </div>
                 <div class="guardian-dropdown-list" id="parentDropdown">
                     @foreach($parents as $parent)
-                    <div class="guardian-option" onclick="selectParent({{ $parent->id }}, '{{ addslashes($parent->name) }}', '{{ addslashes($parent->phone) }}', '{{ $parent->photo }}')">
+                    <div class="guardian-option" onclick="selectParent({{ $parent->id }}, '{{ addslashes($parent->name) }}', '{{ addslashes($parent->phone) }}', '{{ $parent->photo }}', {{ $parent->id }})">
                         <div class="option-avatar">
                             @if($parent->photo)
                                 <img src="{{ asset('storage/'.$parent->photo) }}" alt="">
@@ -577,7 +611,7 @@
             @error('parent_id')<span class="invalid-msg">{{ $message }}</span>@enderror
         </div>
 
-        {{-- Second Parent (Optional) --}}
+        {{-- 🔥🔥🔥 SECOND PARENT - FIXED! 🔥🔥🔥 --}}
         <div class="rg-group" style="margin-top: 16px;">
             <label class="rg-label">Second Parent (Optional)</label>
             <div class="guardian-select" id="secondParentSelect">
@@ -593,14 +627,14 @@
                     </div>
                     <div class="guardian-info">
                         <div class="guardian-name" id="secondParentName">
-                            {{ $child->secondParent->name ?? '-- Optional --' }}
+                            {{ $child->secondParent->name ?? '-- Select Main Parent First --' }}
                         </div>
                         <div class="guardian-detail" id="secondParentDetail">
                             @if($child->secondParent)
                                 <span>📞 {{ $child->secondParent->phone }}</span>
                                 <span class="guardian-badge">Second Parent</span>
                             @else
-                                <span>📞 Select second parent if any</span>
+                                <span>📞 Please select main parent first</span>
                             @endif
                         </div>
                     </div>
@@ -613,27 +647,16 @@
                             <div class="option-name">-- None / Skip --</div>
                         </div>
                     </div>
-                    @foreach($parents as $parent)
-                    <div class="guardian-option" onclick="selectSecondParent({{ $parent->id }}, '{{ addslashes($parent->name) }}', '{{ addslashes($parent->phone) }}', '{{ $parent->photo }}')">
-                        <div class="option-avatar">
-                            @if($parent->photo)
-                                <img src="{{ asset('storage/'.$parent->photo) }}" alt="">
-                            @else
-                                <span>{{ strtoupper(substr($parent->name, 0, 1)) }}</span>
-                            @endif
-                        </div>
-                        <div class="option-info">
-                            <div class="option-name">{{ $parent->name }}</div>
-                            <div class="option-detail">📞 {{ $parent->phone }}</div>
-                        </div>
-                    </div>
-                    @endforeach
+                    <!-- Second Parents will be populated by JavaScript -->
+                    <div id="secondParentList"></div>
                 </div>
             </div>
+            <!-- 🔥 Hidden input untuk simpan parent_id (BUKAN second_parents.id!) -->
             <input type="hidden" name="second_parent_id" id="second_parent_id" value="{{ old('second_parent_id', $child->second_parent_id) }}">
+            <div class="text-muted" id="secondParentHint">💡 Pilih Main Parent dahulu untuk melihat Second Parent yang berkaitan.</div>
         </div>
 
-        {{-- Guardian (Optional) --}}
+        {{-- Guardian - AUTO FILL --}}
         <div class="rg-group" style="margin-top: 16px;">
             <label class="rg-label">Guardian (Optional)</label>
             <div class="guardian-select" id="guardianSelect">
@@ -649,14 +672,14 @@
                     </div>
                     <div class="guardian-info">
                         <div class="guardian-name" id="guardianName">
-                            {{ $child->guardian->name ?? '-- Optional --' }}
+                            {{ $child->guardian->name ?? '-- Select Main Parent First --' }}
                         </div>
                         <div class="guardian-detail" id="guardianDetail">
                             @if($child->guardian)
                                 <span>📞 {{ $child->guardian->phone }}</span>
                                 <span class="guardian-badge">Guardian</span>
                             @else
-                                <span>📞 Select guardian if any</span>
+                                <span>📞 Please select main parent first</span>
                             @endif
                         </div>
                     </div>
@@ -669,24 +692,12 @@
                             <div class="option-name">-- None / Skip --</div>
                         </div>
                     </div>
-                    @foreach($guardians as $guardian)
-                    <div class="guardian-option" onclick="selectGuardian({{ $guardian->id }}, '{{ addslashes($guardian->name) }}', '{{ addslashes($guardian->phone) }}', '{{ $guardian->photo }}')">
-                        <div class="option-avatar">
-                            @if($guardian->photo)
-                                <img src="{{ asset('storage/'.$guardian->photo) }}" alt="">
-                            @else
-                                <span>{{ strtoupper(substr($guardian->name, 0, 1)) }}</span>
-                            @endif
-                        </div>
-                        <div class="option-info">
-                            <div class="option-name">{{ $guardian->name }}</div>
-                            <div class="option-detail">📞 {{ $guardian->phone }}</div>
-                        </div>
-                    </div>
-                    @endforeach
+                    <!-- Guardians will be populated by JavaScript -->
+                    <div id="guardianList"></div>
                 </div>
             </div>
             <input type="hidden" name="guardian_id" id="guardian_id" value="{{ old('guardian_id', $child->guardian_id) }}">
+            <div class="text-muted" id="guardianHint">💡 Pilih Main Parent dahulu untuk melihat Guardian yang berkaitan.</div>
         </div>
     </div>
 
@@ -721,9 +732,13 @@
 
     {{-- ACTION BUTTONS --}}
     <div class="rg-actions">
-        <button type="submit" class="btn-update">
-            <span>💾</span> Update Child
-        </button>
+        <form action="{{ route('children.update', $child->id) }}" method="POST">
+            @csrf
+            @method('PUT')
+            <button type="submit" class="btn-update">
+                <span>💾</span> Update Child
+            </button>
+        </form>
         <a href="{{ route('children.show', $child->id) }}" class="btn-cancel">
             <span>✖️</span> Cancel
         </a>
@@ -741,7 +756,24 @@
 </div>
 
 <script>
-    // Photo preview
+    // ============================================
+    // DATA DARI PHP
+    // ============================================
+    const allSecondParents = @json($secondParents);
+    const allGuardians = @json($guardians);
+
+    // ============================================
+    // DEBUG: CHECK DATA
+    // ============================================
+    console.log('=== DEBUG DATA EDIT ===');
+    console.log('All Second Parents:', allSecondParents);
+    console.log('All Guardians:', allGuardians);
+    console.log('Second Parents Count:', allSecondParents.length);
+    console.log('Guardians Count:', allGuardians.length);
+
+    // ============================================
+    // PHOTO PREVIEW
+    // ============================================
     document.getElementById('childPhoto').addEventListener('change', function() {
         if (this.files && this.files[0]) {
             const reader = new FileReader();
@@ -753,7 +785,9 @@
         }
     });
 
-    // Classroom selection
+    // ============================================
+    // CLASSROOM SELECTION
+    // ============================================
     document.querySelectorAll('.classroom-option').forEach(option => {
         option.addEventListener('click', function() {
             document.querySelectorAll('.classroom-option').forEach(o => o.classList.remove('selected'));
@@ -762,7 +796,9 @@
         });
     });
 
-    // Dropdown toggle function
+    // ============================================
+    // DROPDOWN TOGGLE
+    // ============================================
     function toggleDropdown(dropdownId) {
         document.querySelectorAll('.guardian-dropdown-list').forEach(dropdown => {
             if (dropdown.id !== dropdownId) {
@@ -773,7 +809,6 @@
         dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
     }
 
-    // Close dropdowns when clicking outside
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.guardian-select')) {
             document.querySelectorAll('.guardian-dropdown-list').forEach(dropdown => {
@@ -782,8 +817,10 @@
         }
     });
 
-    // Select Main Parent
-    function selectParent(id, name, phone, photo) {
+    // ============================================
+    // SELECT MAIN PARENT
+    // ============================================
+    function selectParent(id, name, phone, photo, parentId) {
         document.getElementById('parent_id').value = id;
         document.getElementById('parentName').innerHTML = name;
         document.getElementById('parentDetail').innerHTML = `<span>📞 ${phone}</span><span class="guardian-badge">Main Parent</span>`;
@@ -794,39 +831,163 @@
         } else {
             avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
         }
-        
         document.getElementById('parentDropdown').style.display = 'none';
+        
+        console.log('Selected Parent ID:', parentId);
+        populateSecondParents(parentId);
+        populateGuardians(parentId);
     }
 
-    // Select Second Parent
-    function selectSecondParent(id, name, phone, photo) {
-        document.getElementById('second_parent_id').value = id;
+    // ============================================
+    // POPULATE SECOND PARENTS
+    // ============================================
+    function populateSecondParents(parentId) {
+        const listContainer = document.getElementById('secondParentList');
+        const hint = document.getElementById('secondParentHint');
         
-        if (id === '') {
-            document.getElementById('secondParentName').innerHTML = '-- Optional --';
-            document.getElementById('secondParentDetail').innerHTML = '<span>📞 Select second parent if any</span>';
-            document.getElementById('secondParentAvatar').innerHTML = '<span>👤</span>';
+        console.log('Populating Second Parents for Parent ID:', parentId);
+        
+        const filtered = allSecondParents.filter(sp => sp.parent_id == parentId);
+        
+        console.log('Filtered Second Parents:', filtered);
+        
+        if (filtered.length > 0) {
+            let html = '';
+            filtered.forEach(sp => {
+                const photoHtml = sp.photo ? `<img src="/storage/${sp.photo}" alt="">` : `<span>${sp.name.charAt(0).toUpperCase()}</span>`;
+                const phone = sp.phone || '-';
+                html += `
+                    <div class="guardian-option" onclick="selectSecondParent(${sp.id}, '${sp.name}', '${phone}', '${sp.photo || ''}')">
+                        <div class="option-avatar">${photoHtml}</div>
+                        <div class="option-info">
+                            <div class="option-name">${sp.name}</div>
+                            <div class="option-detail">📞 ${phone}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+            hint.innerHTML = '✅ ' + filtered.length + ' Second Parent(s) available for this Main Parent.';
         } else {
-            document.getElementById('secondParentName').innerHTML = name;
-            document.getElementById('secondParentDetail').innerHTML = `<span>📞 ${phone}</span><span class="guardian-badge">Second Parent</span>`;
-            const avatarDiv = document.getElementById('secondParentAvatar');
-            if (photo) {
-                avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
-            } else {
-                avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
-            }
+            listContainer.innerHTML = `
+                <div class="guardian-option" style="cursor:default; opacity:0.6;">
+                    <div class="option-info">
+                        <div class="option-name">No Second Parent registered</div>
+                        <div class="option-detail">Add second parent in Parent Management</div>
+                    </div>
+                </div>
+            `;
+            hint.innerHTML = '💡 No Second Parent found for this Main Parent.';
         }
         
-        document.getElementById('secondParentDropdown').style.display = 'none';
+        // Reset second parent selection if current selection doesn't belong to this parent
+        const currentSecondParentId = document.getElementById('second_parent_id').value;
+        const stillValid = filtered.some(sp => sp.parent_id == currentSecondParentId);
+        if (!stillValid && currentSecondParentId) {
+            document.getElementById('second_parent_id').value = '';
+            document.getElementById('secondParentName').innerHTML = '-- Select Second Parent --';
+            document.getElementById('secondParentDetail').innerHTML = '<span>📞 Click to select</span>';
+            document.getElementById('secondParentAvatar').innerHTML = '<span>👤</span>';
+        }
     }
 
-    // Select Guardian
+    // ============================================
+    // POPULATE GUARDIANS
+    // ============================================
+    function populateGuardians(parentId) {
+        const listContainer = document.getElementById('guardianList');
+        const hint = document.getElementById('guardianHint');
+        
+        console.log('Populating Guardians for Parent ID:', parentId);
+        
+        const filtered = allGuardians.filter(g => g.parent_id == parentId);
+        
+        console.log('Filtered Guardians:', filtered);
+        
+        if (filtered.length > 0) {
+            let html = '';
+            filtered.forEach(g => {
+                const photoHtml = g.photo ? `<img src="/storage/${g.photo}" alt="">` : `<span>${g.name.charAt(0).toUpperCase()}</span>`;
+                const phone = g.phone || '-';
+                html += `
+                    <div class="guardian-option" onclick="selectGuardian(${g.id}, '${g.name}', '${phone}', '${g.photo || ''}')">
+                        <div class="option-avatar">${photoHtml}</div>
+                        <div class="option-info">
+                            <div class="option-name">${g.name}</div>
+                            <div class="option-detail">📞 ${phone}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+            hint.innerHTML = '✅ ' + filtered.length + ' Guardian(s) available for this Main Parent.';
+        } else {
+            listContainer.innerHTML = `
+                <div class="guardian-option" style="cursor:default; opacity:0.6;">
+                    <div class="option-info">
+                        <div class="option-name">No Guardian registered</div>
+                        <div class="option-detail">Add guardian in Guardian Management</div>
+                    </div>
+                </div>
+            `;
+            hint.innerHTML = '💡 No Guardian found for this Main Parent.';
+        }
+        
+        // Reset guardian selection if current selection doesn't belong to this parent
+        const currentGuardianId = document.getElementById('guardian_id').value;
+        const stillValid = filtered.some(g => g.id == currentGuardianId);
+        if (!stillValid && currentGuardianId) {
+            document.getElementById('guardian_id').value = '';
+            document.getElementById('guardianName').innerHTML = '-- Select Guardian --';
+            document.getElementById('guardianDetail').innerHTML = '<span>📞 Click to select</span>';
+            document.getElementById('guardianAvatar').innerHTML = '<span>🛡️</span>';
+        }
+    }
+
+ // ============================================
+// 🔥🔥🔥 SELECT SECOND PARENT - FIXED! 🔥🔥🔥
+// ============================================
+function selectSecondParent(id, name, phone, photo) {
+    // Cari second parent dalam allSecondParents
+    const sp = allSecondParents.find(item => item.id == id);
+    
+    if (sp) {
+        // 🔥🔥🔥 GUNA sp.parent_id (BUKAN sp.id!) 🔥🔥🔥
+        document.getElementById('second_parent_id').value = sp.parent_id;
+        console.log('✅ Second Parent selected:', {
+            id: sp.id,
+            parent_id: sp.parent_id,
+            name: sp.name
+        });
+    } else {
+        document.getElementById('second_parent_id').value = '';
+    }
+    
+    if (id === '' || !sp) {
+        document.getElementById('secondParentName').innerHTML = '-- None / Skip --';
+        document.getElementById('secondParentDetail').innerHTML = '<span>📞 No second parent selected</span>';
+        document.getElementById('secondParentAvatar').innerHTML = '<span>👤</span>';
+    } else {
+        document.getElementById('secondParentName').innerHTML = name;
+        document.getElementById('secondParentDetail').innerHTML = `<span>📞 ${phone}</span><span class="guardian-badge">Second Parent</span>`;
+        const avatarDiv = document.getElementById('secondParentAvatar');
+        if (photo) {
+            avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
+        } else {
+            avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
+        }
+    }
+    document.getElementById('secondParentDropdown').style.display = 'none';
+}
+
+    // ============================================
+    // SELECT GUARDIAN
+    // ============================================
     function selectGuardian(id, name, phone, photo) {
         document.getElementById('guardian_id').value = id;
-        
         if (id === '') {
-            document.getElementById('guardianName').innerHTML = '-- Optional --';
-            document.getElementById('guardianDetail').innerHTML = '<span>📞 Select guardian if any</span>';
+            document.getElementById('guardianName').innerHTML = '-- None / Skip --';
+            document.getElementById('guardianDetail').innerHTML = '<span>📞 No guardian selected</span>';
             document.getElementById('guardianAvatar').innerHTML = '<span>🛡️</span>';
         } else {
             document.getElementById('guardianName').innerHTML = name;
@@ -838,9 +999,49 @@
                 avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
             }
         }
-        
         document.getElementById('guardianDropdown').style.display = 'none';
     }
+
+    // ============================================
+    // INITIALIZE - Auto populate on page load
+    // ============================================
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get current parent ID
+        const currentParentId = document.getElementById('parent_id').value;
+        
+        if (currentParentId) {
+            console.log('Initializing with Parent ID:', currentParentId);
+            
+            // Get parent name from dropdown
+            const parentOption = document.querySelector(`#parentDropdown .guardian-option[onclick*="selectParent(${currentParentId}"]`);
+            if (parentOption) {
+                const name = parentOption.querySelector('.option-name').textContent;
+                const phone = parentOption.querySelector('.option-detail')?.textContent?.replace('📞 ', '') || '-';
+                const photo = parentOption.querySelector('.option-avatar img')?.getAttribute('src')?.replace('/storage/', '') || '';
+                selectParent(currentParentId, name, phone, photo, currentParentId);
+            } else {
+                // If option not found, just populate
+                populateSecondParents(currentParentId);
+                populateGuardians(currentParentId);
+            }
+        }
+        
+        // 🔥 Check if second parent is already selected and display correctly
+        const secondParentId = document.getElementById('second_parent_id').value;
+        if (secondParentId) {
+            const sp = allSecondParents.find(item => item.parent_id == secondParentId);
+            if (sp) {
+                document.getElementById('secondParentName').innerHTML = sp.name;
+                document.getElementById('secondParentDetail').innerHTML = `<span>📞 ${sp.phone || '-'}</span><span class="guardian-badge">Second Parent</span>`;
+                const avatarDiv = document.getElementById('secondParentAvatar');
+                if (sp.photo) {
+                    avatarDiv.innerHTML = `<img src="/storage/${sp.photo}" alt="">`;
+                } else {
+                    avatarDiv.innerHTML = `<span>${sp.name.charAt(0).toUpperCase()}</span>`;
+                }
+            }
+        }
+    });
 </script>
 
 @endsection
