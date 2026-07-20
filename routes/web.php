@@ -412,6 +412,7 @@ Route::middleware(['auth'])->group(function () {
         // Attendance
         Route::get('/attendance', [\App\Http\Controllers\Parent\AttendanceController::class, 'index'])->name('attendance.index');
         Route::get('/attendance/calendar', [\App\Http\Controllers\Parent\AttendanceController::class, 'calendar'])->name('attendance.calendar');
+        Route::get('/attendance/calendar-data', [\App\Http\Controllers\Parent\AttendanceController::class, 'calendarData'])->name('attendance.calendar-data');
         Route::get('/attendance/{child}', [\App\Http\Controllers\Parent\AttendanceController::class, 'childAttendance'])->name('attendance.child');
         
         // Profile

@@ -53,28 +53,14 @@
 <script>
 document.addEventListener('DOMContentLoaded',function(){
     var cal=new FullCalendar.Calendar(document.getElementById('calendar'),{
-        initialView:'dayGridMonth',headerToolbar:{left:'prev,next today',center:'title',right:'dayGridMonth'},height:'auto',
-        events:function(info,successCallback){
-            var cids=@json($childIds);
-            fetch('/attendance-calendar-data?month='+(info.start.getMonth()+1)+'&year='+info.start.getFullYear())
-            .then(function(r){return r.json();}).then(function(d){
-                var records=d.data||[],result=[];
-                for(var i=0;i<records.length;i++){
-                    var a=records[i];
-                    if(cids.indexOf(a.child_id)===-1)continue;
-                    var nm=(a.child&&a.child.name)?a.child.name:'Unknown';
-                    var st=a.status||'',cl='#43a047';
-                    if(st==='late'||st==='late_checkout')cl='#e53935';
-                    else if(st==='checkout')cl='#1e88e5';
-                    else if(st==='absent')cl='#fb8c00';
-                    var dObj=new Date(a.date);
-                    var ds=dObj.getFullYear()+'-'+String(dObj.getMonth()+1).padStart(2,'0')+'-'+String(dObj.getDate()).padStart(2,'0');
-                    result.push({title:nm,start:ds,backgroundColor:cl,textColor:'#fff'});
-                }
-                successCallback(result);
-            });
-        }
-    });cal.render();
+        initialView:'dayGridMonth',
+        headerToolbar:{left:'prev,next today',center:'title',right:'dayGridMonth'},
+        height:'auto',
+        events:'/parent/attendance/calendar-data',
+        eventDisplay:'block',
+        eventTimeFormat:{hour:'2-digit',minute:'2-digit',hour12:true}
+    });
+    cal.render();
 });
 </script>
 @endsection
