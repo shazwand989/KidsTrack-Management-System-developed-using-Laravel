@@ -11,6 +11,7 @@ use App\Models\TimerSetting;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class CheckinController extends Controller
@@ -39,12 +40,12 @@ class CheckinController extends Controller
 
         $currentTime = Carbon::now('Asia/Kuala_Lumpur');
         $currentTimeInt = (int) $currentTime->format('Hi');
-        
+
         $morningStart = (int) str_replace(':', '', $timer->morning_start);
         $morningEnd = (int) str_replace(':', '', $timer->morning_end);
         $eveningStart = (int) str_replace(':', '', $timer->evening_start);
         $eveningEnd = (int) str_replace(':', '', $timer->evening_end);
-        
+
         if ($currentTimeInt >= $morningStart && $currentTimeInt <= $morningEnd) {
             return [
                 'slot' => 'morning',
@@ -54,7 +55,7 @@ class CheckinController extends Controller
                 'end' => $timer->morning_end
             ];
         }
-        
+
         if ($currentTimeInt >= $eveningStart && $currentTimeInt <= $eveningEnd) {
             return [
                 'slot' => 'evening',
@@ -64,7 +65,7 @@ class CheckinController extends Controller
                 'end' => $timer->evening_end
             ];
         }
-        
+
         return null;
     }
 
@@ -76,7 +77,7 @@ class CheckinController extends Controller
         $currentTime = Carbon::now('Asia/Kuala_Lumpur');
         $currentTimeInt = (int) $currentTime->format('Hi');
         $morningStart = (int) str_replace(':', '', $timer->morning_start);
-        
+
         // Late if after morning_start (the configured check-in time window start)
         return $currentTimeInt > $morningStart;
     }
@@ -89,7 +90,7 @@ class CheckinController extends Controller
         $currentTime = Carbon::now('Asia/Kuala_Lumpur');
         $currentTimeInt = (int) $currentTime->format('Hi');
         $eveningEnd = (int) str_replace(':', '', $timer->evening_end);
-        
+
         // Late if after evening_end (the configured check-out time window end)
         return $currentTimeInt > $eveningEnd;
     }
@@ -101,7 +102,7 @@ class CheckinController extends Controller
 
         $currentTime = Carbon::now('Asia/Kuala_Lumpur');
         $currentTimeInt = (int) $currentTime->format('Hi');
-        
+
         if ($slotType === 'checkin') {
             $morningStart = (int) str_replace(':', '', $timer->morning_start);
             $graceEnd = $morningStart + 15; // 15-minute grace period after check-in start
@@ -120,46 +121,46 @@ class CheckinController extends Controller
     {
         try {
             $child = Child::with(['parent', 'classroom'])->findOrFail($childId);
-            $user = auth()->user();
-            
+            $user = Auth::user();
+
             $now = Carbon::now('Asia/Kuala_Lumpur');
             $today = $now->toDateString();
             $currentTime = $now->format('h:i A');
-            
+
             // Get parent
             $parent = ParentModel::where('user_id', $user->id)->first();
             if (!$parent) {
                 $parent = ParentModel::first();
             }
-            
+
             // Get timer setting
             $timerSetting = TimerSetting::where('day_name', $now->format('l'))->first();
-            
+
             // Check attendance
             $todayAttendance = Attendance::where('child_id', $child->id)
                 ->whereDate('date', $today)
                 ->first();
-            
+
             $hasCheckin = $todayAttendance && $todayAttendance->checkin_time;
             $hasCheckout = $todayAttendance && $todayAttendance->checkout_time;
-            
+
             // Check if late
             $slot = $this->getCurrentSlot();
             $isLate = $slot && $slot['slot'] === 'morning' ? $this->isLateForCheckin() : false;
-            
+
             // 🔥🔥🔥 CHECKOUT LOGIC - LENGKAP 🔥🔥🔥
             $canCheckout = false;
             $checkoutMessage = '⏰ Checkout Belum Tersedia';
             $checkoutInfoClass = '';
             $isLateCheckout = false;
-            
+
             if ($timerSetting) {
                 $currentTimeInt = (int) $now->format('Hi');
                 $eveningStartInt = (int) str_replace(':', '', $timerSetting->evening_start);
                 $eveningEndInt = (int) str_replace(':', '', $timerSetting->evening_end);
                 $checkoutStartTime = date('H:i', strtotime($timerSetting->evening_start));
                 $checkoutEndTime = date('H:i', strtotime($timerSetting->evening_end));
-                
+
                 if ($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt) {
                     $canCheckout = true;
                     $checkoutMessage = '✅ Waktu checkout: ' . $checkoutStartTime . ' - ' . $checkoutEndTime;
@@ -175,24 +176,24 @@ class CheckinController extends Controller
                     $checkoutInfoClass = 'active late';
                 }
             }
-            
+
             // Get user role
             $userRole = $this->getUserRole($user, $child);
             $roleData = $this->getRoleData($userRole);
             $parentName = $this->getParentName($user, $child);
-            
+
             // Get all children for this parent
             $allChildren = $this->getAllChildren($user, $child);
-            
+
             // Get checked in children data
             $checkedInData = [];
             $checkedChildren = collect();
-            
+
             foreach ($allChildren as $c) {
                 $att = Attendance::where('child_id', $c->id)
                     ->whereDate('date', $today)
                     ->first();
-                    
+
                 if ($att && $att->checkin_time && !$att->checkout_time) {
                     $checkedInData[] = [
                         'name' => $c->name,
@@ -203,17 +204,17 @@ class CheckinController extends Controller
                     $checkedChildren->push($c);
                 }
             }
-            
+
             // Add checked_in_today to child for blade
             $child->checked_in_today = $hasCheckin;
             $child->checked_out_today = $hasCheckout;
             if ($hasCheckin) {
                 $child->checked_in_time = $todayAttendance->checkin_time;
             }
-            
+
             // 🔥 SELECTED DATE UNTUK CALENDAR
             $selectedDate = $today;
-            
+
             return view('kiosk.checkin-page', compact(
                 'child',
                 'parent',
@@ -235,7 +236,7 @@ class CheckinController extends Controller
                 'now',
                 'selectedDate'          // ⭐ TAMBAH
             ));
-            
+
         } catch (\Exception $e) {
             Log::error('showCheckinPage Error: ' . $e->getMessage());
             return redirect()->route('kiosk.index')
@@ -254,24 +255,24 @@ class CheckinController extends Controller
                 'parent_id' => 'required|exists:parents,id',
                 'action' => 'required|in:checkin,checkout'
             ]);
-            
+
             $child = Child::find($request->child_id);
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
             $now = Carbon::now('Asia/Kuala_Lumpur');
-            
+
             if (!$child->classroom_id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anak ini belum ditempatkan di mana-mana kelas! Sila hubungi admin.'
                 ]);
             }
-            
+
             if ($request->action == 'checkin') {
                 return $this->processCheckin($child, $request->parent_id, $today, $now);
             } else {
                 return $this->processCheckout($child, $request->parent_id, $today, $now);
             }
-            
+
         } catch (\Exception $e) {
             Log::error('submitAttendance Error: ' . $e->getMessage());
             return response()->json([
@@ -290,25 +291,25 @@ class CheckinController extends Controller
         $existing = Attendance::where('child_id', $child->id)
             ->whereDate('date', $today)
             ->first();
-            
+
         if ($existing && $existing->checkin_time) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anak ini sudah check-in hari ini!'
             ]);
         }
-        
+
         // Check late
         $isLate = $this->isLateForCheckin();
         $withinGrace = $this->isWithinGracePeriod('checkin');
-        
+
         // Get parent name
         $parent = ParentModel::find($parentId);
         $parentName = $parent ? $parent->name : 'Unknown';
-        
+
         $status = 'present';
         $statusNote = '✅ Check-in On Time';
-        
+
         if ($isLate && $withinGrace) {
             $status = 'late';
             $statusNote = '⏰ Late (Grace Period)';
@@ -316,7 +317,7 @@ class CheckinController extends Controller
             $status = 'late';
             $statusNote = '⏰ Late';
         }
-        
+
         if ($existing) {
             $existing->update([
                 'checkin_time' => $now->format('H:i:s'),
@@ -337,9 +338,9 @@ class CheckinController extends Controller
                 'is_verified' => true
             ]);
         }
-        
+
         $this->sendTelegramNotification($child, $parentName, 'checkin', $isLate);
-        
+
         return response()->json([
             'success' => true,
             'message' => $isLate ? '⏰ Check-in berjaya! (Late)' : '✅ Check-in berjaya! (On Time)',
@@ -360,32 +361,32 @@ class CheckinController extends Controller
         $attendance = Attendance::where('child_id', $child->id)
             ->whereDate('date', $today)
             ->first();
-            
+
         if (!$attendance || !$attendance->checkin_time) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anak ini belum check-in hari ini! Sila check-in dahulu.'
             ]);
         }
-        
+
         if ($attendance->checkout_time) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anak ini sudah check-out hari ini!'
             ]);
         }
-        
+
         // Get parent name
         $parent = ParentModel::find($parentId);
         $parentName = $parent ? $parent->name : 'Unknown';
-        
+
         // Check late checkout using the same logic as isLateForCheckout
         $isLateCheckout = $this->isLateForCheckout();
         $withinGrace = $this->isWithinGracePeriod('checkout');
-        
+
         $status = 'checkout';
         $statusNote = '✅ Check-out On Time';
-        
+
         if ($isLateCheckout && $withinGrace) {
             $status = 'late_checkout';
             $statusNote = '⏰ Late Checkout (Grace Period)';
@@ -393,16 +394,16 @@ class CheckinController extends Controller
             $status = 'late_checkout';
             $statusNote = '⏰ Late Checkout';
         }
-        
+
         $attendance->update([
             'checkout_time' => $now->format('H:i:s'),
             'status' => $status,
             'status_note' => $statusNote,
             'pickup_by' => $parentName,
         ]);
-        
+
         $this->sendTelegramNotification($child, $parentName, 'checkout', $isLateCheckout);
-        
+
         return response()->json([
             'success' => true,
             'message' => $isLateCheckout ? '⏰ Check-out berjaya! (Late)' : '✅ Check-out berjaya! (On Time)',
@@ -426,25 +427,25 @@ class CheckinController extends Controller
                 'child_ids' => 'required|array',
                 'child_ids.*' => 'exists:children,id'
             ]);
-            
+
             $now = Carbon::now('Asia/Kuala_Lumpur');
             $today = $now->toDateString();
             $results = [];
             $checkedCount = 0;
             $alreadyCount = 0;
             $lateCount = 0;
-            
+
             $parent = ParentModel::find($request->parent_id);
             $parentName = $parent ? $parent->name : 'Unknown';
-            
+
             foreach ($request->child_ids as $childId) {
                 $child = Child::find($childId);
                 if (!$child) continue;
-                
+
                 $existing = Attendance::where('child_id', $childId)
                     ->whereDate('date', $today)
                     ->first();
-                    
+
                 if ($existing && $existing->checkin_time) {
                     $results[] = [
                         'name' => $child->name,
@@ -454,10 +455,10 @@ class CheckinController extends Controller
                     $alreadyCount++;
                     continue;
                 }
-                
+
                 // Check late for bulk checkin
                 $isLate = $this->isLateForCheckin();
-                
+
                 if ($existing) {
                     $existing->update([
                         'checkin_time' => $now->format('H:i:s'),
@@ -478,22 +479,22 @@ class CheckinController extends Controller
                         'is_verified' => true
                     ]);
                 }
-                
+
                 if ($isLate) {
                     $lateCount++;
                 } else {
                     $checkedCount++;
                 }
-                
+
                 $results[] = [
                     'name' => $child->name,
                     'status' => $isLate ? 'late' : 'checked_in',
                     'time' => $now->format('h:i A')
                 ];
-                
+
                 $this->sendTelegramNotification($child, $parentName, 'checkin', $isLate);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => '✅ ' . ($checkedCount + $lateCount) . ' anak berjaya check-in!',
@@ -502,7 +503,7 @@ class CheckinController extends Controller
                 'late_count' => $lateCount,
                 'already_count' => $alreadyCount
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('checkinAll Error: ' . $e->getMessage());
             return response()->json([
@@ -523,24 +524,24 @@ class CheckinController extends Controller
                 'child_ids' => 'required|array',
                 'child_ids.*' => 'exists:children,id'
             ]);
-            
+
             $now = Carbon::now('Asia/Kuala_Lumpur');
             $today = $now->toDateString();
             $results = [];
             $checkoutCount = 0;
             $alreadyCount = 0;
-            
+
             $parent = ParentModel::find($request->parent_id);
             $parentName = $parent ? $parent->name : 'Unknown';
-            
+
             foreach ($request->child_ids as $childId) {
                 $child = Child::find($childId);
                 if (!$child) continue;
-                
+
                 $attendance = Attendance::where('child_id', $childId)
                     ->whereDate('date', $today)
                     ->first();
-                    
+
                 if (!$attendance || !$attendance->checkin_time) {
                     $results[] = [
                         'name' => $child->name,
@@ -549,7 +550,7 @@ class CheckinController extends Controller
                     ];
                     continue;
                 }
-                
+
                 if ($attendance->checkout_time) {
                     $results[] = [
                         'name' => $child->name,
@@ -559,38 +560,38 @@ class CheckinController extends Controller
                     $alreadyCount++;
                     continue;
                 }
-                
+
                 // Check late checkout for bulk
                 $timer = $this->getTimerForToday();
                 $isLateCheckout = false;
-                
+
                 if ($timer) {
                     $currentTimeInt = (int) $now->format('Hi');
                     $eveningStartInt = (int) str_replace(':', '', $timer->evening_start);
                     $eveningEndInt = (int) str_replace(':', '', $timer->evening_end);
-                    
+
                     if (!($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt)) {
                         $isLateCheckout = true;
                     }
                 }
-                
+
                 $attendance->update([
                     'checkout_time' => $now->format('H:i:s'),
                     'status' => $isLateCheckout ? 'late_checkout' : 'checkout',
                     'status_note' => $isLateCheckout ? '⏰ Late Checkout' : '✅ Check-out via Checkout All',
                     'pickup_by' => $parentName,
                 ]);
-                
+
                 $checkoutCount++;
                 $results[] = [
                     'name' => $child->name,
                     'status' => 'checkout',
                     'time' => $now->format('h:i A')
                 ];
-                
+
                 $this->sendTelegramNotification($child, $request->parent_id, 'checkout', $isLateCheckout);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => '✅ ' . $checkoutCount . ' anak berjaya check-out!',
@@ -598,7 +599,7 @@ class CheckinController extends Controller
                 'checkout_count' => $checkoutCount,
                 'already_count' => $alreadyCount
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('checkoutAll Error: ' . $e->getMessage());
             return response()->json([
@@ -615,27 +616,27 @@ class CheckinController extends Controller
     private function getUserRole($user, $child)
     {
         if (!$user) return 'guest';
-        
+
         if (in_array($user->role, ['admin', 'teacher'])) {
             return 'admin';
         }
-        
+
         $parent = ParentModel::where('user_id', $user->id)->first();
         if ($parent && $child->parent_id == $parent->id) {
             return 'main_parent';
         }
-        
+
         if ($user->role === 'second_parent' || $user->role === 'parent2') {
             return 'second_parent';
         }
-        
+
         if ($user->role === 'guardian') {
             $guardian = Guardian::where('user_id', $user->id)->first();
             if ($guardian && $child->guardian_id == $guardian->id) {
                 return 'guardian';
             }
         }
-        
+
         return 'guest';
     }
 
@@ -687,47 +688,47 @@ class CheckinController extends Controller
                 'tag_class' => 'admin-tag',
             ],
         ];
-        
+
         return $roleMap[$role] ?? $roleMap['main_parent'];
     }
 
     private function getParentName($user, $child)
     {
         if (!$user) return 'Parent';
-        
+
         if (in_array($user->role, ['admin', 'teacher'])) {
             return $user->name ?? 'Admin';
         }
-        
+
         $parent = ParentModel::where('user_id', $user->id)->first();
         if ($parent && $child->parent_id == $parent->id) {
             return $parent->name ?? 'Main Parent';
         }
-        
+
         if ($user->role === 'second_parent' || $user->role === 'parent2') {
             $secondParent = SecondParent::where('user_id', $user->id)->first();
             return $secondParent->name ?? 'Second Parent';
         }
-        
+
         if ($user->role === 'guardian') {
             $guardian = Guardian::where('user_id', $user->id)->first();
             if ($guardian && $child->guardian_id == $guardian->id) {
                 return $guardian->name ?? 'Guardian';
             }
         }
-        
+
         return 'Parent';
     }
 
     private function getAllChildren($user, $currentChild)
     {
         $allChildren = collect();
-        
+
         if (!$user) {
             $allChildren->push($currentChild);
             return $allChildren;
         }
-        
+
         if (in_array($user->role, ['admin', 'teacher'])) {
             $allChildren = Child::where('is_active', true)->get();
         } else {
@@ -748,7 +749,7 @@ class CheckinController extends Controller
                         })->where('is_active', true)->get();
                     }
                 }
-                
+
                 if ($user->role === 'guardian') {
                     $guardian = Guardian::where('user_id', $user->id)->first();
                     if ($guardian) {
@@ -758,23 +759,23 @@ class CheckinController extends Controller
                 }
             }
         }
-        
+
         if (!$allChildren->contains('id', $currentChild->id)) {
             $allChildren->push($currentChild);
         }
-        
+
         return $allChildren;
     }
 
     private function getCheckedInData($allChildren, $today)
     {
         $checkedInData = [];
-        
+
         foreach ($allChildren as $child) {
             $attendance = Attendance::where('child_id', $child->id)
                 ->whereDate('date', $today)
                 ->first();
-                
+
             if ($attendance && $attendance->checkin_time && !$attendance->checkout_time) {
                 $checkedInData[] = [
                     'name' => $child->name,
@@ -784,7 +785,7 @@ class CheckinController extends Controller
                 ];
             }
         }
-        
+
         return $checkedInData;
     }
 
@@ -795,30 +796,30 @@ class CheckinController extends Controller
         if ($child->parent_id) {
             $parent = ParentModel::find($child->parent_id);
         }
-        
+
         if (!$parent || !$parent->telegram_notification || !$parent->telegram_id) {
             return;
         }
-        
+
         $now = Carbon::now('Asia/Kuala_Lumpur');
         $statusEmoji = $isLate ? '⚠️' : '✅';
         $statusText = $isLate ? 'LATE' : 'ON TIME';
-        
+
         $message = "🧸 <b>KidsTrack Notification</b>\n\n";
         $message .= "👶 <b>Child:</b> {$child->name}\n";
         $message .= "🏫 <b>Class:</b> " . ($child->classroom->name ?? 'N/A') . "\n";
         $message .= "👤 <b>Parent:</b> {$parentName}\n";
         $message .= "📅 <b>Date:</b> " . $now->format('d M Y') . "\n";
         $message .= "⏰ <b>Time:</b> " . $now->format('h:i A') . "\n";
-        
+
         if ($action == 'checkin') {
             $message .= "📥 <b>Action:</b> Check-in\n";
         } else {
             $message .= "📤 <b>Action:</b> Check-out\n";
         }
-        
+
         $message .= "{$statusEmoji} <b>Status:</b> {$statusText}";
-        
+
         $this->telegram->sendMessage($parent->telegram_id, $message);
     }
 }

@@ -11,6 +11,7 @@ use App\Models\TimerSetting;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class AddAnotherChildController extends Controller
@@ -26,35 +27,35 @@ class AddAnotherChildController extends Controller
     {
         try {
             $child = Child::with(['parent', 'classroom'])->findOrFail($childId);
-            $user = auth()->user();
+            $user = Auth::user();
             $now = Carbon::now('Asia/Kuala_Lumpur');
             $today = $now->toDateString();
-            
+
             // Get role data
             $roleData = $this->getRoleData($user);
-            
+
             // Get children based on role
             $childrenData = $this->getUserChildren($user, $child);
             $allChildren = $childrenData['all'];
             $parentId = $childrenData['parent_id'];
             $otherChildren = $childrenData['other'];
-            
+
             // Get attendance for all children
             $childIds = $allChildren->pluck('id')->toArray();
             $attendances = Attendance::whereIn('child_id', $childIds)
                 ->whereDate('date', $today)
                 ->get()
                 ->keyBy('child_id');
-            
+
             // Check current child
             $childAttendance = $attendances->get($child->id);
             $childCheckedIn = $childAttendance && $childAttendance->checkin_time;
             $childCheckedOut = $childAttendance && $childAttendance->checkout_time;
-            
+
             // Build checked-in data
             $allCheckedInData = [];
             $checkedInIds = [];
-            
+
             if ($childCheckedIn && !$childCheckedOut) {
                 $allCheckedInData[] = [
                     'name' => $child->name,
@@ -65,7 +66,7 @@ class AddAnotherChildController extends Controller
                 ];
                 $checkedInIds[] = $child->id;
             }
-            
+
             foreach ($otherChildren as $otherChild) {
                 $att = $attendances->get($otherChild->id);
                 if ($att && $att->checkin_time && !$att->checkout_time) {
@@ -79,14 +80,14 @@ class AddAnotherChildController extends Controller
                     $checkedInIds[] = $otherChild->id;
                 }
             }
-            
+
             // Build available children
             $availableChildren = [];
             foreach ($otherChildren as $otherChild) {
                 $att = $attendances->get($otherChild->id);
                 $isCheckedIn = $att && $att->checkin_time;
                 $isCheckedOut = $att && $att->checkout_time;
-                
+
                 if (!$isCheckedIn && !$isCheckedOut) {
                     $availableChildren[] = [
                         'id' => $otherChild->id,
@@ -97,36 +98,36 @@ class AddAnotherChildController extends Controller
                     ];
                 }
             }
-            
+
             // Checkout logic
             $timerSetting = TimerSetting::where('day_name', $now->format('l'))->first();
             $canCheckout = false;
             $isCheckoutMode = false;
             $checkoutStartTime = '--:--';
             $checkoutEndTime = '--:--';
-            
+
             if ($timerSetting) {
                 $currentTimeInt = (int) $now->format('Hi');
                 $eveningStartInt = (int) str_replace(':', '', $timerSetting->evening_start);
                 $eveningEndInt = (int) str_replace(':', '', $timerSetting->evening_end);
                 $checkoutStartTime = date('H:i', strtotime($timerSetting->evening_start));
                 $checkoutEndTime = date('H:i', strtotime($timerSetting->evening_end));
-                
+
                 if ($currentTimeInt >= $eveningStartInt) {
                     $canCheckout = true;
                     $isCheckoutMode = true;
                 }
             }
-            
+
             // 🔥🔥🔥 SEMAK SEMUA ANAK SUDAH CHECK-IN? 🔥🔥🔥
             $totalChildren = $allChildren->count();
             $checkedInCount = count($allCheckedInData);
             $allCheckedIn = ($checkedInCount == $totalChildren && $totalChildren > 0);
-            
+
             // 🔥🔥🔥 CURRENT CHILD DATA 🔥🔥🔥
             $currentChild = $child;
             $currentChildId = $child->id;
-            
+
             return view('kiosk.add-another', compact(
                 'child',
                 'currentChild',
@@ -148,7 +149,7 @@ class AddAnotherChildController extends Controller
                 'checkedInCount',    // ⭐ TAMBAH
                 'roleData'
             ));
-            
+
         } catch (\Exception $e) {
             Log::error('showAddAnother Error: ' . $e->getMessage());
             return redirect()->route('kiosk.index')
@@ -163,7 +164,7 @@ class AddAnotherChildController extends Controller
     private function getRoleData($user)
     {
         $role = $user ? $user->role : 'guest';
-        
+
         $roleMap = [
             'main_parent' => [
                 'class' => 'main-parent',
@@ -262,7 +263,7 @@ class AddAnotherChildController extends Controller
                 'welcome' => 'Welcome, Teacher 👋'
             ],
         ];
-        
+
         $normalized = $this->normalizeRole($role);
         return $roleMap[$normalized] ?? $roleMap['main_parent'];
     }
@@ -281,7 +282,7 @@ class AddAnotherChildController extends Controller
             'admin' => 'admin',
             'teacher' => 'admin',
         ];
-        
+
         return $map[$role] ?? 'main_parent';
     }
 
@@ -289,7 +290,7 @@ class AddAnotherChildController extends Controller
     {
         $allChildren = collect();
         $parentId = 0;
-        
+
         if (!$user) {
             $allChildren->push($currentChild);
             return [
@@ -298,9 +299,9 @@ class AddAnotherChildController extends Controller
                 'parent_id' => 0
             ];
         }
-        
+
         $role = $this->normalizeRole($user->role);
-        
+
         switch ($role) {
             case 'main_parent':
                 $parent = ParentModel::where('user_id', $user->id)->first();
@@ -312,7 +313,7 @@ class AddAnotherChildController extends Controller
                     })->where('is_active', true)->get();
                 }
                 break;
-                
+
             case 'second_parent':
                 $secondParent = SecondParent::where('user_id', $user->id)->first();
                 if ($secondParent) {
@@ -326,7 +327,7 @@ class AddAnotherChildController extends Controller
                     }
                 }
                 break;
-                
+
             case 'guardian':
                 $guardian = Guardian::where('user_id', $user->id)->first();
                 if ($guardian) {
@@ -335,24 +336,24 @@ class AddAnotherChildController extends Controller
                         ->where('is_active', true)->get();
                 }
                 break;
-                
+
             case 'admin':
             default:
                 $parentId = $user->id;
                 $allChildren = Child::where('is_active', true)->get();
                 break;
         }
-        
+
         // Include current child
         if ($currentChild && !$allChildren->contains('id', $currentChild->id)) {
             $allChildren->push($currentChild);
         }
-        
+
         // Other children (exclude current)
         $otherChildren = $allChildren->filter(function($c) use ($currentChild) {
             return $currentChild ? $c->id != $currentChild->id : true;
         });
-        
+
         return [
             'all' => $allChildren,
             'other' => $otherChildren,
@@ -371,21 +372,21 @@ class AddAnotherChildController extends Controller
                 'child_ids' => 'required|array',
                 'child_ids.*' => 'exists:children,id'
             ]);
-            
+
             $now = Carbon::now('Asia/Kuala_Lumpur');
             $today = $now->toDateString();
             $results = [];
             $checkedCount = 0;
             $alreadyCount = 0;
-            
+
             foreach ($request->child_ids as $childId) {
                 $child = Child::find($childId);
                 if (!$child) continue;
-                
+
                 $existing = Attendance::where('child_id', $childId)
                     ->whereDate('date', $today)
                     ->first();
-                
+
                 if ($existing && $existing->checkin_time) {
                     $results[] = [
                         'name' => $child->name,
@@ -395,7 +396,7 @@ class AddAnotherChildController extends Controller
                     $alreadyCount++;
                     continue;
                 }
-                
+
                 if ($existing) {
                     $existing->update([
                         'checkin_time' => $now->format('H:i:s'),
@@ -416,17 +417,17 @@ class AddAnotherChildController extends Controller
                         'is_verified' => true
                     ]);
                 }
-                
+
                 $checkedCount++;
                 $results[] = [
                     'name' => $child->name,
                     'status' => 'checked_in',
                     'time' => $now->format('h:i A')
                 ];
-                
+
                 $this->sendTelegramNotification($child, $request->parent_id, 'checkin');
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => '✅ ' . $checkedCount . ' anak berjaya check-in!',
@@ -434,7 +435,7 @@ class AddAnotherChildController extends Controller
                 'checked_count' => $checkedCount,
                 'already_count' => $alreadyCount
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('checkinAll Error: ' . $e->getMessage());
             return response()->json([
@@ -455,21 +456,21 @@ class AddAnotherChildController extends Controller
                 'child_ids' => 'required|array',
                 'child_ids.*' => 'exists:children,id'
             ]);
-            
+
             $now = Carbon::now('Asia/Kuala_Lumpur');
             $today = $now->toDateString();
             $results = [];
             $checkoutCount = 0;
             $alreadyCount = 0;
-            
+
             foreach ($request->child_ids as $childId) {
                 $child = Child::find($childId);
                 if (!$child) continue;
-                
+
                 $attendance = Attendance::where('child_id', $childId)
                     ->whereDate('date', $today)
                     ->first();
-                
+
                 if (!$attendance || !$attendance->checkin_time) {
                     $results[] = [
                         'name' => $child->name,
@@ -478,7 +479,7 @@ class AddAnotherChildController extends Controller
                     ];
                     continue;
                 }
-                
+
                 if ($attendance->checkout_time) {
                     $results[] = [
                         'name' => $child->name,
@@ -488,24 +489,24 @@ class AddAnotherChildController extends Controller
                     $alreadyCount++;
                     continue;
                 }
-                
+
                 $attendance->update([
                     'checkout_time' => $now->format('H:i:s'),
                     'status' => 'checkout',
                     'status_note' => '✅ Check-out via Add Another',
                     'pickup_by' => 'Parent ID: ' . $request->parent_id,
                 ]);
-                
+
                 $checkoutCount++;
                 $results[] = [
                     'name' => $child->name,
                     'status' => 'checkout',
                     'time' => $now->format('h:i A')
                 ];
-                
+
                 $this->sendTelegramNotification($child, $request->parent_id, 'checkout');
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => '✅ ' . $checkoutCount . ' anak berjaya check-out!',
@@ -513,7 +514,7 @@ class AddAnotherChildController extends Controller
                 'checkout_count' => $checkoutCount,
                 'already_count' => $alreadyCount
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('checkoutAll Error: ' . $e->getMessage());
             return response()->json([
@@ -529,20 +530,20 @@ class AddAnotherChildController extends Controller
         if (!$parent || !$parent->telegram_notification || !$parent->telegram_id) {
             return;
         }
-        
+
         $now = Carbon::now('Asia/Kuala_Lumpur');
         $message = "🧸 KidsTrack Alert\n\n";
         $message .= "👶 Child: {$child->name}\n";
         $message .= "🏫 Class: " . ($child->classroom->name ?? 'No class') . "\n";
-        
+
         if ($action == 'checkin') {
             $message .= "✅ Checked-in at: " . $now->format('h:i A') . "\n";
         } else {
             $message .= "👋 Checked-out at: " . $now->format('h:i A') . "\n";
         }
-        
+
         $message .= "📅 Date: " . $now->format('d M Y');
-        
+
         $this->telegram->sendMessage($parent->telegram_id, $message);
     }
 }

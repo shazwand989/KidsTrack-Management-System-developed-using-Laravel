@@ -9,6 +9,7 @@ use App\Models\Guardian;
 use App\Models\Classroom;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ChildController extends Controller
@@ -25,7 +26,7 @@ class ChildController extends Controller
         $parents = ParentModel::all();
         $secondParents = SecondParent::all();
         $guardians = Guardian::all();
-        
+
         return view('children.create', compact('classrooms', 'parents', 'secondParents', 'guardians'));
     }
 
@@ -49,24 +50,24 @@ class ChildController extends Controller
         ]);
 
         $data = $request->all();
-        
+
         if ($request->hasFile('photo')) {
             $data['photo'] = $request->file('photo')->store('children', 'public');
         }
-        
+
         $data['enrollment_date'] = now();
 
         $nextId = Child::max('id') + 1;
         $qrData = 'KID-' . str_pad($nextId, 4, '0', STR_PAD_LEFT) . '-' . time() . '-' . Str::random(8);
         $qrCodeUrl = rtrim(config('app.url'), '/') . '/scan-qr/' . $qrData;
-        
+
         $data['qr_code'] = $qrData;
         $data['qr_code_url'] = $qrCodeUrl;
-        
+
         $child = Child::create($data);
-        
+
         $this->generateQRImage($child->id, $qrData);
-        
+
         return redirect()->route('children.index')
             ->with('success', 'Child registered successfully! QR Code generated.');
     }
@@ -83,7 +84,7 @@ class ChildController extends Controller
         $parents = ParentModel::all();
         $secondParents = SecondParent::all();
         $guardians = Guardian::all();
-        
+
         return view('children.edit', compact('child', 'classrooms', 'parents', 'secondParents', 'guardians'));
     }
 
@@ -107,18 +108,18 @@ class ChildController extends Controller
         ]);
 
         $data = $request->all();
-        
+
         if ($request->hasFile('photo')) {
             if ($child->photo) {
                 Storage::disk('public')->delete($child->photo);
             }
             $data['photo'] = $request->file('photo')->store('children', 'public');
         }
-        
+
         $data['is_active'] = $request->has('is_active');
-        
+
         $child->update($data);
-        
+
         return redirect()->route('children.show', $child)
             ->with('success', 'Child updated successfully!');
     }
@@ -129,7 +130,7 @@ class ChildController extends Controller
             Storage::disk('public')->delete($child->photo);
         }
         $child->delete();
-        
+
         return redirect()->route('children.index')
             ->with('success', 'Child deleted successfully!');
     }
@@ -139,18 +140,18 @@ class ChildController extends Controller
         try {
             $qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($qrData);
             $contents = file_get_contents($qrImageUrl);
-            
+
             if ($contents) {
                 $path = storage_path('app/public/qrcodes/child-' . $childId . '.png');
-                
+
                 if (!is_dir(dirname($path))) {
                     mkdir(dirname($path), 0755, true);
                 }
-                
+
                 file_put_contents($path, $contents);
             }
         } catch (\Exception $e) {
-            \Log::error('QR Code generation failed: ' . $e->getMessage());
+            Log::error('QR Code generation failed: ' . $e->getMessage());
         }
     }
 
@@ -163,16 +164,16 @@ class ChildController extends Controller
     public function downloadQR($id)
     {
         $child = Child::findOrFail($id);
-        
+
         $localPath = storage_path('app/public/qrcodes/child-' . $child->id . '.png');
-        
+
         if (file_exists($localPath)) {
             return response()->download($localPath, 'qrcode-' . $child->name . '.png');
         }
-        
+
         $qrImageUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($child->qr_code);
         $contents = file_get_contents($qrImageUrl);
-        
+
         return response($contents)
             ->withHeaders([
                 'Content-Type' => 'image/png',
@@ -183,30 +184,30 @@ class ChildController extends Controller
     public function getQR($id)
     {
         $child = Child::findOrFail($id);
-        
+
         $localPath = storage_path('app/public/qrcodes/child-' . $child->id . '.png');
-        
+
         if (file_exists($localPath)) {
             return response()->file($localPath);
         }
-        
+
         return redirect('https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' . urlencode($child->qr_code));
     }
 
     public function generateQR($id)
     {
         $child = Child::findOrFail($id);
-        
+
         $qrData = 'KID-' . str_pad($child->id, 4, '0', STR_PAD_LEFT) . '-' . time() . '-' . Str::random(8);
         $qrCodeUrl = rtrim(config('app.url'), '/') . '/scan-qr/' . $qrData;
-        
+
         $child->update([
             'qr_code' => $qrData,
             'qr_code_url' => $qrCodeUrl,
         ]);
-        
+
         $this->generateQRImage($child->id, $qrData);
-        
+
         return redirect()->route('children.show', $child->id)
             ->with('success', 'QR Code generated successfully!');
     }
