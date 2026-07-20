@@ -156,8 +156,9 @@
             font-weight: 800;
         }
         .status-checked-in  { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-        .status-checked-out { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+        .status-checked-out { background: #eff6ff; color: #3b82f6; border: 1px solid #bfdbfe; }
         .status-pending     { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+        .status-late        { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 
         .time-info { margin-top: 15px; font-size: 13px; color: #64748b; }
 
@@ -277,8 +278,17 @@
                     $pickupBy = $attendance->pickup_by ?? null;
                 @endphp
 
-                @if($status == 'checkin')
-                    <div class="status-badge status-checked-in">✅ Checked In</div>
+                @if(in_array($status, ['checkin', 'present']))
+                    <div class="status-badge status-checked-in">✅ Checked In (On Time)</div>
+                    <div class="time-info">
+                        📅 Check-in: {{ $checkinTime ? date('h:i A', strtotime($checkinTime)) : '-' }}
+                    </div>
+                    @if($dropOffBy)
+                    <div class="time-info">👨‍👩‍👧 Dihantar oleh: {{ $dropOffBy }}</div>
+                    @endif
+
+                @elseif($status == 'late')
+                    <div class="status-badge status-late">⏰ Check-in Lambat!</div>
                     <div class="time-info">
                         📅 Check-in: {{ $checkinTime ? date('h:i A', strtotime($checkinTime)) : '-' }}
                     </div>
@@ -287,7 +297,16 @@
                     @endif
 
                 @elseif($status == 'checkout')
-                    <div class="status-badge status-checked-out">📤 Checked Out</div>
+                    <div class="status-badge status-checked-out">📤 Checked Out (On Time)</div>
+                    <div class="time-info">
+                        📅 Check-out: {{ $checkoutTime ? date('h:i A', strtotime($checkoutTime)) : '-' }}
+                    </div>
+                    @if($pickupBy)
+                    <div class="time-info">👨‍👩‍👧 Dijemput oleh: {{ $pickupBy }}</div>
+                    @endif
+
+                @elseif($status == 'late_checkout')
+                    <div class="status-badge status-late">⏰ Check-out Lambat!</div>
                     <div class="time-info">
                         📅 Check-out: {{ $checkoutTime ? date('h:i A', strtotime($checkoutTime)) : '-' }}
                     </div>

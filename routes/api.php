@@ -1,7 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\QRController;
+use App\Http\Controllers\TelegramWebhookController;
 use Illuminate\Support\Facades\Route;
+
+// Telegram Webhook
+Route::post('/telegram/webhook', [TelegramWebhookController::class, 'handle']);
 
 Route::prefix('qr')->group(function () {
     Route::post('/generate', [QRController::class, 'generate'])->name('api.qr.generate');

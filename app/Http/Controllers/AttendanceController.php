@@ -10,6 +10,7 @@ use App\Models\Guardian;
 use App\Models\TimerSetting;
 use App\Models\Classroom;
 use App\Models\SimulationClock;
+use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -1134,27 +1135,48 @@ public function exportSinglePdf($id)
         $today = date('Y-m-d', SimulationClock::getCurrentTime());
         $now = date('H:i:s', SimulationClock::getCurrentTime());
         
+        // Get timer settings for today
+        $dayName = date('l', SimulationClock::getCurrentTime());
+        $timer = TimerSetting::where('day_name', $dayName)->first();
+        $morningEnd = $timer->morning_end ?? '07:30:00';
+        
+        // Determine if late (after morning end time)
+        $isLate = $now > $morningEnd;
+        $status = $isLate ? 'late' : 'checkin';
+        
+        // Get parent name from verified session
+        $parent = ParentModel::find($child->parent_id);
+        $dropOffName = $parent ? $parent->name : 'Parent';
+        
         $attendance = Attendance::firstOrCreate(
             ['child_id' => $child->id, 'date' => $today],
-            ['status' => 'checkin', 'checkin_time' => $now]
+            [
+                'status' => $status,
+                'checkin_time' => $now,
+                'drop_off_by' => $dropOffName,
+                'is_verified' => true,
+            ]
         );
         
-        if ($attendance->wasRecentlyCreated) {
+        if (!$attendance->wasRecentlyCreated) {
             $attendance->update([
+                'status' => $status,
                 'checkin_time' => $now,
-                'drop_off_by' => $request->input('dropped_by', 'Parent'),
-                'is_verified' => true,
-            ]);
-        } else {
-            $attendance->update([
-                'status' => 'checkin',
-                'checkin_time' => $now,
-                'drop_off_by' => $request->input('dropped_by', 'Parent'),
+                'drop_off_by' => $dropOffName,
                 'is_verified' => true,
             ]);
         }
         
-        return response()->json(['success' => true, 'message' => '✅ Check-in berjaya!']);
+        $message = $isLate 
+            ? '⚠️ Check-in lewat! (' . date('h:i A', strtotime($now)) . ')'
+            : '✅ Check-in berjaya! (' . date('h:i A', strtotime($now)) . ')';
+        
+        // Send Telegram notification if late
+        if ($isLate) {
+            $this->sendLateNotification($child, 'check-in', $now, $morningEnd);
+        }
+        
+        return response()->json(['success' => true, 'message' => $message, 'late' => $isLate]);
     }
 
     public function processCheckout(Request $request, Child $child)
@@ -1167,16 +1189,72 @@ public function exportSinglePdf($id)
             ->first();
         
         if (!$attendance) {
-            return response()->json(['success' => false, 'message' => 'Tiada rekod check-in hari ini.']);
+            return response()->json(['success' => false, 'message' => 'Sila check-in dahulu.']);
         }
         
+        // Get timer settings for today
+        $dayName = date('l', SimulationClock::getCurrentTime());
+        $timer = TimerSetting::where('day_name', $dayName)->first();
+        $eveningEnd = $timer->evening_end ?? '17:30:00';
+        
+        // Determine if late checkout (after evening end time)
+        $isLateCheckout = $now > $eveningEnd;
+        $status = $isLateCheckout ? 'late_checkout' : 'checkout';
+        
+        // Get parent name
+        $parent = ParentModel::find($child->parent_id);
+        $pickupName = $parent ? $parent->name : 'Parent';
+        
         $attendance->update([
-            'status' => 'checkout',
+            'status' => $status,
             'checkout_time' => $now,
-            'pickup_by' => $request->input('picked_by', 'Parent'),
+            'pickup_by' => $pickupName,
         ]);
         
-        return response()->json(['success' => true, 'message' => '✅ Check-out berjaya!']);
+        $message = $isLateCheckout 
+            ? '⚠️ Check-out lewat! (' . date('h:i A', strtotime($now)) . ')'
+            : '✅ Check-out berjaya! (' . date('h:i A', strtotime($now)) . ')';
+        
+        // Send Telegram notification if late checkout
+        if ($isLateCheckout) {
+            $this->sendLateNotification($child, 'check-out', $now, $eveningEnd);
+        }
+        
+        return response()->json(['success' => true, 'message' => $message, 'late' => $isLateCheckout]);
+    }
+
+    /**
+     * Send Telegram notification for late check-in/checkout
+     */
+    private function sendLateNotification(Child $child, string $type, string $actualTime, string $deadline)
+    {
+        try {
+            $telegram = new TelegramService();
+            $parent = ParentModel::find($child->parent_id);
+            $user = $parent ? \App\Models\User::find($parent->user_id) : null;
+            
+            $icon = $type === 'check-in' ? '⏰' : '📤';
+            $message = "{$icon} <b>Late {$type} Notification</b>\n\n"
+                . "👶 <b>Child:</b> {$child->name}\n"
+                . "🏫 <b>Class:</b> " . ($child->classroom->name ?? 'N/A') . "\n"
+                . "🕐 <b>Time:</b> " . date('h:i A', strtotime($actualTime)) . "\n"
+                . "⏳ <b>Deadline:</b> " . date('h:i A', strtotime($deadline)) . "\n"
+                . "👤 <b>Parent:</b> " . ($parent->name ?? 'N/A') . "\n\n"
+                . "<i>Please take note. - KIDSTRACK SAFECARE</i>";
+            
+            // 1. Send to admin
+            $adminChatId = env('TELEGRAM_ADMIN_CHAT_ID');
+            if ($adminChatId) {
+                $telegram->sendMessage($adminChatId, $message);
+            }
+            
+            // 2. Send to parent (if they linked their Telegram)
+            if ($user && $user->telegram_chat_id) {
+                $telegram->sendMessage($user->telegram_chat_id, $message);
+            }
+        } catch (\Exception $e) {
+            Log::error('Telegram notification failed: ' . $e->getMessage());
+        }
     }
 
     public function getStatus(Child $child)
