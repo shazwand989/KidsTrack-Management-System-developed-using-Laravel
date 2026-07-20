@@ -51,7 +51,7 @@ class QRController extends Controller
         // Save QR data
         $child->update([
             'qr_code' => $qrData,
-            'qr_code_url' => url('/scan-qr/' . $qrData),
+            'qr_code_url' => rtrim(config('app.url'), '/') . '/scan-qr/' . $qrData,
         ]);
 
         // Return QR Code as base64

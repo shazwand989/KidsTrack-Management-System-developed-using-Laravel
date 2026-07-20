@@ -296,8 +296,8 @@
     let selectedChildName = null;
     let typingTimer;
     
-    const searchUrl = window.location.origin + '/attendance/search/results';
-    const verifyUrl = window.location.origin + '/attendance/child';
+    const searchUrl = window.location.origin + '/attendance-scan/search/results';
+    const verifyUrl = window.location.origin + '/attendance-scan/child';
     const csrfToken = '{{ csrf_token() }}';
 
     // MAIN SEARCH FUNCTION - FIXED VERSION

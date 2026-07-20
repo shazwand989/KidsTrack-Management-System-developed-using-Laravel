@@ -189,20 +189,20 @@
         background: white;
         border-radius: 20px;
         box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-        overflow-x: auto;
+        overflow: hidden;
         border: 1px solid #FFF0EC;
     }
 
     .pg-table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 1100px;
+        min-width: 900px;
     }
 
     .pg-table thead tr { background: #FFF5F2; }
 
     .pg-table thead th {
-        padding: 14px 18px;
+        padding: 12px 14px;
         font-size: 11px;
         font-weight: 800;
         text-transform: uppercase;
@@ -215,7 +215,89 @@
     .pg-table tbody tr { border-bottom: 1px solid #FFF5F2; transition: background .15s; cursor: pointer; }
     .pg-table tbody tr:last-child { border-bottom: none; }
     .pg-table tbody tr:hover { background: #FFFAF9; }
-    .pg-table tbody td { padding: 14px 18px; font-size: 13px; color: #475569; border: none; vertical-align: middle; }
+    .pg-table tbody td { padding: 12px 14px; font-size: 13px; color: #475569; border: none; vertical-align: middle; }
+
+    /* ── MOBILE CARD VIEW ── */
+    .mobile-cards { display: none; }
+
+    .mobile-card {
+        background: white;
+        border-radius: 18px;
+        padding: 18px;
+        margin-bottom: 14px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        border: 1px solid #FFF0EC;
+        transition: transform .15s;
+    }
+    .mobile-card:active { transform: scale(0.98); }
+
+    .mobile-card .mc-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .mobile-card .mc-avatar {
+        width: 44px; height: 44px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #FF6B6B, #FF9E7D);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-weight: 800; font-size: 18px;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+    .mobile-card .mc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+    .mobile-card .mc-name { font-weight: 800; color: #1e293b; font-size: 15px; }
+    .mobile-card .mc-sub { font-size: 11px; color: #94a3b8; }
+
+    .mobile-card .mc-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .mobile-card .mc-item { font-size: 12px; }
+    .mobile-card .mc-item .mc-label { color: #94a3b8; font-weight: 600; font-size: 10px; text-transform: uppercase; }
+    .mobile-card .mc-item .mc-value { color: #1e293b; font-weight: 700; font-size: 13px; margin-top: 2px; }
+
+    .mobile-card .mc-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid #f1f5f9;
+    }
+    .mobile-card .mc-actions .act-btn {
+        flex: 1;
+        height: 36px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    /* Show/hide based on screen */
+    @media (max-width: 768px) {
+        .pg-table { display: none !important; }
+        .table-footer { display: none !important; }
+        .mobile-cards { display: block; }
+        .pg-table thead { display: none; }
+    }
+    @media (min-width: 769px) {
+        .mobile-cards { display: none !important; }
+        .pg-table { display: table !important; }
+        .table-footer { display: flex !important; }
+    }
 
     .child-cell { display: flex; align-items: center; gap: 12px; }
 

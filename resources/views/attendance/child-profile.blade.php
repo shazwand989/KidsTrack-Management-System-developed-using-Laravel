@@ -207,7 +207,7 @@
 </head>
 <body>
 <div class="container">
-    <a href="{{ route('attendance.search') }}" class="back-link">← Cari Anak Lain</a>
+    <a href="{{ route('attendance-scan.search') }}" class="back-link">← Cari Anak Lain</a>
 
     <div class="profile-card">
 
@@ -239,7 +239,7 @@
             <h3>🔒 Sahkan Identiti</h3>
             <p>Masukkan no telefon ibu bapa / penjaga untuk teruskan</p>
 
-            <form action="{{ route('attendance.verify', $child->id) }}" method="POST">
+            <form action="{{ route('attendance-scan.verify', $child->id) }}" method="POST">
                 @csrf
                 <div class="phone-input-wrap">
                     <span style="font-size:20px">📱</span>
@@ -268,6 +268,14 @@
             <div class="verified-badge">✅ Identiti Disahkan</div>
 
             <div style="margin-top: 20px;">
+                @php
+                    $status = $attendance->status ?? null;
+                    $checkinTime = $attendance->checkin_time ?? null;
+                    $checkoutTime = $attendance->checkout_time ?? null;
+                    $dropOffBy = $attendance->drop_off_by ?? null;
+                    $pickupBy = $attendance->pickup_by ?? null;
+                @endphp
+
                 @if($status == 'checkin')
                     <div class="status-badge status-checked-in">✅ Checked In</div>
                     <div class="time-info">
@@ -293,27 +301,23 @@
             </div>
         </div>
 
-        {{-- ACTION BUTTONS -- tunjuk lepas verified --}}
-        <div class="action-buttons">
-            @if($status != 'checkin')
-            <form action="{{ route('attendance.checkin.process', $child->id) }}" method="POST" style="flex:1">
-                @csrf
-                <button type="submit" class="btn btn-checkin">✅ CHECK IN</button>
-            </form>
-            @else
-            <button class="btn btn-checkin btn-disabled" disabled>✅ Dah Check In</button>
-            @endif
+        {{-- RESULT MESSAGE --}}
+        <div id="resultMsg" style="display:none; margin: 0 20px;"></div>
 
-            @if($status == 'checkin')
-            <form action="{{ route('attendance.checkout.process', $child->id) }}" method="POST" style="flex:1">
-                @csrf
-                <button type="submit" class="btn btn-checkout">📤 CHECK OUT</button>
-            </form>
-            @elseif($status == 'checkout')
-            <button class="btn btn-checkout btn-disabled" disabled>📤 Dah Check Out</button>
-            @else
-            <button class="btn btn-checkout btn-disabled" disabled>📤 Check In Dulu</button>
-            @endif
+        {{-- ACTION BUTTONS -- tunjuk lepas verified --}}
+        <div class="action-buttons" id="actionButtons">
+            @php $status = $status ?? null; @endphp
+            <button class="btn btn-checkin {{ $status == 'checkin' ? 'btn-disabled' : '' }}"
+                    {{ $status == 'checkin' ? 'disabled' : '' }}
+                    onclick="doAction('checkin', {{ $child->id }})">
+                ✅ {{ $status == 'checkin' ? 'Dah Check In' : 'CHECK IN' }}
+            </button>
+
+            <button class="btn btn-checkout {{ $status != 'checkin' ? 'btn-disabled' : '' }}"
+                    {{ $status != 'checkin' ? 'disabled' : '' }}
+                    onclick="doAction('checkout', {{ $child->id }})">
+                📤 {{ $status == 'checkout' ? 'Dah Check Out' : ($status == 'checkin' ? 'CHECK OUT' : 'Check In Dulu') }}
+            </button>
         </div>
 
         <div class="info-note">
@@ -324,5 +328,65 @@
 
     </div>
 </div>
+
+<script>
+const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+const childId = {{ $child->id }};
+
+function showResult(msg, type) {
+    const el = document.getElementById('resultMsg');
+    el.textContent = msg;
+    el.className = 'alert alert-' + (type === 'success' ? 'success' : 'error');
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+async function doAction(action, id) {
+    const btnCheckin = document.querySelector('.btn-checkin');
+    const btnCheckout = document.querySelector('.btn-checkout');
+    const url = '/attendance-scan/' + action + '/' + id;
+
+    // Disable both buttons during request
+    btnCheckin.disabled = true;
+    btnCheckout.disabled = true;
+    const origIn = btnCheckin.textContent;
+    const origOut = btnCheckout.textContent;
+    btnCheckin.textContent = '⏳ ...';
+    btnCheckout.textContent = '⏳ ...';
+
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            showResult(data.message || '✅ Berjaya!', 'success');
+            // Reload after short delay to show updated status
+            setTimeout(() => { location.reload(); }, 800);
+        } else {
+            showResult(data.message || '❌ Gagal', 'error');
+            btnCheckin.disabled = false;
+            btnCheckout.disabled = false;
+            btnCheckin.textContent = origIn;
+            btnCheckout.textContent = origOut;
+        }
+    } catch (err) {
+        showResult('⚠️ Ralat sambungan. Cuba semula.', 'error');
+        btnCheckin.disabled = false;
+        btnCheckout.disabled = false;
+        btnCheckin.textContent = origIn;
+        btnCheckout.textContent = origOut;
+    }
+}
+</script>
+
 </body>
 </html>

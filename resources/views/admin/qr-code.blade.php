@@ -86,7 +86,7 @@
         <h2>📱 QR Code Check-in / Check-out</h2>
         <p>Scan QR code ini untuk check in / check out</p>
 @php
-    $scanUrl = 'https://photo-routers-clinics-documented.trycloudflare.com/attendance/search';
+    $scanUrl = rtrim(config('app.url'), '/') . '/attendance-scan/search';
 @endphp
 
         <div class="qr-code">

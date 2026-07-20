@@ -58,7 +58,7 @@ class ChildController extends Controller
 
         $nextId = Child::max('id') + 1;
         $qrData = 'KID-' . str_pad($nextId, 4, '0', STR_PAD_LEFT) . '-' . time() . '-' . Str::random(8);
-        $qrCodeUrl = url('/scan-qr/' . $qrData);
+        $qrCodeUrl = rtrim(config('app.url'), '/') . '/scan-qr/' . $qrData;
         
         $data['qr_code'] = $qrData;
         $data['qr_code_url'] = $qrCodeUrl;
@@ -198,7 +198,7 @@ class ChildController extends Controller
         $child = Child::findOrFail($id);
         
         $qrData = 'KID-' . str_pad($child->id, 4, '0', STR_PAD_LEFT) . '-' . time() . '-' . Str::random(8);
-        $qrCodeUrl = url('/scan-qr/' . $qrData);
+        $qrCodeUrl = rtrim(config('app.url'), '/') . '/scan-qr/' . $qrData;
         
         $child->update([
             'qr_code' => $qrData,

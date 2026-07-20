@@ -147,7 +147,7 @@
         </div>
         
         @foreach($children as $child)
-        <a href="{{ route('attendance.child', $child->id) }}" class="child-card">
+        <a href="{{ route('attendance-scan.child', $child->id) }}" class="child-card">
             <div class="child-avatar">
                 @if($child->photo)
                     <img src="{{ asset('storage/'.$child->photo) }}" alt="">

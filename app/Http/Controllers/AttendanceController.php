@@ -1034,4 +1034,181 @@ public function exportSinglePdf($id)
             ], 500);
         }
     }
+
+    // ============================================
+    // ATTENDANCE SCAN - Public search page
+    // ============================================
+    public function search()
+    {
+        return view('attendance.search');
+    }
+
+    public function searchResults(Request $request)
+    {
+        $query = $request->get('q', '');
+        
+        if (strlen($query) < 2) {
+            return response()->json([]);
+        }
+        
+        $children = Child::where('is_active', true)
+            ->where('name', 'like', '%' . $query . '%')
+            ->select('id', 'name', 'age', 'photo', 'classroom_id')
+            ->with('classroom:id,name')
+            ->limit(10)
+            ->get()
+            ->map(function ($child) {
+                return [
+                    'id' => $child->id,
+                    'name' => $child->name,
+                    'age' => $child->age,
+                    'photo' => $child->photo ? asset('storage/' . $child->photo) : null,
+                    'classroom' => $child->classroom->name ?? 'N/A',
+                ];
+            });
+        
+        return response()->json($children);
+    }
+
+    public function verifyPhone(Request $request, Child $child)
+    {
+        $phone = $request->input('phone', '');
+        
+        // Normalize phone number - remove spaces, dashes
+        $phone = preg_replace('/[\s\-]/', '', $phone);
+        
+        // Check against parent's phone
+        $parent = ParentModel::find($child->parent_id);
+        if ($parent) {
+            $parentPhone = preg_replace('/[\s\-]/', '', $parent->phone ?? '');
+            if ($parentPhone && str_contains($phone, substr($parentPhone, -7))) {
+                session(['verified_child_' . $child->id => true]);
+                return response()->json(['success' => true]);
+            }
+        }
+        
+        // Check against second parent's phone
+        $secondParent = SecondParent::find($child->second_parent_id);
+        if ($secondParent) {
+            $spPhone = preg_replace('/[\s\-]/', '', $secondParent->phone ?? '');
+            if ($spPhone && str_contains($phone, substr($spPhone, -7))) {
+                session(['verified_child_' . $child->id => true]);
+                return response()->json(['success' => true]);
+            }
+        }
+        
+        // Check against guardian's phone
+        $guardian = Guardian::find($child->guardian_id);
+        if ($guardian) {
+            $gPhone = preg_replace('/[\s\-]/', '', $guardian->phone ?? '');
+            if ($gPhone && str_contains($phone, substr($gPhone, -7))) {
+                session(['verified_child_' . $child->id => true]);
+                return response()->json(['success' => true]);
+            }
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => '❌ No telefon tidak sepadan dengan rekod. Cuba semula.'
+        ]);
+    }
+
+    public function childProfile(Child $child)
+    {
+        $child->load(['parent', 'secondParent', 'guardian', 'classroom']);
+        
+        // Check if verified via session
+        $verified = session('verified_child_' . $child->id, false);
+        
+        // Get today's attendance
+        $today = date('Y-m-d', SimulationClock::getCurrentTime());
+        $attendance = Attendance::where('child_id', $child->id)
+            ->where('date', $today)
+            ->first();
+        
+        return view('attendance.child-profile', compact('child', 'attendance', 'verified'));
+    }
+
+    public function processCheckin(Request $request, Child $child)
+    {
+        $today = date('Y-m-d', SimulationClock::getCurrentTime());
+        $now = date('H:i:s', SimulationClock::getCurrentTime());
+        
+        $attendance = Attendance::firstOrCreate(
+            ['child_id' => $child->id, 'date' => $today],
+            ['status' => 'checkin', 'checkin_time' => $now]
+        );
+        
+        if ($attendance->wasRecentlyCreated) {
+            $attendance->update([
+                'checkin_time' => $now,
+                'drop_off_by' => $request->input('dropped_by', 'Parent'),
+                'is_verified' => true,
+            ]);
+        } else {
+            $attendance->update([
+                'status' => 'checkin',
+                'checkin_time' => $now,
+                'drop_off_by' => $request->input('dropped_by', 'Parent'),
+                'is_verified' => true,
+            ]);
+        }
+        
+        return response()->json(['success' => true, 'message' => '✅ Check-in berjaya!']);
+    }
+
+    public function processCheckout(Request $request, Child $child)
+    {
+        $today = date('Y-m-d', SimulationClock::getCurrentTime());
+        $now = date('H:i:s', SimulationClock::getCurrentTime());
+        
+        $attendance = Attendance::where('child_id', $child->id)
+            ->where('date', $today)
+            ->first();
+        
+        if (!$attendance) {
+            return response()->json(['success' => false, 'message' => 'Tiada rekod check-in hari ini.']);
+        }
+        
+        $attendance->update([
+            'status' => 'checkout',
+            'checkout_time' => $now,
+            'pickup_by' => $request->input('picked_by', 'Parent'),
+        ]);
+        
+        return response()->json(['success' => true, 'message' => '✅ Check-out berjaya!']);
+    }
+
+    public function getStatus(Child $child)
+    {
+        $today = date('Y-m-d', SimulationClock::getCurrentTime());
+        $attendance = Attendance::where('child_id', $child->id)
+            ->where('date', $today)
+            ->first();
+        
+        return response()->json([
+            'child' => $child->name,
+            'status' => $attendance->status ?? 'absent',
+            'checkin_time' => $attendance->checkin_time ?? null,
+            'checkout_time' => $attendance->checkout_time ?? null,
+        ]);
+    }
+
+    public function getAllStatus()
+    {
+        $today = date('Y-m-d', SimulationClock::getCurrentTime());
+        $attendances = Attendance::with('child:id,name,classroom_id')
+            ->where('date', $today)
+            ->get()
+            ->map(function ($att) {
+                return [
+                    'child' => $att->child->name ?? 'Unknown',
+                    'status' => $att->status,
+                    'checkin_time' => $att->checkin_time,
+                    'checkout_time' => $att->checkout_time,
+                ];
+            });
+        
+        return response()->json($attendances);
+    }
 }
