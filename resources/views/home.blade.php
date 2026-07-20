@@ -344,32 +344,36 @@
 </div>
 
 <script>
-const ctx = document.getElementById('weeklyChart').getContext('2d');
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: ['Mon','Tue','Wed','Thu','Fri'],
-        datasets: [{
-            label: 'Check-ins',
-            data: @json($weekData),
-            borderColor: '#6d28d9',
-            backgroundColor: 'rgba(109,40,217,0.1)',
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#6d28d9',
-            pointRadius: 5,
-            pointHoverRadius: 8,
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-            y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } },
-            x: { grid: { display: false } }
+document.addEventListener('DOMContentLoaded', function() {
+    var weekCtx = document.getElementById('weeklyChart');
+    if (!weekCtx) return;
+    weekCtx = weekCtx.getContext('2d');
+    new Chart(weekCtx, {
+        type: 'line',
+        data: {
+            labels: ['Mon','Tue','Wed','Thu','Fri'],
+            datasets: [{
+                label: 'Check-ins',
+                data: @json($weekData),
+                borderColor: '#6d28d9',
+                backgroundColor: 'rgba(109,40,217,0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#6d28d9',
+                pointRadius: 5,
+                pointHoverRadius: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } },
+                x: { grid: { display: false } }
+            }
         }
-    }
+    });
 });
 </script>
 @endsection

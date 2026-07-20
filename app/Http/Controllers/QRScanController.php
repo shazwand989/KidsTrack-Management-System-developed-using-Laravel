@@ -876,6 +876,9 @@ class QRScanController extends Controller
             $end = $request->input('end');
 
             if ($start && $end) {
+                // Fix PHP converting + to space in query params
+                $start = str_replace(' ', '+', $start);
+                $end = str_replace(' ', '+', $end);
                 $startDate = Carbon::parse($start)->startOfDay();
                 $endDate = Carbon::parse($end)->endOfDay();
             } else {
