@@ -131,7 +131,7 @@ class TelegramWebhookController extends Controller
 
     private function sendStatusReport($chatId, $user, TelegramService $telegram)
     {
-        $parent = ParentModel::where('user_id', $user->id)->first();
+        $parent = ParentModel::where('id', $user->id)->first();
         if (!$parent) {
             $telegram->sendMessage($chatId, "❌ No parent account linked.");
             return;

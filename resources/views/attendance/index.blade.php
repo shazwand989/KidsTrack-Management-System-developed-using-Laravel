@@ -748,6 +748,7 @@
                         <a href="{{ route('attendance.edit', $attendance->id) }}" class="act-btn edit" title="Edit">
                             <i class="fas fa-edit"></i>
                         </a>
+                        @if(in_array(auth()->user()->role ?? '', ['admin', 'teacher']))
                         <form action="{{ route('attendance.destroy', $attendance->id) }}" method="POST" style="margin:0;">
                             @csrf
                             @method('DELETE')
@@ -756,6 +757,7 @@
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>
+                        @endif
                     </div>
                 </td>
             </tr>

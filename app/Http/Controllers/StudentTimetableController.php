@@ -109,7 +109,7 @@ class StudentTimetableController extends Controller
         $timeTo = date('H:i:s', strtotime($request->time_to));
 
         // Prevent timetable clash for the same student on the same day
-        $clash = StudentTimetable::where('user_id', $request->user_id)
+        $clash = StudentTimetable::where('id', $request->user_id)
             ->where('day_id', $request->day_id)
             ->where(function ($query) use ($timeFrom, $timeTo) {
                 $query->where('time_from', '<', $timeTo)
@@ -243,7 +243,7 @@ class StudentTimetableController extends Controller
         $timeTo = date('H:i:s', strtotime($request->time_to));
 
         // Prevent timetable clash, exclude current record
-        $clash = StudentTimetable::where('user_id', $request->user_id)
+        $clash = StudentTimetable::where('id', $request->user_id)
             ->where('day_id', $request->day_id)
             ->where('id', '!=', $student_timetable->id)
             ->where(function ($query) use ($timeFrom, $timeTo) {

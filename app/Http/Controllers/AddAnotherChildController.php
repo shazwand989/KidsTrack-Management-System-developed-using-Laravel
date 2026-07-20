@@ -100,7 +100,7 @@ class AddAnotherChildController extends Controller
             }
 
             // Checkout logic
-            $timerSetting = TimerSetting::where('day_name', $now->format('l'))->first();
+            $timerSetting = TimerSetting::where('day_name', 'like', '%' . $now->format('l') . '%')->first();
             $canCheckout = false;
             $isCheckoutMode = false;
             $checkoutStartTime = '--:--';
@@ -304,7 +304,7 @@ class AddAnotherChildController extends Controller
 
         switch ($role) {
             case 'main_parent':
-                $parent = ParentModel::where('user_id', $user->id)->first();
+                $parent = ParentModel::where('id', $user->id)->first();
                 if ($parent) {
                     $parentId = $parent->id;
                     $allChildren = Child::where(function($query) use ($parent) {
@@ -315,9 +315,9 @@ class AddAnotherChildController extends Controller
                 break;
 
             case 'second_parent':
-                $secondParent = SecondParent::where('user_id', $user->id)->first();
+                $secondParent = SecondParent::where('id', $user->id)->first();
                 if ($secondParent) {
-                    $parentId = $secondParent->id;
+                    $parentId = $secondParent->parent_id; // Main parent ID for lookup
                     $mainParent = ParentModel::find($secondParent->parent_id);
                     if ($mainParent) {
                         $allChildren = Child::where(function($query) use ($mainParent) {
@@ -329,9 +329,9 @@ class AddAnotherChildController extends Controller
                 break;
 
             case 'guardian':
-                $guardian = Guardian::where('user_id', $user->id)->first();
+                $guardian = Guardian::where('id', $user->id)->first();
                 if ($guardian) {
-                    $parentId = $guardian->id;
+                    $parentId = $guardian->parent_id; // Main parent ID for checkout redirect
                     $allChildren = Child::where('guardian_id', $guardian->id)
                         ->where('is_active', true)->get();
                 }

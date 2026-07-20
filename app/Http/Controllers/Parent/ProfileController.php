@@ -88,12 +88,12 @@ class ProfileController extends Controller
     }
 
     private function getParent($user) {
-        return in_array($user->role, ['parent','parent1']) ? ParentModel::where('user_id', Auth::id())->first() : null;
+        return in_array($user->role, ['parent','parent1']) ? ParentModel::where('id', Auth::id())->first() : null;
     }
     private function getSecondParent($user) {
-        return $user->role === 'parent2' ? SecondParent::where('user_id', Auth::id())->first() : null;
+        return $user->role === 'parent2' ? SecondParent::where('id', Auth::id())->first() : null;
     }
     private function getGuardian($user) {
-        return $user->role === 'guardian' ? Guardian::where('user_id', Auth::id())->first() : null;
+        return $user->role === 'guardian' ? Guardian::where('id', Auth::id())->first() : null;
     }
 }

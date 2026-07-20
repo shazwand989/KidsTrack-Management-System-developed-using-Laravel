@@ -22,7 +22,7 @@ class DashboardController extends Controller
         $children = collect();
 
         if (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('user_id', Auth::id())->first();
+            $parent = ParentModel::where('id', Auth::id())->first();
             if ($parent) {
                 $children = $parent->children;
             } else {
@@ -31,7 +31,7 @@ class DashboardController extends Controller
         }
         
         if ($user->role === 'parent2') {
-            $secondParent = SecondParent::where('user_id', Auth::id())->first();
+            $secondParent = SecondParent::where('id', Auth::id())->first();
             if ($secondParent) {
                 $mainParent = ParentModel::find($secondParent->parent_id);
                 if ($mainParent) $children = $mainParent->children;
@@ -41,7 +41,7 @@ class DashboardController extends Controller
         }
         
         if ($user->role === 'guardian') {
-            $guardian = Guardian::where('user_id', Auth::id())->first();
+            $guardian = Guardian::where('id', Auth::id())->first();
             if ($guardian) {
                 $children = $guardian->children;
             } else {

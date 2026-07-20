@@ -13,23 +13,26 @@ class Attendance extends Model
 
     protected $fillable = [
         'child_id',
-        'parent_id',
+        'user_id',
         'date',
         'status',
+        'status_note',
         'late_reason',
         'checkin_time',
         'checkout_time',
         'drop_off_by',
         'pickup_by',
         'is_verified',
+        'is_late',
         'notes'
     ];
 
     protected $casts = [
-        'date' => 'date',
+        'date' => 'date:Y-m-d',
         'checkin_time' => 'datetime',
         'checkout_time' => 'datetime',
-        'is_verified' => 'boolean'
+        'is_verified' => 'boolean',
+        'is_late' => 'boolean'
     ];
 
     public function child()
@@ -37,8 +40,8 @@ class Attendance extends Model
         return $this->belongsTo(Child::class);
     }
 
-    public function parent()
+    public function user()
     {
-        return $this->belongsTo(ParentModel::class, 'parent_id');
+        return $this->belongsTo(User::class);
     }
 }

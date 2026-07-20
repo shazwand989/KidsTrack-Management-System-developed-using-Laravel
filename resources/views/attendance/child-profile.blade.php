@@ -224,6 +224,11 @@
             </div>
             <h2>{{ $child->name }}</h2>
             <p>{{ $child->classroom->name ?? 'No classroom' }} • Age {{ $child->age }}</p>
+            @if($child->parent)
+            <p style="font-size:12px; opacity:0.85; margin-top:4px;">
+                👨‍👩‍👧 Ibu/Bapa: <strong>{{ $child->parent->name }}</strong>
+            </p>
+            @endif
         </div>
 
         {{-- Alerts --}}
@@ -284,7 +289,7 @@
                         📅 Check-in: {{ $checkinTime ? date('h:i A', strtotime($checkinTime)) : '-' }}
                     </div>
                     @if($dropOffBy)
-                    <div class="time-info">👨‍👩‍👧 Dihantar oleh: {{ $dropOffBy }}</div>
+                    <div class="time-info">� Dihantar oleh: {{ $dropOffBy }}</div>
                     @endif
 
                 @elseif($status == 'late')
@@ -293,7 +298,7 @@
                         📅 Check-in: {{ $checkinTime ? date('h:i A', strtotime($checkinTime)) : '-' }}
                     </div>
                     @if($dropOffBy)
-                    <div class="time-info">👨‍👩‍👧 Dihantar oleh: {{ $dropOffBy }}</div>
+                    <div class="time-info">👤 Dihantar oleh: {{ $dropOffBy }}</div>
                     @endif
 
                 @elseif($status == 'checkout')
@@ -302,7 +307,7 @@
                         📅 Check-out: {{ $checkoutTime ? date('h:i A', strtotime($checkoutTime)) : '-' }}
                     </div>
                     @if($pickupBy)
-                    <div class="time-info">👨‍👩‍👧 Dijemput oleh: {{ $pickupBy }}</div>
+                    <div class="time-info">👤 Dijemput oleh: {{ $pickupBy }}</div>
                     @endif
 
                 @elseif($status == 'late_checkout')
@@ -311,7 +316,7 @@
                         📅 Check-out: {{ $checkoutTime ? date('h:i A', strtotime($checkoutTime)) : '-' }}
                     </div>
                     @if($pickupBy)
-                    <div class="time-info">👨‍👩‍👧 Dijemput oleh: {{ $pickupBy }}</div>
+                    <div class="time-info">👤 Dijemput oleh: {{ $pickupBy }}</div>
                     @endif
 
                 @else

@@ -61,7 +61,7 @@ class AttendanceController extends Controller
             $children = Child::with('classroom')->get();
             $classrooms = Classroom::all();
         } elseif (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('user_id', $user->id)->first();
+            $parent = ParentModel::where('id', $user->id)->first();
             if ($parent) {
                 $children = Child::where('parent_id', $parent->id)
                     ->orWhere('second_parent_id', $parent->id)
@@ -73,7 +73,7 @@ class AttendanceController extends Controller
                 $classrooms = Classroom::all(); // 🔥 TAMBAH INI
             }
         } elseif ($user->role === 'parent2') {
-            $secondParent = SecondParent::where('user_id', $user->id)->first();
+            $secondParent = SecondParent::where('id', $user->id)->first();
             if ($secondParent) {
                 $mainParent = ParentModel::find($secondParent->parent_id);
                 if ($mainParent) {
@@ -88,7 +88,7 @@ class AttendanceController extends Controller
                 }
             }
         } elseif ($user->role === 'guardian') {
-            $guardian = Guardian::where('user_id', $user->id)->first();
+            $guardian = Guardian::where('id', $user->id)->first();
             if ($guardian) {
                 $children = Child::where('guardian_id', $guardian->id)->get();
                 $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
@@ -134,7 +134,7 @@ class AttendanceController extends Controller
 
             // Filter by user role
             if (in_array($user->role, ['parent', 'parent1'])) {
-                $parent = ParentModel::where('user_id', $user->id)->first();
+                $parent = ParentModel::where('id', $user->id)->first();
                 if ($parent) {
                     $childIds = Child::where('parent_id', $parent->id)
                         ->orWhere('second_parent_id', $parent->id)
@@ -142,7 +142,7 @@ class AttendanceController extends Controller
                     $query->whereIn('child_id', $childIds);
                 }
             } elseif ($user->role === 'parent2') {
-                $secondParent = SecondParent::where('user_id', $user->id)->first();
+                $secondParent = SecondParent::where('id', $user->id)->first();
                 if ($secondParent) {
                     $mainParent = ParentModel::find($secondParent->parent_id);
                     if ($mainParent) {
@@ -153,7 +153,7 @@ class AttendanceController extends Controller
                     }
                 }
             } elseif ($user->role === 'guardian') {
-                $guardian = Guardian::where('user_id', $user->id)->first();
+                $guardian = Guardian::where('id', $user->id)->first();
                 if ($guardian) {
                     $childIds = Child::where('guardian_id', $guardian->id)->pluck('id');
                     $query->whereIn('child_id', $childIds);
@@ -589,7 +589,7 @@ class AttendanceController extends Controller
                 ->orderBy('date', 'asc')
                 ->get();
         } elseif (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('user_id', $user->id)->first();
+            $parent = ParentModel::where('id', $user->id)->first();
             if ($parent) {
                 $classrooms = Classroom::all();
                 $children = Child::where('parent_id', $parent->id)
@@ -602,7 +602,7 @@ class AttendanceController extends Controller
                     ->get();
             }
         } elseif ($user->role === 'parent2') {
-            $secondParent = SecondParent::where('user_id', $user->id)->first();
+            $secondParent = SecondParent::where('id', $user->id)->first();
             if ($secondParent) {
                 $mainParent = ParentModel::find($secondParent->parent_id);
                 if ($mainParent) {
@@ -618,7 +618,7 @@ class AttendanceController extends Controller
                 }
             }
         } elseif ($user->role === 'guardian') {
-            $guardian = Guardian::where('user_id', $user->id)->first();
+            $guardian = Guardian::where('id', $user->id)->first();
             if ($guardian) {
                 $classrooms = Classroom::all();
                 $children = Child::where('guardian_id', $guardian->id)->get();
@@ -651,7 +651,7 @@ class AttendanceController extends Controller
                 ->orderBy('date', 'asc')
                 ->get();
         } elseif (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('user_id', $user->id)->first();
+            $parent = ParentModel::where('id', $user->id)->first();
             if ($parent) {
                 $childrenIds = Child::where('parent_id', $parent->id)
                     ->orWhere('second_parent_id', $parent->id)
@@ -663,7 +663,7 @@ class AttendanceController extends Controller
                     ->get();
             }
         } elseif ($user->role === 'parent2') {
-            $secondParent = SecondParent::where('user_id', $user->id)->first();
+            $secondParent = SecondParent::where('id', $user->id)->first();
             if ($secondParent) {
                 $mainParent = ParentModel::find($secondParent->parent_id);
                 if ($mainParent) {
@@ -678,7 +678,7 @@ class AttendanceController extends Controller
                 }
             }
         } elseif ($user->role === 'guardian') {
-            $guardian = Guardian::where('user_id', $user->id)->first();
+            $guardian = Guardian::where('id', $user->id)->first();
             if ($guardian) {
                 $childrenIds = Child::where('guardian_id', $guardian->id)->pluck('id');
                 $attendances = Attendance::whereIn('child_id', $childrenIds)
@@ -779,6 +779,12 @@ class AttendanceController extends Controller
     // ============================================
     public function destroy($id)
     {
+        $user = Auth::user();
+        if (!in_array($user->role, ['admin', 'teacher'])) {
+            return redirect()->route('attendance.index')
+                ->with('error', 'You do not have permission to delete attendance records.');
+        }
+
         $attendance = Attendance::findOrFail($id);
         $attendance->delete();
 
@@ -831,7 +837,7 @@ public function exportPdf(Request $request)
 
         // Filter by user role
         if (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('user_id', $user->id)->first();
+            $parent = ParentModel::where('id', $user->id)->first();
             if ($parent) {
                 $childIds = Child::where('parent_id', $parent->id)
                     ->orWhere('second_parent_id', $parent->id)
@@ -839,7 +845,7 @@ public function exportPdf(Request $request)
                 $query->whereIn('child_id', $childIds);
             }
         } elseif ($user->role === 'parent2') {
-            $secondParent = SecondParent::where('user_id', $user->id)->first();
+            $secondParent = SecondParent::where('id', $user->id)->first();
             if ($secondParent) {
                 $mainParent = ParentModel::find($secondParent->parent_id);
                 if ($mainParent) {
@@ -850,7 +856,7 @@ public function exportPdf(Request $request)
                 }
             }
         } elseif ($user->role === 'guardian') {
-            $guardian = Guardian::where('user_id', $user->id)->first();
+            $guardian = Guardian::where('id', $user->id)->first();
             if ($guardian) {
                 $childIds = Child::where('guardian_id', $guardian->id)->pluck('id');
                 $query->whereIn('child_id', $childIds);
@@ -1194,7 +1200,7 @@ public function exportSinglePdf($id)
         $phone = preg_replace('/[\s\-]/', '', $phone);
 
         // Check against parent's phone
-        $parent = ParentModel::find($child->parent_id);
+        $parent = ParentModel::find($child->parent?->id);
         if ($parent) {
             $parentPhone = preg_replace('/[\s\-]/', '', $parent->phone ?? '');
             if ($parentPhone && str_contains($phone, substr($parentPhone, -7))) {
@@ -1214,7 +1220,7 @@ public function exportSinglePdf($id)
         }
 
         // Check against guardian's phone
-        $guardian = Guardian::find($child->guardian_id);
+        $guardian = $child->guardian;
         if ($guardian) {
             $gPhone = preg_replace('/[\s\-]/', '', $guardian->phone ?? '');
             if ($gPhone && str_contains($phone, substr($gPhone, -7))) {
@@ -1231,7 +1237,7 @@ public function exportSinglePdf($id)
 
     public function childProfile(Child $child)
     {
-        $child->load(['parent', 'secondParent', 'guardian', 'classroom']);
+        $child->load(['classroom', 'parent', 'secondParent', 'guardian']);
 
         // Check if verified via session
         $verified = session('verified_child_' . $child->id, false);
@@ -1252,15 +1258,15 @@ public function exportSinglePdf($id)
 
         // Get timer settings for today
         $dayName = date('l', SimulationClock::getCurrentTime());
-        $timer = TimerSetting::where('day_name', $dayName)->first();
+        $timer = TimerSetting::where('day_name', 'like', '%' . $dayName . '%')->first();
         $morningEnd = $timer->morning_end ?? '07:30:00';
 
         // Determine if late (after morning end time)
         $isLate = $now > $morningEnd;
         $status = $isLate ? 'late' : 'checkin';
 
-        // Get parent name from verified session
-        $parent = ParentModel::find($child->parent_id);
+        // Get parent name from child's actual parent user
+        $parent = $child->parent;
         $dropOffName = $parent ? $parent->name : 'Parent';
 
         $attendance = Attendance::firstOrCreate(
@@ -1309,7 +1315,7 @@ public function exportSinglePdf($id)
 
         // Get timer settings for today
         $dayName = date('l', SimulationClock::getCurrentTime());
-        $timer = TimerSetting::where('day_name', $dayName)->first();
+        $timer = TimerSetting::where('day_name', 'like', '%' . $dayName . '%')->first();
         $eveningEnd = $timer->evening_end ?? '17:30:00';
 
         // Determine if late checkout (after evening end time)
@@ -1317,7 +1323,7 @@ public function exportSinglePdf($id)
         $status = $isLateCheckout ? 'late_checkout' : 'checkout';
 
         // Get parent name
-        $parent = ParentModel::find($child->parent_id);
+        $parent = ParentModel::find($child->parent?->id);
         $pickupName = $parent ? $parent->name : 'Parent';
 
         $attendance->update([
@@ -1345,7 +1351,7 @@ public function exportSinglePdf($id)
     {
         try {
             $telegram = new TelegramService();
-            $parent = ParentModel::find($child->parent_id);
+            $parent = ParentModel::find($child->parent?->id);
             $user = $parent ? \App\Models\User::find($parent->user_id) : null;
 
             $icon = $type === 'check-in' ? '⏰' : '📤';
@@ -1405,3 +1411,4 @@ public function exportSinglePdf($id)
         return response()->json($attendances);
     }
 }
+

@@ -49,10 +49,9 @@ class ChildController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'parent_id' => 'required|exists:parents,id',
-            'second_parent_id' => 'nullable|exists:second_parents,id',
-            'guardian_id' => 'nullable|exists:guardians,id',
+            'children.*.classroom_id' => 'nullable|exists:classrooms,id',
             'address' => 'required|string',
+            'parent_id' => 'required|exists:users,id',
             'children' => 'required|array|min:1',
             'children.*.name' => 'required|string|max:255',
             'children.*.classroom_id' => 'nullable|exists:classrooms,id',
@@ -64,8 +63,9 @@ class ChildController extends Controller
             'children.*.dietary' => 'nullable|string',
         ]);
 
-        $shared = $request->only(['parent_id', 'second_parent_id', 'guardian_id', 'address']);
+        $shared = $request->only(['address']);
         $shared['enrollment_date'] = now();
+        $parentId = $request->input('parent_id');
         $children = $request->input('children', []);
         $count = 0;
 
@@ -90,6 +90,15 @@ class ChildController extends Controller
 
             $child = Child::create($data);
             $this->generateQRImage($child->id, $qrData);
+
+            // Create guardianship for main parent
+            \App\Models\Guardianship::create([
+                'user_id' => $parentId,
+                'child_id' => $child->id,
+                'relationship' => 'main_parent',
+                'is_emergency_contact' => true,
+            ]);
+
             $count++;
         }
 
@@ -99,7 +108,7 @@ class ChildController extends Controller
 
     public function show(Child $child)
     {
-        $child->load(['parent', 'secondParent', 'guardian', 'classroom']);
+        $child->load(['classroom', 'guardianships.user', 'attendances']);
         return view('children.show', compact('child'));
     }
 

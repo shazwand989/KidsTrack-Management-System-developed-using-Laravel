@@ -55,7 +55,7 @@ class AuthenticatedSessionController extends Controller
             }
 
             if (in_array($user->role, ['parent', 'parent1'])) {
-                $parent = \App\Models\ParentModel::where('user_id', $user->id)->first();
+                $parent = \App\Models\ParentModel::where('id', $user->id)->first();
                 if (!$parent) {
                     Auth::logout();
                     return redirect()->route('login')->with('error', '❌ Profil parent tidak ditemui.');
@@ -63,7 +63,7 @@ class AuthenticatedSessionController extends Controller
             }
 
             if ($user->role === 'parent2') {
-                $secondParent = \App\Models\SecondParent::where('user_id', $user->id)->first();
+                $secondParent = \App\Models\SecondParent::where('id', $user->id)->first();
                 if (!$secondParent) {
                     Auth::logout();
                     return redirect()->route('login')->with('error', '❌ Profil second parent tidak ditemui.');
@@ -80,7 +80,7 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->route('login')->with('error', '❌ Akses ditolak. Anda bukan guardian.');
             }
 
-            $guardian = \App\Models\Guardian::where('user_id', $user->id)->first();
+            $guardian = \App\Models\Guardian::where('id', $user->id)->first();
             if (!$guardian) {
                 Auth::logout();
                 return redirect()->route('login')->with('error', '❌ Profil guardian tidak ditemui.');

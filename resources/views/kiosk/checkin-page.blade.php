@@ -12,7 +12,7 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
@@ -745,7 +745,7 @@
     <div class="checkin-card {{ $roleData['class'] ?? 'main-parent' }}">
         <div class="logo">🧸</div>
         <h1>Welcome to KidsTrack</h1>
-        
+
         <div class="role-badge {{ $roleData['badge_class'] ?? 'main-parent' }}">
             {{ $roleData['badge_text'] ?? '👨‍👩‍👦 Main Parent' }}
         </div>
@@ -779,7 +779,23 @@
                 <span class="date-display" id="dateDisplay">{{ \Carbon\Carbon::parse($selectedDate ?? now())->format('d/m/Y') }}</span>
             </div>
             <div id="timerInfoContent">
+                @if($timerSetting)
+                <div style="text-align:center; font-weight:600; color:#065f46; margin-bottom:8px; font-size:14px; background:#d1fae5; padding:4px; border-radius:8px;">
+                    📅 {{ \Carbon\Carbon::parse($selectedDate ?? now())->format('d/m/Y') }} ({{ $now->format('l') }})
+                </div>
+                <div class="timer-row">
+                    <span class="slot-label">🌅 Morning (Check-in)</span>
+                    <span class="slot-time">{{ $timerSetting->morning_start }} - {{ $timerSetting->morning_end }}</span>
+                    <span class="slot-status active">🟢 Aktif</span>
+                </div>
+                <div class="timer-row">
+                    <span class="slot-label">🌙 Evening (Check-out)</span>
+                    <span class="slot-time">{{ $timerSetting->evening_start }} - {{ $timerSetting->evening_end }}</span>
+                    <span class="slot-status closed">🔒 Tutup</span>
+                </div>
+                @else
                 <div class="no-timer">⏳ Memuatkan waktu operasi...</div>
+                @endif
             </div>
         </div>
 
@@ -803,14 +819,6 @@
         <div class="warning-box" id="warningBox">
             <span class="warning-icon">⚠️</span>
             <span id="warningMessage">Di luar waktu operasi!</span>
-        </div>
-
-        <div class="child-box {{ $roleData['border_class'] ?? 'main-parent-border' }}">
-            <div class="avatar {{ $roleData['avatar_class'] ?? 'main-parent-avatar' }}">
-                {{ strtoupper(substr($child->name, 0, 1)) }}
-            </div>
-            <div class="name">👶 {{ $child->name }}</div>
-            <div class="class">🏫 {{ $child->classroom->name ?? 'Tiada kelas' }}</div>
         </div>
 
         @php
@@ -852,28 +860,24 @@
             <span class="label">🕐 Masa</span>
             <span class="value">{{ $currentTime }}</span>
         </div>
-        <div class="info-row">
-            <span class="label">📍 GPS</span>
-            <span class="value" style="color:#16a34a;">✅ Kawasan taska</span>
-        </div>
 
         <!-- ============================================
         🔥🔥🔥 BAHAGIAN CHECKOUT - IKUT DATABASE! 🔥🔥🔥
         ============================================ -->
         @php
             // 🔥🔥🔥 AMBIL TIMER SETTING DARI DATABASE 🔥🔥🔥
-            $timerSetting = \App\Models\TimerSetting::where('day_name', $now->format('l'))->first();
-            
+            $timerSetting = \App\Models\TimerSetting::where('day_name', 'like', '%' . $now->format('l') . '%')->first();
+
             $canCheckout = false;
             $checkoutMessage = '⏰ Checkout Belum Tersedia';
             $checkoutInfoClass = '';
             $isLateCheckout = false;
-            
+
             if ($timerSetting) {
                 $currentTimeInt = (int) $now->format('Hi');
                 $eveningStartInt = (int) str_replace(':', '', $timerSetting->evening_start);
                 $eveningEndInt = (int) str_replace(':', '', $timerSetting->evening_end);
-                
+
                 // 🔥🔥🔥 LOGIK CHECKOUT - IKUT DATABASE 🔥🔥🔥
                 if ($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt) {
                     // 🔥 Dalam evening slot → ON TIME CHECKOUT
@@ -902,19 +906,17 @@
         @elseif($hasCheckin)
         <div class="status-badge checked">✅ Sudah Check-in</div>
 
-        <!-- 🔥🔥🔥 BUTTON CHECKOUT - AKTIF/DISABILED BERDASARKAN canCheckout 🔥🔥🔥 -->
-        <button class="btn-checkout" id="btnCheckout" onclick="submitAttendance('checkout')" 
-                style="display: {{ $canCheckout ? 'block' : 'none' }};">
+        <button class="btn-checkout" id="btnCheckout" onclick="submitAttendance('checkout')"
+                style="display: block;">
             👋 Confirm Check-out
         </button>
-        
-        <button class="btn-checkout-disabled" id="btnCheckoutDisabled" disabled 
-                style="display: {{ $canCheckout ? 'none' : 'block' }};">
-            ⏰ Checkout Belum Tersedia
-        </button>
-        
-        <div class="checkout-info {{ $checkoutInfoClass }}" id="checkoutInfo">
-            {{ $checkoutMessage }}
+
+        <div class="checkout-info active" id="checkoutInfo">
+            @if($isLateCheckout)
+            ⏰ Late Checkout (Melebihi waktu operasi)
+            @else
+            ✅ Sedia untuk check-out
+            @endif
         </div>
 
         @else
@@ -999,26 +1001,57 @@
         const urlParams = new URLSearchParams(window.location.search);
         let selectedDate = urlParams.get('date') || '{{ now()->format("Y-m-d") }}';
         let selectedDay = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' });
-        
+
         let childId = {{ $child->id }};
         let isLate = {{ $isLate ? 'true' : 'false' }};
         let parentId = {{ $parent->id ?? 0 }};
         let hasCheckin = {{ $hasCheckin ? 'true' : 'false' }};
         let hasCheckout = {{ $hasCheckout ? 'true' : 'false' }};
-        
+
         // 🔥🔥🔥 VARIABLE UNTUK CHECKOUT - AKAN DIUPDATE OLEH JAVASCRIPT 🔥🔥🔥
         let canCheckout = {{ $canCheckout ? 'true' : 'false' }};
         let isLateCheckout = false;
-        let eveningStart = '16:30';
-        let eveningEnd = '18:30';
+        let eveningStart = '{{ $timerSetting->evening_start ?? '16:30' }}';
+        let eveningEnd = '{{ $timerSetting->evening_end ?? '18:30' }}';
+        let morningStartTime = '{{ $timerSetting->morning_start ?? '07:00' }}';
+        let morningEndTime = '{{ $timerSetting->morning_end ?? '12:00' }}';
 
         let checkedInChildren = @json($checkedInData ?? []);
         let timerSettings = {};
         let currentSlot = null;
+        let isSubmitting = false; // 🔥 Prevent double submission
 
         console.log('🔍 Initial canCheckout from PHP:', canCheckout);
         console.log('🔍 hasCheckin:', hasCheckin);
         console.log('🔍 hasCheckout:', hasCheckout);
+
+        // 🔥 IMMEDIATE: If already checked in/out, handle properly
+        if (hasCheckout) {
+            updateCheckinStatus('closed', '👋 Sudah Check-out', 'Anak ini sudah check-out hari ini');
+            document.getElementById('btnCheckin')?.setAttribute('disabled', 'disabled');
+            document.getElementById('btnCheckinAll')?.setAttribute('disabled', 'disabled');
+            document.getElementById('btnCheckin') && (document.getElementById('btnCheckin').style.display = 'none');
+            document.getElementById('btnCheckinAll') && (document.getElementById('btnCheckinAll').style.display = 'none');
+            const btn = document.getElementById('btnCheckout');
+            const btnDisabled = document.getElementById('btnCheckoutDisabled');
+            if (btn) btn.style.display = 'none';
+            if (btnDisabled) btnDisabled.style.display = 'none';
+        } else if (hasCheckin && !hasCheckout) {
+            updateCheckinStatus('closed', '✅ Sudah Check-in', 'Sila checkout untuk balik');
+            document.getElementById('btnCheckin')?.setAttribute('disabled', 'disabled');
+            document.getElementById('btnCheckinAll')?.setAttribute('disabled', 'disabled');
+            canCheckout = true;
+            const btn = document.getElementById('btnCheckout');
+            const btnDisabled = document.getElementById('btnCheckoutDisabled');
+            if (btn) { btn.style.display = 'block'; btn.disabled = false; }
+            if (btnDisabled) btnDisabled.style.display = 'none';
+        }
+
+        // Update checkout info with actual timer values
+        const checkoutInfoEl = document.getElementById('checkoutInfo');
+        if (checkoutInfoEl && !hasCheckin) {
+            checkoutInfoEl.textContent = '🌅 Check-in: ' + morningStartTime + ' - ' + morningEndTime + ' | 🌙 Check-out: ' + eveningStart + ' - ' + eveningEnd;
+        }
 
         // ============================================
         // 🔥 CHECK CHECKOUT STATUS - GUNA JAVASCRIPT!
@@ -1026,14 +1059,14 @@
         function checkCheckoutStatus() {
             const now = new Date();
             const currentTime = parseInt(now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0'));
-            
+
             // 🔥 AMBIL DARI TIMER SETTINGS
             const eveningStartInt = parseInt(eveningStart.replace(':', ''));
             const eveningEndInt = parseInt(eveningEnd.replace(':', ''));
-            
+
             console.log('🔍 Checking checkout - currentTime:', currentTime, 'eveningStart:', eveningStartInt, 'eveningEnd:', eveningEndInt);
             console.log('🔍 hasCheckin:', hasCheckin, 'hasCheckout:', hasCheckout);
-            
+
             // 🔥🔥🔥 TETAPKAN canCheckout 🔥🔥🔥
             if (hasCheckout) {
                 canCheckout = false;
@@ -1051,7 +1084,7 @@
                 isLateCheckout = true;
                 console.log('✅ canCheckout = TRUE (Late Checkout - lepas evening slot)');
             }
-            
+
             // 🔥 UPDATE UI BUTTON CHECKOUT
             updateCheckoutButton();
         }
@@ -1063,16 +1096,16 @@
             const checkoutBtn = document.getElementById('btnCheckout');
             const checkoutDisabled = document.getElementById('btnCheckoutDisabled');
             const checkoutInfo = document.getElementById('checkoutInfo');
-            
+
             console.log('🔍 updateCheckoutButton - canCheckout:', canCheckout);
             console.log('🔍 checkoutBtn exists:', !!checkoutBtn);
             console.log('🔍 checkoutDisabled exists:', !!checkoutDisabled);
-            
+
             if (!checkoutBtn && !checkoutDisabled) {
                 console.log('⚠️ No checkout button found');
                 return;
             }
-            
+
             if (canCheckout) {
                 // 🔥 Tunjuk button aktif
                 if (checkoutBtn) {
@@ -1139,13 +1172,13 @@
                         // 🔥🔥🔥 PANGGIL CHECK CHECKOUT STATUS SELEPAS RENDER 🔥🔥🔥
                         checkCheckoutStatus();
                     } else {
-                        document.getElementById('timerInfoContent').innerHTML = 
+                        document.getElementById('timerInfoContent').innerHTML =
                             '<div class="no-timer">⚠️ Gagal memuat waktu operasi</div>';
                     }
                 })
                 .catch(error => {
                     console.error('Error loading timer info:', error);
-                    document.getElementById('timerInfoContent').innerHTML = 
+                    document.getElementById('timerInfoContent').innerHTML =
                         '<div class="no-timer">⚠️ Ralat memuat waktu operasi</div>';
                 });
         }
@@ -1153,22 +1186,22 @@
         function renderTimerInfo(timerSettings) {
             const now = new Date();
             const currentTime = parseInt(now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0'));
-            
+
             let timer = null;
             if (Array.isArray(timerSettings)) {
-                timer = timerSettings.find(t => t.day_name === selectedDay);
+                timer = timerSettings.find(t => t.day_name && t.day_name.toLowerCase().includes(selectedDay.toLowerCase()));
             } else {
                 timer = timerSettings[selectedDay];
             }
-            
+
             if (!timer) {
-                document.getElementById('timerInfoContent').innerHTML = 
+                document.getElementById('timerInfoContent').innerHTML =
                     '<div class="no-timer">📅 Tiada waktu operasi untuk ' + selectedDay + '</div>';
                 return;
             }
 
             let morningStart, morningEnd, eveningStartLocal, eveningEndLocal;
-            
+
             if (timer.morning && typeof timer.morning === 'object') {
                 morningStart = timer.morning.start;
                 morningEnd = timer.morning.end;
@@ -1186,16 +1219,19 @@
                 eveningStart = eveningStartLocal;
                 eveningEnd = eveningEndLocal;
                 console.log('🔍 Evening slot updated:', eveningStart, '-', eveningEnd);
-                
+
                 // 🔥🔥🔥 CHECK CHECKOUT STATUS SELEPAS DAPAT TIMER 🔥🔥🔥
                 checkCheckoutStatus();
             }
+            // Update morning times too
+            if (morningStart !== '--:--') morningStartTime = morningStart;
+            if (morningEnd !== '--:--') morningEndTime = morningEnd;
 
             function checkSlotStatus(start, end) {
                 if (start === '--:--' || end === '--:--') return 'closed';
                 const startTime = parseInt(start.replace(':', ''));
                 const endTime = parseInt(end.replace(':', ''));
-                
+
                 if (currentTime >= startTime && currentTime <= endTime) {
                     return 'active';
                 } else if (currentTime < startTime) {
@@ -1253,7 +1289,7 @@
             }
 
             updateCurrentSlotDisplay();
-            
+
             // 🔥🔥🔥 PANGGIL SEKALI LAGI UNTUK PASTIKAN 🔥🔥🔥
             checkCheckoutStatus();
         }
@@ -1263,13 +1299,13 @@
         // ============================================
         function updateCurrentSlotDisplay() {
             const container = document.getElementById('currentSlotDisplay');
-            
+
             if (!container) return;
-            
+
             if (!currentSlot) {
                 container.innerHTML = `
                     <div class="current-slot-box outside">
-                        ⚠️ Di Luar Waktu Operasi
+                        ⏰ Late Check-in Available
                     </div>
                 `;
                 return;
@@ -1277,7 +1313,7 @@
 
             const slotClass = currentSlot.type === 'checkin' ? 'morning' : 'evening';
             const icon = currentSlot.type === 'checkin' ? '☀️' : '🌙';
-            
+
             container.innerHTML = `
                 <div class="current-slot-box ${slotClass}">
                     ${icon} Current: <strong>${currentSlot.label}</strong>
@@ -1291,21 +1327,21 @@
         function checkCurrentSlot(timerSettings) {
             const now = new Date();
             const currentTime = parseInt(now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0'));
-            
+
             let timer = null;
             if (Array.isArray(timerSettings)) {
-                timer = timerSettings.find(t => t.day_name === selectedDay);
+                timer = timerSettings.find(t => t.day_name && t.day_name.toLowerCase().includes(selectedDay.toLowerCase()));
             } else {
                 timer = timerSettings[selectedDay];
             }
-            
+
             if (!timer) {
                 updateCheckinStatus('closed', '📅 Tiada waktu operasi', 'Sila hubungi admin');
                 return;
             }
 
             let morningStart, morningEnd, eveningStartLocal, eveningEndLocal;
-            
+
             if (timer.morning && typeof timer.morning === 'object') {
                 morningStart = timer.morning.start;
                 morningEnd = timer.morning.end;
@@ -1336,16 +1372,22 @@
             }
 
             if (hasCheckin) {
-                updateCheckinStatus('closed', '✅ Sudah Check-in', 'Anak ini sudah check-in hari ini');
+                updateCheckinStatus('closed', '✅ Sudah Check-in', 'Sila checkout untuk balik');
                 document.getElementById('btnCheckin')?.setAttribute('disabled', 'disabled');
                 document.getElementById('btnCheckinAll')?.setAttribute('disabled', 'disabled');
+                // 🔥 Enable checkout always when already checked in
+                canCheckout = true;
+                const btn = document.getElementById('btnCheckout');
+                const btnDisabled = document.getElementById('btnCheckoutDisabled');
+                if (btn) { btn.style.display = 'block'; btn.disabled = false; }
+                if (btnDisabled) btnDisabled.style.display = 'none';
                 return;
             }
 
             if (isMorning) {
                 const endTime = parseInt(morningEnd.replace(':', ''));
                 const isLateCheck = currentTime > endTime;
-                
+
                 if (isLateCheck) {
                     updateCheckinStatus('late', '⏰ Check-in Late!', 'Melebihi waktu yang ditetapkan');
                     showWarning('⚠️ Anda check-in lewat! Sila beri alasan.');
@@ -1359,18 +1401,21 @@
                 }
                 document.getElementById('btnCheckin')?.removeAttribute('disabled');
                 document.getElementById('btnCheckinAll')?.removeAttribute('disabled');
-                
+
             } else if (isEvening) {
                 updateCheckinStatus('closed', '⏰ Waktu Check-in Tamat', 'Sila scan untuk check-out');
                 showWarning('Waktu check-in telah tamat. Sila check-out.');
                 document.getElementById('btnCheckin')?.setAttribute('disabled', 'disabled');
                 document.getElementById('btnCheckinAll')?.setAttribute('disabled', 'disabled');
-                
+
             } else {
-                updateCheckinStatus('closed', '🚫 Di Luar Waktu Operasi', 'Sila scan pada waktu yang ditetapkan');
-                showWarning('Di luar waktu operasi! Sila scan pada waktu yang ditetapkan.');
-                document.getElementById('btnCheckin')?.setAttribute('disabled', 'disabled');
-                document.getElementById('btnCheckinAll')?.setAttribute('disabled', 'disabled');
+                // 🔥 OUTSIDE ANY SLOT → ALLOW LATE CHECK-IN
+                updateCheckinStatus('late', '⏰ Check-in Late!', 'Di luar waktu operasi — late check-in dibenarkan');
+                showWarning('⚠️ Anda check-in lewat! Di luar waktu operasi.');
+                document.getElementById('lateReasonSection')?.classList.add('show');
+                isLate = true;
+                document.getElementById('btnCheckin')?.removeAttribute('disabled');
+                document.getElementById('btnCheckinAll')?.removeAttribute('disabled');
             }
         }
 
@@ -1382,9 +1427,9 @@
             const icon = document.getElementById('statusIcon');
             const statusText = document.getElementById('statusText');
             const statusSub = document.getElementById('statusSub');
-            
+
             box.className = 'checkin-status-box';
-            
+
             if (type === 'on-time') {
                 box.classList.add('on-time');
                 icon.textContent = '✅';
@@ -1401,7 +1446,7 @@
                 statusText.className = 'status-text closed';
                 statusText.textContent = text;
             }
-            
+
             statusSub.textContent = sub || '';
         }
 
@@ -1422,10 +1467,16 @@
         // 🔥 SUBMIT ATTENDANCE
         // ============================================
         function submitAttendance(action) {
+            if (isSubmitting) { console.log('⚠️ Already submitting, ignored'); return; }
+            isSubmitting = true;
+
+            // 🔥 Immediately disable ALL buttons
+            document.querySelectorAll('button').forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
+
             console.log('🔍 submitAttendance called - action:', action);
             console.log('🔍 canCheckout:', canCheckout);
             console.log('🔍 hasCheckin:', hasCheckin);
-            
+
             if (action == 'checkout') {
                 if (!hasCheckin) {
                     alert('⚠️ Anak ini belum check-in hari ini! Sila check-in dahulu.');
@@ -1498,7 +1549,7 @@
                         });
                         if (btn) btn.innerHTML = '✅ Berjaya!';
 
-                        setTimeout(() => { window.location.reload(); }, 1500);
+                        setTimeout(() => { window.location.reload(); }, 2500);
                     } else {
                         alert('❌ ' + data.message);
                         if (btn) {
@@ -1521,6 +1572,9 @@
         // CHECKIN ALL
         // ============================================
         function checkinAll() {
+            if (isSubmitting) return;
+            isSubmitting = true;
+
             const btn = document.querySelector('.btn-checkin-all');
             if (!btn) return;
             btn.disabled = true;
@@ -1734,3 +1788,4 @@
 
 </body>
 </html>
+

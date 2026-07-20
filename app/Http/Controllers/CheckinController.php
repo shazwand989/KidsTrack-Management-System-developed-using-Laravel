@@ -30,7 +30,7 @@ class CheckinController extends Controller
     private function getTimerForToday()
     {
         $today = Carbon::now('Asia/Kuala_Lumpur')->format('l');
-        return TimerSetting::where('day_name', $today)->first();
+        return TimerSetting::where('day_name', 'like', '%' . $today . '%')->first();
     }
 
     private function getCurrentSlot()
@@ -117,6 +117,67 @@ class CheckinController extends Controller
     // ============================================
     // 🔥 SHOW CHECKIN PAGE
     // ============================================
+    public function checkout(Request $request)
+    {
+        $user = Auth::user();
+        $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
+        $parentId = null;
+
+        // Find parent ID based on role
+        if (in_array($user->role, ['parent', 'parent1'])) {
+            $parent = ParentModel::where('id', $user->id)->first();
+            $parentId = $parent ? $parent->id : null;
+        } elseif ($user->role === 'parent2') {
+            $sp = SecondParent::where('id', $user->id)->first();
+            $parentId = $sp ? $sp->parent_id : null;
+        } elseif ($user->role === 'guardian') {
+            $g = Guardian::where('id', $user->id)->first();
+            $parentId = $g ? $g->parent_id : null;
+        } else {
+            // Admin/teacher — use parent_id from query string if provided
+            $parentId = $request->query('parent_id');
+        }
+
+        if (!$parentId) {
+            return redirect()->route('kiosk.index')->with('error', 'No linked parent found.');
+        }
+
+        $children = Child::where(function($q) use ($parentId) {
+                $q->where('parent_id', $parentId)
+                  ->orWhere('second_parent_id', $parentId);
+            })
+            ->where('is_active', true)
+            ->with('classroom')
+            ->get();
+
+        // Only show children checked in today and NOT yet checked out
+        $checkedInChildren = [];
+        foreach ($children as $child) {
+            $att = Attendance::where('child_id', $child->id)
+                ->whereDate('date', $today)
+                ->first();
+            if ($att && $att->checkin_time && !$att->checkout_time) {
+                $child->checkin_time = $att->checkin_time;
+                $checkedInChildren[] = $child;
+            }
+        }
+
+        if (empty($checkedInChildren)) {
+            return redirect()->route('kiosk.index')
+                ->with('info', 'Tiada anak yang perlu check-out.');
+        }
+
+        if (count($checkedInChildren) === 1) {
+            return redirect()->route('kiosk.checkin.page', $checkedInChildren[0]->id);
+        }
+
+        $parent = ParentModel::find($parentId);
+        return view('kiosk.checkout-select', [
+            'children' => $checkedInChildren,
+            'parent' => $parent
+        ]);
+    }
+
     public function showCheckinPage($childId)
     {
         try {
@@ -128,13 +189,13 @@ class CheckinController extends Controller
             $currentTime = $now->format('h:i A');
 
             // Get parent
-            $parent = ParentModel::where('user_id', $user->id)->first();
+            $parent = ParentModel::where('id', $user->id)->first();
             if (!$parent) {
                 $parent = ParentModel::first();
             }
 
             // Get timer setting
-            $timerSetting = TimerSetting::where('day_name', $now->format('l'))->first();
+            $timerSetting = TimerSetting::where('day_name', 'like', '%' . $now->format('l') . '%')->first();
 
             // Check attendance
             $todayAttendance = Attendance::where('child_id', $child->id)
@@ -287,12 +348,31 @@ class CheckinController extends Controller
     // ============================================
     private function processCheckin($child, $parentId, $today, $now)
     {
-        // Check already checked in
+        // Check already checked in — use DATE() to handle timezone
         $existing = Attendance::where('child_id', $child->id)
-            ->whereDate('date', $today)
+            ->whereRaw('DATE(date) = ?', [$today])
             ->first();
 
         if ($existing && $existing->checkin_time) {
+            if ($existing->checkout_time) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Anak ini sudah check-in dan check-out hari ini! Tidak boleh check-in lagi.'
+                ]);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => 'Anak ini sudah check-in hari ini pada ' . Carbon::parse($existing->checkin_time)->format('h:i A') . '!'
+            ]);
+        }
+
+        // 🔥 DOUBLE CHECK: use DATE() to avoid timezone issues
+        $alreadyChecked = Attendance::where('child_id', $child->id)
+            ->whereRaw('DATE(date) = ?', [$today])
+            ->whereNotNull('checkin_time')
+            ->exists();
+
+        if ($alreadyChecked) {
             return response()->json([
                 'success' => false,
                 'message' => 'Anak ini sudah check-in hari ini!'
@@ -303,9 +383,9 @@ class CheckinController extends Controller
         $isLate = $this->isLateForCheckin();
         $withinGrace = $this->isWithinGracePeriod('checkin');
 
-        // Get parent name
-        $parent = ParentModel::find($parentId);
-        $parentName = $parent ? $parent->name : 'Unknown';
+        // Get parent name — use child's actual parent, not logged-in user
+        $childParent = ParentModel::find($child->parent_id);
+        $parentName = $childParent ? $childParent->name : 'Unknown';
 
         $status = 'present';
         $statusNote = '✅ Check-in On Time';
@@ -359,7 +439,7 @@ class CheckinController extends Controller
     private function processCheckout($child, $parentId, $today, $now)
     {
         $attendance = Attendance::where('child_id', $child->id)
-            ->whereDate('date', $today)
+            ->whereRaw('DATE(date) = ?', [$today])
             ->first();
 
         if (!$attendance || !$attendance->checkin_time) {
@@ -376,9 +456,9 @@ class CheckinController extends Controller
             ]);
         }
 
-        // Get parent name
-        $parent = ParentModel::find($parentId);
-        $parentName = $parent ? $parent->name : 'Unknown';
+        // Get parent name — use child's actual parent
+        $childParent = ParentModel::find($child->parent_id);
+        $parentName = $childParent ? $childParent->name : 'Unknown';
 
         // Check late checkout using the same logic as isLateForCheckout
         $isLateCheckout = $this->isLateForCheckout();
@@ -621,7 +701,7 @@ class CheckinController extends Controller
             return 'admin';
         }
 
-        $parent = ParentModel::where('user_id', $user->id)->first();
+        $parent = ParentModel::where('id', $user->id)->first();
         if ($parent && $child->parent_id == $parent->id) {
             return 'main_parent';
         }
@@ -631,7 +711,7 @@ class CheckinController extends Controller
         }
 
         if ($user->role === 'guardian') {
-            $guardian = Guardian::where('user_id', $user->id)->first();
+            $guardian = Guardian::where('id', $user->id)->first();
             if ($guardian && $child->guardian_id == $guardian->id) {
                 return 'guardian';
             }
@@ -700,18 +780,18 @@ class CheckinController extends Controller
             return $user->name ?? 'Admin';
         }
 
-        $parent = ParentModel::where('user_id', $user->id)->first();
+        $parent = ParentModel::where('id', $user->id)->first();
         if ($parent && $child->parent_id == $parent->id) {
             return $parent->name ?? 'Main Parent';
         }
 
         if ($user->role === 'second_parent' || $user->role === 'parent2') {
-            $secondParent = SecondParent::where('user_id', $user->id)->first();
+            $secondParent = SecondParent::where('id', $user->id)->first();
             return $secondParent->name ?? 'Second Parent';
         }
 
         if ($user->role === 'guardian') {
-            $guardian = Guardian::where('user_id', $user->id)->first();
+            $guardian = Guardian::where('id', $user->id)->first();
             if ($guardian && $child->guardian_id == $guardian->id) {
                 return $guardian->name ?? 'Guardian';
             }
@@ -732,14 +812,14 @@ class CheckinController extends Controller
         if (in_array($user->role, ['admin', 'teacher'])) {
             $allChildren = Child::where('is_active', true)->get();
         } else {
-            $parent = ParentModel::where('user_id', $user->id)->first();
+            $parent = ParentModel::where('id', $user->id)->first();
             if ($parent) {
                 $allChildren = Child::where(function($query) use ($parent) {
                     $query->where('parent_id', $parent->id)
                           ->orWhere('second_parent_id', $parent->id);
                 })->where('is_active', true)->get();
             } else {
-                $secondParent = SecondParent::where('user_id', $user->id)->first();
+                $secondParent = SecondParent::where('id', $user->id)->first();
                 if ($secondParent) {
                     $mainParent = ParentModel::find($secondParent->parent_id);
                     if ($mainParent) {
@@ -751,7 +831,7 @@ class CheckinController extends Controller
                 }
 
                 if ($user->role === 'guardian') {
-                    $guardian = Guardian::where('user_id', $user->id)->first();
+                    $guardian = Guardian::where('id', $user->id)->first();
                     if ($guardian) {
                         $allChildren = Child::where('guardian_id', $guardian->id)
                             ->where('is_active', true)->get();
@@ -823,3 +903,5 @@ class CheckinController extends Controller
         $this->telegram->sendMessage($parent->telegram_id, $message);
     }
 }
+
+

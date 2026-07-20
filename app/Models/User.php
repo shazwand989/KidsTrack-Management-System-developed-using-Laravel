@@ -17,23 +17,35 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
+        'age',
         'email',
         'password',
         'phone_number',
         'address',
+        'photo',
         'role',
+        'verified',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'verified' => 'boolean',
         ];
+    }
+
+    // Children linked via guardianships
+    public function guardianships()
+    {
+        return $this->hasMany(Guardianship::class);
+    }
+
+    public function children()
+    {
+        return $this->belongsToMany(Child::class, 'guardianships')
+            ->withPivot('relationship', 'is_emergency_contact')
+            ->withTimestamps();
     }
 }

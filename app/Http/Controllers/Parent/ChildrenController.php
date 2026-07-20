@@ -60,18 +60,18 @@ class ChildrenController extends Controller
     private function getChildren($user)
     {
         if (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('user_id', Auth::id())->first();
+            $parent = ParentModel::where('id', Auth::id())->first();
             return $parent ? $parent->children()->with('classroom')->get() : collect();
         }
         if ($user->role === 'parent2') {
-            $sp = SecondParent::where('user_id', Auth::id())->first();
+            $sp = SecondParent::where('id', Auth::id())->first();
             if ($sp) {
                 $mp = ParentModel::find($sp->parent_id);
                 return $mp ? $mp->children()->with('classroom')->get() : collect();
             }
         }
         if ($user->role === 'guardian') {
-            $g = Guardian::where('user_id', Auth::id())->first();
+            $g = Guardian::where('id', Auth::id())->first();
             return $g ? $g->children()->with('classroom')->get() : collect();
         }
         return collect();
@@ -80,18 +80,18 @@ class ChildrenController extends Controller
     private function findChild($user, $id)
     {
         if (in_array($user->role, ['parent', 'parent1'])) {
-            $p = ParentModel::where('user_id', Auth::id())->first();
+            $p = ParentModel::where('id', Auth::id())->first();
             return $p ? Child::where('parent_id', $p->id)->orWhere('second_parent_id', $p->id)->with(['classroom', 'attendances'])->find($id) : null;
         }
         if ($user->role === 'parent2') {
-            $sp = SecondParent::where('user_id', Auth::id())->first();
+            $sp = SecondParent::where('id', Auth::id())->first();
             if ($sp) {
                 $mp = ParentModel::find($sp->parent_id);
                 return $mp ? Child::where('parent_id', $mp->id)->orWhere('second_parent_id', $mp->id)->with(['classroom', 'attendances'])->find($id) : null;
             }
         }
         if ($user->role === 'guardian') {
-            $g = Guardian::where('user_id', Auth::id())->first();
+            $g = Guardian::where('id', Auth::id())->first();
             return $g ? Child::where('guardian_id', $g->id)->with(['classroom', 'attendances'])->find($id) : null;
         }
         return null;

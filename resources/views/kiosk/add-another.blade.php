@@ -18,12 +18,12 @@
             background: #f3f4f6;
             transition: background 0.5s ease;
         }
-        
+
         body.main-parent { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
         body.second-parent { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         body.guardian { background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%); }
         body.admin { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
-        
+
         .add-card {
             background: white;
             border-radius: 30px;
@@ -36,7 +36,7 @@
             overflow: hidden;
             transition: all 0.5s ease;
         }
-        
+
         .add-card::before {
             content: '';
             position: absolute;
@@ -50,11 +50,11 @@
         .second-parent .add-card::before { background: linear-gradient(90deg, #6d28d9, #8b5cf6); }
         .guardian .add-card::before { background: linear-gradient(90deg, #d97706, #f59e0b); }
         .admin .add-card::before { background: linear-gradient(90deg, #334155, #475569); }
-        
+
         .add-card .logo { font-size: 64px; margin-bottom: 10px; }
         .add-card h1 { font-size: 24px; color: #1f2937; margin-bottom: 5px; }
         .add-card .subtitle { color: #6b7280; font-size: 14px; margin-bottom: 20px; }
-        
+
         .role-badge {
             display: inline-block;
             padding: 8px 24px;
@@ -69,7 +69,7 @@
         .role-badge.second-parent { background: #ede9fe; color: #5b21b6; border: 2px solid #8b5cf6; }
         .role-badge.guardian { background: #fef3c7; color: #92400e; border: 2px solid #f59e0b; }
         .role-badge.admin { background: #e2e8f0; color: #1e293b; border: 2px solid #475569; }
-        
+
         .role-info {
             display: flex;
             align-items: center;
@@ -89,7 +89,7 @@
         .role-info .role-name.second { color: #6d28d9; }
         .role-info .role-name.guardian { color: #d97706; }
         .role-info .role-name.admin { color: #1e293b; }
-        
+
         .checked-in-list-container {
             margin: 15px 0;
             padding: 15px;
@@ -157,7 +157,7 @@
         .checked-in-list-scroll::-webkit-scrollbar { width: 4px; }
         .checked-in-list-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         .checked-in-list-scroll::-webkit-scrollbar-thumb { background: #6ee7b7; border-radius: 10px; }
-        
+
         .select-all {
             display: flex;
             justify-content: space-between;
@@ -201,7 +201,7 @@
             font-size: 14px;
             font-weight: 700;
         }
-        
+
         .child-list {
             margin: 15px 0;
             text-align: left;
@@ -273,7 +273,7 @@
         .badge-available { background: #dbeafe; color: #1e40af; }
         .badge-checked { background: #d1fae5; color: #065f46; }
         .badge-checkout-done { background: #fef3c7; color: #92400e; }
-        
+
         .btn-checkin {
             width: 100%;
             padding: 16px;
@@ -296,7 +296,7 @@
             cursor: not-allowed;
             transform: none;
         }
-        
+
         .btn-next {
             width: 100%;
             padding: 16px;
@@ -314,7 +314,7 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
         }
-        
+
         .btn-next-secondary {
             width: 100%;
             padding: 14px;
@@ -333,7 +333,7 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
         }
-        
+
         .btn-back {
             width: 100%;
             padding: 14px;
@@ -348,7 +348,7 @@
             margin-top: 10px;
         }
         .btn-back:hover { background: #e5e7eb; }
-        
+
         .no-children {
             color: #94a3b8;
             font-size: 14px;
@@ -370,7 +370,7 @@
             border: 2px solid #10b981;
         }
         .all-checked-in-message .icon { font-size: 32px; display: block; margin-bottom: 8px; }
-        
+
         .child-profile-box {
             background: #f3f4f6;
             border-radius: 16px;
@@ -382,7 +382,7 @@
         .child-profile-box.second-parent-border { border-color: #8b5cf6; background: #f5f3ff; }
         .child-profile-box.guardian-border { border-color: #f59e0b; background: #fffbeb; }
         .child-profile-box.admin-border { border-color: #475569; background: #f1f5f9; }
-        
+
         .child-avatar {
             width: 80px;
             height: 80px;
@@ -399,10 +399,10 @@
         .child-avatar.second-parent-avatar { background: linear-gradient(135deg, #6d28d9, #8b5cf6); }
         .child-avatar.guardian-avatar { background: linear-gradient(135deg, #d97706, #f59e0b); }
         .child-avatar.admin-avatar { background: linear-gradient(135deg, #334155, #475569); }
-        
+
         .child-name { font-size: 22px; font-weight: 700; color: #1f2937; }
         .child-class { font-size: 14px; color: #6b7280; margin-top: 4px; }
-        
+
         .current-child-tag {
             display: inline-block;
             padding: 4px 16px;
@@ -415,17 +415,17 @@
         .current-child-tag.second-parent-tag { background: #ede9fe; color: #5b21b6; }
         .current-child-tag.guardian-tag { background: #fef3c7; color: #92400e; }
         .current-child-tag.admin-tag { background: #e2e8f0; color: #1e293b; }
-        
+
         .fade-in { animation: fadeIn 0.5s ease; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
+
         .child-list::-webkit-scrollbar { width: 4px; }
         .child-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         .child-list::-webkit-scrollbar-thumb { background: #c4b5fd; border-radius: 10px; }
-        
+
         .button-divider {
             display: flex;
             gap: 10px;
@@ -468,7 +468,7 @@
 <body class="{{ $roleData['class'] ?? 'main-parent' }}">
     <div class="add-card">
         <div class="logo">👶</div>
-        
+
         <!-- ============================================ -->
         <!-- TITLE - BERUBAH MENGIKUT STATUS              -->
         <!-- ============================================ -->
@@ -477,7 +477,7 @@
             $totalChildren = isset($totalChildren) ? $totalChildren : 0;
             $allCheckedIn = ($totalCheckedIn > 0 && $totalCheckedIn == $totalChildren);
         @endphp
-        
+
         @if($allCheckedIn && $totalChildren > 0)
             <h1>🎉 All Children Checked In!</h1>
             <p class="subtitle">Semua anak telah berjaya check-in hari ini</p>
@@ -488,14 +488,14 @@
             <h1>👶 No Children Available</h1>
             <p class="subtitle">Semua anak telah check-in atau tiada anak lain</p>
         @endif
-        
+
         <!-- ============================================ -->
         <!-- ROLE BADGE                                   -->
         <!-- ============================================ -->
         <div class="role-badge {{ $roleData['badge_class'] ?? 'main-parent' }}">
             {{ $roleData['badge_text'] ?? '👨‍👩‍👦 Main Parent' }}
         </div>
-        
+
         <!-- ============================================ -->
         <!-- ROLE INFO - WELCOME MESSAGE                  -->
         <!-- ============================================ -->
@@ -503,7 +503,7 @@
             <span class="role-icon">{{ $roleData['icon'] ?? '👨‍👩‍👦' }}</span>
             <span>{{ $roleData['welcome'] ?? 'Welcome, Parent 👋' }}</span>
         </div>
-        
+
         <!-- ============================================ -->
         <!-- ANAK YANG SUDAH CHECK IN                     -->
         <!-- ============================================ -->
@@ -538,7 +538,7 @@
                 @endif
             </div>
         </div>
-        
+
         <!-- ============================================ -->
         <!-- CURRENT CHILD (DARI QR SCAN)                 -->
         <!-- ============================================ -->
@@ -558,7 +558,7 @@
                 </div>
             </div>
         @endif
-        
+
         <!-- ============================================ -->
         <!-- ANAK YANG BOLEH CHECK IN                     -->
         <!-- ============================================ -->
@@ -572,7 +572,7 @@
                     <span style="font-size:13px; color:#6b7280;">{{ count($availableChildren) }} available</span>
                 </div>
             @endif
-            
+
             <div class="child-list" id="childList">
                 @foreach($availableChildren as $availChild)
                     <div class="child-list-item" data-id="{{ $availChild['id'] }}" onclick="toggleChild(this)">
@@ -587,21 +587,21 @@
                     </div>
                 @endforeach
             </div>
-            
+
             <div class="selected-count" id="selectedCount">0 anak dipilih</div>
-            
+
             <!-- 🔥 BUTTON CHECK-IN (PINTAR: SINGLE ATAU BULK) -->
             <button class="btn-checkin" id="btnCheckin" onclick="checkinSelected()" disabled>
                 <span id="btnText">✅ Check In Selected Child</span>
             </button>
-            
+
             <!-- BUTTON PROCEED TO CHECKOUT -->
             @if($totalCheckedIn > 0 && isset($currentChild))
                 <button class="btn-next-secondary" onclick="proceedToCheckinPage()" style="margin-top:15px;">
                     ➡️ Proceed to Check Out ({{ $totalCheckedIn }} checked in)
                 </button>
             @endif
-            
+
         @elseif($allCheckedIn && $totalChildren > 0)
             <!-- SEMUA ANAK DAH CHECK IN -->
             <div class="all-checked-in-message">
@@ -609,32 +609,32 @@
                 All children have been checked in!<br>
                 <small style="font-weight:400;">Thank you for completing check-in.</small>
             </div>
-            
+
             <!-- BUTTON PROCEED TO CHECKOUT -->
             <button class="btn-next" onclick="proceedToCheckout()">
                 ➡️ Proceed to Check Out
             </button>
-            
+
         @else
             <!-- Tiada anak available -->
             <div class="no-children">
                 <span style="font-size: 32px; display: block; margin-bottom: 10px;">👶</span>
                 Tiada anak lain yang berdaftar.
             </div>
-            
+
             @if($totalCheckedIn > 0 && isset($currentChild))
                 <button class="btn-next" onclick="proceedToCheckinPage()">
                     ➡️ Proceed to Check Out ({{ $totalCheckedIn }} checked in)
                 </button>
             @endif
         @endif
-        
+
         <!-- ============================================ -->
         <!-- BACK BUTTON                                  -->
         <!-- ============================================ -->
         <button class="btn-back" onclick="window.location.href='/kiosk'">🔙 Back to Kiosk</button>
     </div>
-    
+
     <script>
         // ============================================
         // DATA DARI CONTROLLER
@@ -644,9 +644,9 @@
         const allCheckedInIds = @json($checkedInIds ?? []);
         const availableChildren = @json(array_column($availableChildren ?? [], 'id'));
         const currentChildId = {{ isset($currentChild) ? $currentChild->id : 0 }};
-        
+
         let selectedChildren = [];
-        
+
         console.log('✅ Add Another Child - Data:');
         console.log('  - Current Child ID:', currentChildId);
         console.log('  - Parent ID:', parentId);
@@ -664,18 +664,18 @@
                 console.log('  - ⚠️ selectAll element not found');
                 return;
             }
-            
+
             const items = document.querySelectorAll('.child-list-item:not(.disabled)');
             console.log('  - Available items:', items.length);
-            
+
             if (items.length === 0) {
                 console.log('  - No available items to select');
                 return;
             }
-            
+
             const allSelected = selectAll.classList.contains('selected');
             console.log('  - Currently all selected?', allSelected);
-            
+
             if (allSelected) {
                 // UNSELECT ALL
                 selectAll.classList.remove('selected');
@@ -699,7 +699,7 @@
                     }
                 });
             }
-            
+
             console.log('  - Selected Children after:', selectedChildren);
             updateSelectedCount();
         }
@@ -711,15 +711,15 @@
             console.log('🔄 toggleChild() called');
             const id = parseInt(element.dataset.id);
             console.log('  - Child ID:', id);
-            
+
             if (allCheckedInIds.includes(id)) {
                 console.log('  - ⛔ Child already checked in, skipping');
                 return;
             }
-            
+
             const isSelected = element.classList.contains('selected');
             console.log('  - Currently selected?', isSelected);
-            
+
             if (isSelected) {
                 element.classList.remove('selected');
                 selectedChildren = selectedChildren.filter(c => c !== id);
@@ -731,13 +731,13 @@
                 }
                 console.log('  - Added to selection');
             }
-            
+
             // Update Select All
             const items = document.querySelectorAll('.child-list-item:not(.disabled)');
             const allSelected = items.length > 0 && Array.from(items).every(item => {
                 return item.classList.contains('selected');
             });
-            
+
             const selectAll = document.getElementById('selectAll');
             if (selectAll) {
                 if (allSelected) {
@@ -746,7 +746,7 @@
                     selectAll.classList.remove('selected');
                 }
             }
-            
+
             console.log('  - Selected Children:', selectedChildren);
             updateSelectedCount();
         }
@@ -757,15 +757,15 @@
         function updateSelectedCount() {
             const count = selectedChildren.length;
             console.log('📊 updateSelectedCount():', count);
-            
+
             const countElement = document.getElementById('selectedCount');
             if (countElement) {
                 countElement.textContent = count + ' anak dipilih';
             }
-            
+
             const btn = document.getElementById('btnCheckin');
             const btnText = document.getElementById('btnText');
-            
+
             if (btn) {
                 if (count === 0) {
                     btn.disabled = true;
@@ -789,12 +789,12 @@
         function checkinSelected() {
             console.log('✅ checkinSelected() called');
             console.log('  - Selected Children:', selectedChildren);
-            
+
             if (selectedChildren.length === 0) {
                 console.log('  - ⚠️ No children selected');
                 return;
             }
-            
+
             // 🔥🔥🔥 JIKA HANYA 1 ANAK → PERGI CHECK-IN PAGE 🔥🔥🔥
             if (selectedChildren.length === 1) {
                 const childId = selectedChildren[0];
@@ -802,17 +802,17 @@
                 window.location.href = '/kiosk/checkin-page/' + childId + '?parent_id=' + parentId;
                 return;
             }
-            
+
             // 🔥🔥🔥 JIKA LEBIH DARI 1 ANAK → BULK CHECK-IN 🔥🔥🔥
             console.log('  - Multiple children selected, doing bulk check-in');
-            
+
             const btn = document.getElementById('btnCheckin');
             const btnText = document.getElementById('btnText');
             if (btn) {
                 btn.disabled = true;
                 if (btnText) btnText.textContent = '⏳ Checking in...';
             }
-            
+
             // CALL API BULK CHECK-IN
             fetch('/kiosk/bulk-checkin', {
                 method: 'POST',
@@ -829,7 +829,7 @@
             .then(response => response.json())
             .then(data => {
                 console.log('  - Bulk check-in response:', data);
-                
+
                 if (data.success) {
                     showBulkSuccessPopup(data);
                     setTimeout(function() {
@@ -861,7 +861,7 @@
             if (existingPopup) {
                 existingPopup.remove();
             }
-            
+
             const overlay = document.createElement('div');
             overlay.className = 'popup-overlay active';
             overlay.id = 'bulkSuccessPopup';
@@ -876,15 +876,15 @@
                 z-index: 1000;
                 padding: 20px;
             `;
-            
+
             let resultsHtml = '';
             if (data.results && data.results.length > 0) {
                 data.results.forEach(item => {
-                    const statusIcon = item.status === 'checked_in' ? '✅' : 
+                    const statusIcon = item.status === 'checked_in' ? '✅' :
                                       item.status === 'late' ? '⏰' : '📌';
-                    const statusText = item.status === 'checked_in' ? 'Checked In' : 
+                    const statusText = item.status === 'checked_in' ? 'Checked In' :
                                       item.status === 'late' ? 'Late' : 'Already';
-                    const borderColor = item.status === 'checked_in' ? '#22c55e' : 
+                    const borderColor = item.status === 'checked_in' ? '#22c55e' :
                                        item.status === 'late' ? '#ef4444' : '#3b82f6';
                     resultsHtml += `
                         <div style="
@@ -904,7 +904,7 @@
                     `;
                 });
             }
-            
+
             overlay.innerHTML = `
                 <div style="
                     background: white;
@@ -969,7 +969,7 @@
                     </div>
                 </div>
             `;
-            
+
             document.body.appendChild(overlay);
         }
 
@@ -991,12 +991,12 @@
             console.log('✅ proceedToCheckinPage() called');
             console.log('  - Current Child ID:', currentChildId);
             console.log('  - Parent ID:', parentId);
-            
+
             if (currentChildId > 0) {
                 window.location.href = '/kiosk/checkin-page/' + currentChildId + '?parent_id=' + parentId;
             } else {
                 console.log('  - ⚠️ No current child, redirect to checkout');
-                window.location.href = '/kiosk/checkout?parent_id=' + parentId;
+                window.location.href = '/kiosk/checkout-landing?parent_id=' + parentId;
             }
         }
 
@@ -1006,7 +1006,7 @@
         function proceedToCheckout() {
             console.log('✅ proceedToCheckout() called');
             console.log('  - Parent ID:', parentId);
-            window.location.href = '/kiosk/checkout?parent_id=' + parentId;
+            window.location.href = '/kiosk/checkout-landing?parent_id=' + parentId;
         }
 
         // ============================================
@@ -1017,26 +1017,26 @@
             console.log('  - Available Children:', availableChildren);
             console.log('  - Checked In IDs:', allCheckedInIds);
             console.log('  - Current Child ID:', currentChildId);
-            
+
             // Reset selection
             selectedChildren = [];
-            
+
             document.querySelectorAll('.child-list-item').forEach(function(item) {
                 const id = parseInt(item.dataset.id);
                 const isCheckedIn = allCheckedInIds.includes(id);
                 console.log('  - Found child:', id, 'Checked In:', isCheckedIn);
-                
+
                 if (isCheckedIn) {
                     item.classList.add('disabled');
                     item.classList.remove('selected');
                 }
             });
-            
+
             const selectAll = document.getElementById('selectAll');
             if (selectAll) {
                 selectAll.classList.remove('selected');
             }
-            
+
             updateSelectedCount();
         });
 
@@ -1047,7 +1047,7 @@
             console.log('🔄 Auto refresh');
             location.reload();
         }, 30000);
-        
+
         console.log('✅ Add Another Child loaded successfully!');
     </script>
 </body>

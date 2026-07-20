@@ -217,8 +217,8 @@ Route::prefix('kiosk')->group(function () {
     // ============================================
     // 🔥 CHECKOUT PAGE
     // ============================================
-    Route::get('/checkout', [CheckinController::class, 'checkout'])
-        ->name('kiosk.checkout');
+    Route::get('/checkout-landing', [CheckinController::class, 'checkout'])
+        ->name('kiosk.checkout.landing');
 
     // ============================================
     // KIOSK - QRScanController ROUTES
@@ -229,12 +229,10 @@ Route::prefix('kiosk')->group(function () {
     Route::get('/attendance/{child}', [QRScanController::class, 'getAttendance'])->name('kiosk.attendance');
     Route::get('/today', [QRScanController::class, 'getTodayAttendance'])->name('kiosk.today');
     Route::get('/checkin/{child}', function ($childId) {
-        $child = Child::with(['parent', 'classroom'])->findOrFail($childId);
-        return view('kiosk.checkin', compact('child'));
+        return redirect()->route('kiosk.checkin.page', $childId);
     })->name('kiosk.checkin');
     Route::get('/checkout/{child}', function ($childId) {
-        $child = Child::with(['parent', 'classroom'])->findOrFail($childId);
-        return view('kiosk.checkout', compact('child'));
+        return redirect()->route('kiosk.checkin.page', $childId);
     })->name('kiosk.checkout');
     Route::post('/confirm-checkin', [QRScanController::class, 'confirmCheckin'])->name('kiosk.confirm.checkin');
     Route::post('/confirm-checkout', [QRScanController::class, 'confirmCheckout'])->name('kiosk.confirm.checkout');
