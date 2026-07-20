@@ -312,10 +312,10 @@
     </div>
     <div class="pg-header-right">
         <a href="#" class="btn-export">
-            <span>⬇️</span> Export CSV
+            <i class="fas fa-download"></i> Export CSV
         </a>
         <a href="{{ route('parents.create') }}" class="btn-register">
-            <span>➕</span> Register Guardian
+            <i class="fas fa-plus"></i> Register Guardian
         </a>
     </div>
 </div>
@@ -362,7 +362,7 @@
 {{-- Search + Filter --}}
 <div class="filter-bar">
     <div class="search-wrap">
-        <span>🔍</span>
+        <i class="fas fa-search"></i>
         <input type="text" class="search-input" id="searchInput"
             placeholder="Search name, phone...">
     </div>
@@ -466,7 +466,7 @@
                         </span>
                     @elseif($parent->verified)
                         <span class="status-badge verified">
-                            <span>✅</span> Verified
+                            <i class="fas fa-check-circle"></i> Verified
                         </span>
                     @else
                         <span class="status-badge unverified">
@@ -487,11 +487,11 @@
                     <div class="action-btns">
                         <a href="{{ route('parents.show', $parent->id) }}"
                             class="act-btn view" title="View">
-                            <span>👁️</span>
+                            <i class="fas fa-eye"></i>
                         </a>
                         <a href="{{ route('parents.edit', $parent->id) }}"
                             class="act-btn edit" title="Edit">
-                            <span>✏️</span>
+                            <i class="fas fa-edit"></i>
                         </a>
                         <form action="{{ route('parents.destroy', $parent->id) }}"
                             method="POST" style="margin:0;">
@@ -499,7 +499,7 @@
                             @method('DELETE')
                             <button type="submit" class="act-btn delete" title="Delete"
                                 onclick="return confirm('Delete {{ addslashes($parent->name) }}?')">
-                                <span>🗑️</span>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>
                     </div>

@@ -306,13 +306,13 @@
                 <span>⬅️</span> Back
             </a>
             <a href="{{ route('attendance.edit', $attendance->id) }}" class="btn-edit">
-                <span>✏️</span> Edit
+                <i class="fas fa-edit"></i> Edit
             </a>
             <form action="{{ route('attendance.destroy', $attendance->id) }}" method="POST" style="display:inline;">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn-delete" onclick="return confirm('Delete this attendance record?')">
-                    <span>🗑️</span> Delete
+                    <i class="fas fa-trash-alt"></i> Delete
                 </button>
             </form>
             <a href="{{ route('attendance.export.single', $attendance->id) }}" class="btn-pdf-single" target="_blank">
@@ -526,7 +526,7 @@
             <span>⬅️</span> Back to List
         </a>
         <a href="{{ route('attendance.edit', $attendance->id) }}" class="btn-edit">
-            <span>✏️</span> Edit Record
+            <i class="fas fa-edit"></i> Edit Record
         </a>
         <a href="{{ route('attendance.export.single', $attendance->id) }}" class="btn-pdf-single" target="_blank">
             <span>📄</span> Export PDF

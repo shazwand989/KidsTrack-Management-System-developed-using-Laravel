@@ -120,7 +120,7 @@
 
     .search-wrap { flex: 1; position: relative; min-width: 200px; }
 
-    .search-wrap span {
+    .search-wrap i, .search-wrap span {
         position: absolute;
         left: 14px;
         top: 50%;
@@ -316,7 +316,7 @@
 {{-- Alert Success --}}
 @if(session('success'))
 <div class="alert-success">
-    <span>✅</span> {{ session('success') }}
+    <i class="fas fa-check-circle"></i> {{ session('success') }}
 </div>
 @endif
 
@@ -328,10 +328,10 @@
     </div>
     <div class="pg-header-right">
         <a href="#" class="btn-export">
-            <span>⬇️</span> Export CSV
+            <i class="fas fa-download"></i> Export CSV
         </a>
         <a href="{{ route('teachers.create') }}" class="btn-register">
-            <span>➕</span> Register Teacher
+            <i class="fas fa-plus"></i> Register Teacher
         </a>
     </div>
 </div>
@@ -353,7 +353,7 @@
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon green"><span>✅</span></div>
+        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
         <div>
             <div class="stat-num">{{ $active }}</div>
             <div class="stat-label">Active</div>
@@ -378,7 +378,7 @@
 {{-- Search + Filter --}}
 <div class="filter-bar">
     <div class="search-wrap">
-        <span>🔍</span>
+        <i class="fas fa-search"></i>
         <input type="text" class="search-input" id="searchInput"
             placeholder="Search name, position, phone...">
     </div>
@@ -499,11 +499,11 @@
                     <div class="action-btns">
                         <a href="{{ route('teachers.show', $teacher->id) }}"
                             class="act-btn view" title="View">
-                            <span>👁️</span>
+                            <i class="fas fa-eye"></i>
                         </a>
                         <a href="{{ route('teachers.edit', $teacher->id) }}"
                             class="act-btn edit" title="Edit">
-                            <span>✏️</span>
+                            <i class="fas fa-edit"></i>
                         </a>
                         <form action="{{ route('teachers.destroy', $teacher->id) }}"
                             method="POST" style="margin:0;">
@@ -511,7 +511,7 @@
                             @method('DELETE')
                             <button type="submit" class="act-btn delete" title="Delete"
                                 onclick="return confirm('Delete {{ addslashes($teacher->name) }}? This action cannot be undone.')">
-                                <span>🗑️</span>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>
                     </div>

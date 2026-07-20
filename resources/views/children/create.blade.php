@@ -427,7 +427,7 @@
 
     @if(session('success'))
     <div class="alert-success">
-        <span>✅</span> {{ session('success') }}
+        <i class="fas fa-check-circle"></i> {{ session('success') }}
     </div>
     @endif
 

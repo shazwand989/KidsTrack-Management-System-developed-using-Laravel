@@ -24,7 +24,8 @@
   <link href="{{ asset('material/assets/css/nucleo-svg.css') }}" rel="stylesheet" />
 
   <!-- Font Awesome Icons -->
-  <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
 
   <!-- Material Icons -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -427,19 +428,11 @@
 <li class="nav-item">
   <a class="nav-link text-dark @if(request()->routeIs('kiosk.index')) active @endif" href="{{ route('kiosk.index') }}" target="_blank">
     <i class="material-symbols-rounded opacity-5">qr_code_scanner</i>
-    <span class="nav-link-text ms-1">📱 Kiosk</span>
+    <span class="nav-link-text ms-1">Kiosk</span>
   </a>
 </li>
 
         <!-- Loving Guardians (Parents) -->
-        <li class="nav-item">
-          <a class="nav-link text-dark @if(request()->routeIs('parents.*')) active @endif" href="{{ route('parents.index') }}">
-            <i class="material-symbols-rounded opacity-5">family_restroom</i>
-            <span class="nav-link-text ms-1">Loving Guardians</span>
-          </a>
-        </li>
-
-                <!-- Loving Guardians (Parents) -->
         <li class="nav-item">
           <a class="nav-link text-dark @if(request()->routeIs('parents.*')) active @endif" href="{{ route('parents.index') }}">
             <i class="material-symbols-rounded opacity-5">family_restroom</i>
@@ -466,17 +459,17 @@
 
         <!-- Attendance -->
 <li class="nav-item">
-    <a class="nav-link text-dark @if(request()->routeIs('attendance.*')) active @endif" href="{{ route('attendance.index') }}">
-        <span style="font-size: 20px; margin-right: 8px;">📋</span>
-        <span class="nav-link-text">Attendance</span>
+    <a class="nav-link text-dark @if(request()->routeIs('attendance.index') || request()->routeIs('attendance.*') && !request()->routeIs('attendance.calendar*')) active @endif" href="{{ route('attendance.index') }}">
+    <i class="material-symbols-rounded opacity-5">fact_check</i>
+        <span class="nav-link-text ms-1">Attendance</span>
     </a>
 </li>
 
 <!-- Attendance Calendar -->
 <li class="nav-item">
-    <a class="nav-link text-dark @if(request()->routeIs('attendance.calendar')) active @endif" href="{{ route('attendance.calendar') }}">
-        <span style="font-size: 20px; margin-right: 8px;">📅</span>
-        <span class="nav-link-text">Calendar</span>
+    <a class="nav-link text-dark @if(request()->routeIs('attendance.calendar*')) active @endif" href="{{ route('attendance.calendar') }}">
+    <i class="material-symbols-rounded opacity-5">calendar_month</i>
+        <span class="nav-link-text ms-1">Calendar</span>
     </a>
 </li>
 
@@ -484,29 +477,10 @@
 <!-- QR Code -->
 <li class="nav-item">
     <a class="nav-link text-dark @if(request()->routeIs('qr.code')) active @endif" href="{{ route('qr.code') }}">
-        <span style="font-size: 20px; margin-right: 8px;">📱</span>
-        <span class="nav-link-text">QR Code</span>
+    <i class="material-symbols-rounded opacity-5">qr_code_2</i>
+        <span class="nav-link-text ms-1">QR Code</span>
     </a>
 </li>
-
-        <!-- ============================================ -->
-        <!-- OPERATIONS SECTION -->
-        <!-- ============================================ -->
-        <li class="nav-item mt-3">
-          <span class="section-header">OPERATIONS</span>
-        </li>
-
-
-
-
-        <!-- ============================================ -->
-        <!-- SYSTEM SECTION -->
-        <!-- ============================================ -->
-        <li class="nav-item mt-3">
-          <span class="section-header">SYSTEM</span>
-        </li>
-
-        
 
       </ul>
     </div>

@@ -120,7 +120,7 @@
 
     .search-wrap { flex: 1; position: relative; min-width: 200px; }
 
-    .search-wrap span {
+    .search-wrap i, .search-wrap span {
         position: absolute;
         left: 14px;
         top: 50%;
@@ -168,7 +168,7 @@
     .pg-table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 900px;
+        min-width: 750px;
     }
 
     .pg-table thead tr { background: #FFF5F2; }
@@ -251,7 +251,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 13px;
+        font-size: 14px;
         cursor: pointer;
         text-decoration: none;
         transition: .2s;
@@ -282,6 +282,66 @@
         gap: 10px;
     }
 
+    /* Pagination */
+    .pagination-wrap {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-top: 20px;
+        background: white;
+        border-radius: 16px;
+        padding: 14px 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        border: 1px solid #f1f5f9;
+    }
+    .pagination-info {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 600;
+    }
+    .pagination-links {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+    .pagination-links .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #475569;
+        text-decoration: none;
+        background: white;
+        border: 1px solid #e2e8f0;
+        transition: all .15s;
+    }
+    .pagination-links .page-link:hover {
+        background: #FFF5F2;
+        border-color: #FFD4C8;
+        color: #FF6B6B;
+    }
+    .pagination-links .active .page-link {
+        background: linear-gradient(135deg, #FF6B6B, #FF9E7D);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(255,107,107,0.25);
+    }
+    .pagination-links .disabled .page-link {
+        color: #cbd5e1;
+        pointer-events: none;
+        background: #f8fafc;
+    }
+
     .alert-success {
         background: #f0fdf4;
         border: 1px solid #bbf7d0;
@@ -303,7 +363,7 @@
 {{-- Alert Success --}}
 @if(session('success'))
 <div class="alert-success">
-    <span>✅</span> {{ session('success') }}
+    <i class="fas fa-check-circle"></i> {{ session('success') }}
 </div>
 @endif
 
@@ -315,17 +375,17 @@
     </div>
     <div class="pg-header-right">
         <a href="#" class="btn-export">
-            <span>⬇️</span> Export CSV
+            <i class="fas fa-download"></i> Export CSV
         </a>
         <a href="{{ route('parents.create') }}" class="btn-register">
-            <span>➕</span> Register Parent
+            <i class="fas fa-plus"></i> Register Parent
         </a>
     </div>
 </div>
 
 {{-- Stat Cards --}}
 @php
-    $total = $parents->count();
+    $total = $parents->total();
     $verified = $parents->where('verified', true)->count();
     $emergency = $parents->where('emergency', true)->count();
     $pending = $parents->where('verified', false)->count();
@@ -333,28 +393,28 @@
 
 <div class="stat-row">
     <div class="stat-card">
-        <div class="stat-icon pink"><span>👨‍👩‍👧‍👦</span></div>
+        <div class="stat-icon pink"><i class="fas fa-users"></i></div>
         <div>
             <div class="stat-num">{{ $total }}</div>
             <div class="stat-label">Total Parents</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon green"><span>✅</span></div>
+        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
         <div>
             <div class="stat-num">{{ $verified }}</div>
             <div class="stat-label">Verified</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon orange"><span>⏳</span></div>
+        <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
         <div>
             <div class="stat-num">{{ $pending }}</div>
             <div class="stat-label">Pending</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon blue"><span>🚨</span></div>
+        <div class="stat-icon blue"><i class="fas fa-exclamation-triangle"></i></div>
         <div>
             <div class="stat-num">{{ $emergency }}</div>
             <div class="stat-label">Emergency Contact</div>
@@ -365,7 +425,7 @@
 {{-- Search + Filter --}}
 <div class="filter-bar">
     <div class="search-wrap">
-        <span>🔍</span>
+        <i class="fas fa-search"></i>
         <input type="text" class="search-input" id="searchInput"
             placeholder="Search name, phone, email...">
     </div>
@@ -384,22 +444,26 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th>Parent / Guardian</th>
-                <th>Phone</th>
-                <th>Email</th>
-                <th>Type</th>
+                <th>👨‍👩‍👧 Family</th>
                 <th>Status</th>
+                <th>🛡️ Guardian</th>
+                <th>👶 Children</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody id="tableBody">
             @forelse($parents as $i => $parent)
+            @php
+                $second = $parent->secondParent;
+                $guardian = $parent->guardian;
+            @endphp
             <tr>
-                <td style="color:#94a3b8; font-weight:700;">{{ $i + 1 }}</td>
+                <td style="color:#94a3b8; font-weight:700;">{{ $parents->firstItem() + $i }}</td>
                 
-                {{-- Parent Info --}}
+                {{-- Family Group --}}
                 <td>
-                    <div class="parent-cell">
+                    {{-- Main Parent --}}
+                    <div class="parent-cell" style="margin-bottom:{{ $second ? '8px' : '0' }};">
                         <div class="parent-avatar">
                             @if($parent->photo)
                                 <img src="{{ Storage::url($parent->photo) }}" alt="">
@@ -408,44 +472,22 @@
                             @endif
                         </div>
                         <div>
-                            <p class="parent-name">{{ $parent->name }}</p>
-                            <p class="parent-sub">ID: #{{ str_pad($parent->id, 4, '0', STR_PAD_LEFT) }}</p>
+                            <p class="parent-name">{{ $parent->name }} <span class="relation-badge main" style="font-size:10px;">👨‍👩‍👦 Parent</span></p>
+                            <p class="parent-sub">📱 {{ $parent->phone ?? '-' }} · ✉️ {{ $parent->user->email ?? '-' }}</p>
                         </div>
                     </div>
-                </td>
-                
-                {{-- Phone --}}
-                <td>{{ $parent->phone ?? '-' }}</td>
-                
-                {{-- Email --}}
-                <td>{{ $parent->user->email ?? '-' }}</td>
-                
-                {{-- Type --}}
-                <td>
-                    @php
-                        $type = 'parent';
-                        $typeLabel = 'Parent';
-                        $typeClass = 'main';
-                        
-                        if ($parent->user) {
-                            if ($parent->user->role == 'parent2') {
-                                $type = 'second';
-                                $typeLabel = 'Second Parent';
-                                $typeClass = 'second';
-                            } elseif ($parent->user->role == 'guardian') {
-                                $type = 'guardian';
-                                $typeLabel = 'Guardian';
-                                $typeClass = 'guardian';
-                            }
-                        }
-                    @endphp
-                    <span class="relation-badge {{ $typeClass }}">
-                        @if($typeClass == 'main') 👨‍👩‍👦
-                        @elseif($typeClass == 'second') 👫
-                        @elseif($typeClass == 'guardian') 🛡️
-                        @endif
-                        {{ $typeLabel }}
-                    </span>
+                    {{-- Second Parent --}}
+                    @if($second)
+                    <div class="parent-cell" style="padding-left:10px; border-left:3px solid #e2e8f0; margin-left:22px;">
+                        <div class="parent-avatar" style="width:32px;height:32px;border-radius:10px;font-size:12px;background:linear-gradient(135deg,#3b82f6,#60a5fa);">
+                            {{ strtoupper(substr($second->name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <p class="parent-name" style="font-size:13px;">{{ $second->name }} <span class="relation-badge second" style="font-size:10px;">👫 Second</span></p>
+                            <p class="parent-sub">📱 {{ $second->phone ?? '-' }}</p>
+                        </div>
+                    </div>
+                    @endif
                 </td>
                 
                 {{-- Status --}}
@@ -455,8 +497,36 @@
                     @else
                         <span class="status-badge pending">⏳ Pending</span>
                     @endif
-                    @if($parent->emergency)
-                        <span class="status-badge emergency">🚨 Emergency</span>
+                </td>
+
+                {{-- Guardian --}}
+                <td>
+                    @if($guardian)
+                        <div class="parent-cell">
+                            <div class="parent-avatar" style="width:32px;height:32px;border-radius:10px;font-size:12px;background:linear-gradient(135deg,#f59e0b,#fbbf24);">
+                                {{ strtoupper(substr($guardian->name, 0, 1)) }}
+                            </div>
+                            <div>
+                                <p class="parent-name" style="font-size:13px;">🛡️ {{ $guardian->name }}</p>
+                                <p class="parent-sub">📱 {{ $guardian->phone ?? '-' }} · 👶 {{ $guardian->age ?? 'N/A' }} yrs</p>
+                            </div>
+                        </div>
+                    @else
+                        <span style="color:#cbd5e1;">—</span>
+                    @endif
+                </td>
+
+                {{-- Children --}}
+                <td>
+                    @php $kids = $parent->children; @endphp
+                    @if($kids->count() > 0)
+                        @foreach($kids as $kid)
+                            <span style="display:inline-block;background:#f1f5f9;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600;margin:2px;">
+                                👶 {{ $kid->name }}
+                            </span>
+                        @endforeach
+                    @else
+                        <span style="color:#cbd5e1;">—</span>
                     @endif
                 </td>
                 
@@ -465,11 +535,11 @@
                     <div class="action-btns">
                         <a href="{{ route('parents.show', $parent->id) }}"
                             class="act-btn view" title="View">
-                            <span>👁️</span>
+                            <i class="fas fa-eye"></i>
                         </a>
                         <a href="{{ route('parents.edit', $parent->id) }}"
                             class="act-btn edit" title="Edit">
-                            <span>✏️</span>
+                            <i class="fas fa-edit"></i>
                         </a>
                         <form action="{{ route('parents.destroy', $parent->id) }}"
                             method="POST" style="margin:0;">
@@ -477,7 +547,7 @@
                             @method('DELETE')
                             <button type="submit" class="act-btn delete" title="Delete"
                                 onclick="return confirm('Delete {{ addslashes($parent->name) }}? This action cannot be undone.')">
-                                <span>🗑️</span>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>
                     </div>
@@ -498,7 +568,7 @@
         </tbody>
     </table>
 
-    @if($parents->count() > 0)
+    @if($total > 0)
     <div class="table-footer">
         <span>ℹ️</span>
         <span>Click any row to view full profile</span>
@@ -506,6 +576,34 @@
     </div>
     @endif
 </div>
+
+{{-- Pagination --}}
+@if($parents->hasPages())
+<div class="pagination-wrap">
+    <div class="pagination-info">
+        Showing {{ $parents->firstItem() }} to {{ $parents->lastItem() }} of {{ $parents->total() }} results
+    </div>
+    <ul class="pagination-links">
+        @if($parents->onFirstPage())
+            <li class="disabled"><span class="page-link">« Prev</span></li>
+        @else
+            <li><a class="page-link" href="{{ $parents->previousPageUrl() }}">« Prev</a></li>
+        @endif
+
+        @foreach($parents->getUrlRange(1, $parents->lastPage()) as $page => $url)
+            <li class="{{ $page == $parents->currentPage() ? 'active' : '' }}">
+                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+            </li>
+        @endforeach
+
+        @if($parents->hasMorePages())
+            <li><a class="page-link" href="{{ $parents->nextPageUrl() }}">Next »</a></li>
+        @else
+            <li class="disabled"><span class="page-link">Next »</span></li>
+        @endif
+    </ul>
+</div>
+@endif
 
 <script>
     // Search and Filter functionality
@@ -543,7 +641,7 @@
             const emptyRow = document.createElement('tr');
             emptyRow.className = 'empty-row-message';
             emptyRow.innerHTML = `
-                <td colspan="7">
+                <td colspan="6">
                     <div class="empty-state" style="padding: 40px;">
                         <div class="empty-icon">🔍</div>
                         <h5>No matching records found</h5>

@@ -135,7 +135,7 @@
 
     .search-wrap { flex: 1; position: relative; min-width: 200px; }
 
-    .search-wrap span {
+    .search-wrap i, .search-wrap span {
         position: absolute;
         left: 14px;
         top: 50%;
@@ -489,7 +489,7 @@
 {{-- Alert Success --}}
 @if(session('success'))
 <div class="alert-success">
-    <span>✅</span> {{ session('success') }}
+    <i class="fas fa-check-circle"></i> {{ session('success') }}
 </div>
 @endif
 
@@ -505,7 +505,7 @@
             <span>📄</span> Export PDF Report
         </a>
         <a href="#" class="btn-export no-print" onclick="exportCSV()">
-            <span>⬇️</span> Export CSV
+            <i class="fas fa-download"></i> Export CSV
         </a>
         <a href="{{ route('attendance.create') }}" class="btn-take no-print">
             <span>📝</span> Take Attendance
@@ -534,7 +534,7 @@
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon green"><span>✅</span></div>
+        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
         <div>
             <div class="stat-num">{{ $totalCheckin }}</div>
             <div class="stat-label">Check-ins</div>
@@ -559,7 +559,7 @@
 {{-- Filter Bar --}}
 <div class="filter-bar no-print">
     <div class="search-wrap">
-        <span>🔍</span>
+        <i class="fas fa-search"></i>
         <input type="text" class="search-input" id="searchInput"
             placeholder="Search by child name...">
     </div>
@@ -714,17 +714,17 @@
                     <div class="action-btns">
                         {{-- 🔥 BUTTON VIEW --}}
                         <a href="{{ route('attendance.show', $attendance->id) }}" class="act-btn view" title="View Detail">
-                            <span>👁️</span>
+                            <i class="fas fa-eye"></i>
                         </a>
                         <a href="{{ route('attendance.edit', $attendance->id) }}" class="act-btn edit" title="Edit">
-                            <span>✏️</span>
+                            <i class="fas fa-edit"></i>
                         </a>
                         <form action="{{ route('attendance.destroy', $attendance->id) }}" method="POST" style="margin:0;">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="act-btn delete" title="Delete"
                                 onclick="return confirm('Delete this attendance record?')">
-                                <span>🗑️</span>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>
                     </div>

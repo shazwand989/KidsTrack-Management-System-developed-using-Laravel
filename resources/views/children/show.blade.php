@@ -529,7 +529,7 @@
                 
                 <div class="profile-header-actions">
                     <a href="{{ route('children.edit', $child->id) }}" class="btn-edit">
-                        <span>✏️</span> Edit Profile
+                        <i class="fas fa-edit"></i> Edit Profile
                     </a>
                     <a href="{{ route('children.index') }}" class="btn-back">
                         <span>⬅️</span> Back to List

@@ -443,7 +443,7 @@
     {{-- Success Alert --}}
     @if(session('success'))
     <div class="alert-success">
-        <span>✅</span> {{ session('success') }}
+        <i class="fas fa-check-circle"></i> {{ session('success') }}
     </div>
     @endif
 
@@ -746,7 +746,7 @@
             @csrf
             @method('DELETE')
             <button type="submit" class="btn-delete">
-                <span>🗑️</span> Delete Child
+                <i class="fas fa-trash-alt"></i> Delete Child
             </button>
         </form>
     </div>

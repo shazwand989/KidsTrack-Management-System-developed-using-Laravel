@@ -122,7 +122,7 @@
 
     .search-wrap { flex: 1; position: relative; min-width: 200px; }
 
-    .search-wrap span {
+    .search-wrap i, .search-wrap span {
         position: absolute;
         left: 14px;
         top: 50%;
@@ -347,10 +347,10 @@
     </div>
     <div class="pg-header-right">
         <a href="#" class="btn-export">
-            <span>⬇️</span> Export CSV
+            <i class="fas fa-download"></i> Export CSV
         </a>
         <a href="{{ route('children.create') }}" class="btn-register">
-            <span>➕</span> Register Child
+            <i class="fas fa-plus"></i> Register Child
         </a>
     </div>
 </div>
@@ -372,7 +372,7 @@
         </div>
     </div>
     <div class="stat-card rose">
-        <div class="stat-icon rose"><span>✅</span></div>
+        <div class="stat-icon rose"><i class="fas fa-check-circle"></i></div>
         <div>
             <div class="stat-num">{{ $active }}</div>
             <div class="stat-label">Active Enrollment</div>
@@ -397,7 +397,7 @@
 {{-- Search + Filter --}}
 <div class="filter-bar">
     <div class="search-wrap">
-        <span>🔍</span>
+        <i class="fas fa-search"></i>
         <input type="text" class="search-input" id="searchInput"
             placeholder="Search name, IC, parent...">
     </div>
@@ -510,11 +510,11 @@
                     <div class="action-btns">
                         <a href="{{ route('children.show', $child->id) }}"
                             class="act-btn view" title="View">
-                            <span>👁️</span>
+                            <i class="fas fa-eye"></i>
                         </a>
                         <a href="{{ route('children.edit', $child->id) }}"
                             class="act-btn edit" title="Edit">
-                            <span>✏️</span>
+                            <i class="fas fa-edit"></i>
                         </a>
                         <form action="{{ route('children.destroy', $child->id) }}"
                             method="POST" style="margin:0;">
@@ -522,7 +522,7 @@
                             @method('DELETE')
                             <button type="submit" class="act-btn delete" title="Delete"
                                 onclick="return confirm('Delete {{ addslashes($child->name) }}? This will also remove all associated data.')">
-                                <span>🗑️</span>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>
                     </div>

@@ -13,10 +13,12 @@ use Illuminate\Support\Facades\Storage;
 
 class ParentController extends Controller
 {
-    // LIST
+    // LIST - grouped by family (main + second + guardian)
     public function index()
     {
-        $parents = ParentModel::with(['secondParent', 'guardian', 'user'])->get();
+        $parents = ParentModel::with(['secondParent', 'guardian', 'user'])
+            ->where('type', 'main')
+            ->paginate(10);
         return view('parent.index', compact('parents'));
     }
 

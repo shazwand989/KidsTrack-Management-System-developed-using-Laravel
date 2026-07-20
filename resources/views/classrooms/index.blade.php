@@ -124,7 +124,7 @@
 
     .search-wrap { flex: 1; position: relative; min-width: 200px; }
 
-    .search-wrap span {
+    .search-wrap i, .search-wrap span {
         position: absolute;
         left: 14px;
         top: 50%;
@@ -356,7 +356,7 @@
 {{-- Alert Success --}}
 @if(session('success'))
 <div class="alert-success">
-    <span>✅</span> {{ session('success') }}
+    <i class="fas fa-check-circle"></i> {{ session('success') }}
 </div>
 @endif
 
@@ -368,10 +368,10 @@
     </div>
     <div class="pg-header-right">
         <a href="#" class="btn-export">
-            <span>⬇️</span> Export CSV
+            <i class="fas fa-download"></i> Export CSV
         </a>
         <a href="{{ route('classrooms.create') }}" class="btn-register">
-            <span>➕</span> New Classroom
+            <i class="fas fa-plus"></i> New Classroom
         </a>
     </div>
 </div>
@@ -416,7 +416,7 @@
 {{-- Filter Bar --}}
 <div class="filter-bar">
     <div class="search-wrap">
-        <span>🔍</span>
+        <i class="fas fa-search"></i>
         <input type="text" class="search-input" id="searchInput"
             placeholder="Search by name, code, teacher...">
     </div>
@@ -519,17 +519,17 @@
                 <td>
                     <div class="action-btns">
                         <a href="{{ route('classrooms.show', $classroom->id) }}" class="act-btn view" title="View Seatmap">
-                            <span>👁️</span>
+                            <i class="fas fa-eye"></i>
                         </a>
                         <a href="{{ route('classrooms.edit', $classroom->id) }}" class="act-btn edit" title="Edit">
-                            <span>✏️</span>
+                            <i class="fas fa-edit"></i>
                         </a>
                         <form action="{{ route('classrooms.destroy', $classroom->id) }}" method="POST" style="margin:0;" 
                             onsubmit="return confirm('Delete {{ addslashes($classroom->name) }}? This will affect all children in this class.')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="act-btn delete" title="Delete">
-                                <span>🗑️</span>
+                                <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>
                     </div>

@@ -25,7 +25,8 @@
   <link href="{{ asset('material/assets/css/nucleo-svg.css') }}" rel="stylesheet" />
 
   <!-- Font Awesome Icons -->
-  <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
 
   <!-- Material Icons -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
@@ -564,7 +565,7 @@
 <li class="nav-item">
   <a class="nav-link text-dark @if(request()->routeIs('kiosk.index')) active @endif" href="{{ route('kiosk.index') }}" target="_blank">
     <i class="material-symbols-rounded opacity-5">qr_code_scanner</i>
-    <span class="nav-link-text ms-1">📱 Kiosk</span>
+    <span class="nav-link-text ms-1">Kiosk</span>
   </a>
 </li>
 
@@ -712,7 +713,7 @@
               <i class="material-symbols-rounded">event_note</i>
             </div>
             <div class="card-number">{{ $todayAttendance->where('status', 'present')->count() }}</div>
-            <div class="card-label">📅 Present Today</div>
+            <div class="card-label"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">calendar_month</i> Present Today</div>
           </div>
         </div>
 

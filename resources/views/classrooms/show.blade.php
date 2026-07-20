@@ -524,7 +524,7 @@
             </div>
             <div class="classroom-actions">
                 <a href="{{ route('classrooms.edit', $classroom->id) }}" class="btn-edit">
-                    <span>✏️</span> Edit Class
+                    <i class="fas fa-edit"></i> Edit Class
                 </a>
                 <a href="{{ route('classrooms.index') }}" class="btn-back">
                     <span>⬅️</span> Back
@@ -723,7 +723,7 @@
                                 </span>
                             @endif
                         @elseif(in_array($attStatus, ['checkin', 'late', 'present']))
-                            <span>✅</span>
+                            <i class="fas fa-check-circle"></i>
                             <span style="color:#16a34a; font-weight:600;">
                                 @if($attStatus == 'late')
                                     ⏰ Late Check-in

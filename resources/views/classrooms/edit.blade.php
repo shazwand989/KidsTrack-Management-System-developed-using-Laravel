@@ -439,7 +439,7 @@
             @csrf
             @method('DELETE')
             <button type="submit" class="btn-delete">
-                <span>🗑️</span> Delete Classroom
+                <i class="fas fa-trash-alt"></i> Delete Classroom
             </button>
         </form>
     </div>

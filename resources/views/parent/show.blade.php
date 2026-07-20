@@ -421,7 +421,7 @@
             
             <div class="profile-header-actions">
                 <a href="{{ route('parents.edit', $parent->id) }}" class="btn-edit">
-                    <span>✏️</span> Edit
+                    <i class="fas fa-edit"></i> Edit
                 </a>
                 <a href="{{ route('parents.index') }}" class="btn-back">
                     <span>⬅️</span> Back

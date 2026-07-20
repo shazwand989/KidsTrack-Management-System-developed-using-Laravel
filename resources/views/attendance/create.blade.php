@@ -272,7 +272,7 @@
 
     {{-- Success Alert --}}
     <div id="successAlert" class="alert-success">
-        <span>✅</span> <span id="successMsg">Attendance saved successfully!</span>
+        <i class="fas fa-check-circle"></i> <span id="successMsg">Attendance saved successfully!</span>
     </div>
 
     {{-- Class Filter --}}
@@ -312,7 +312,7 @@
             <div class="child-card-body">
                 <div class="status-buttons">
                     <button class="btn-status btn-checkin" onclick="setStatus({{ $child->id }}, 'checkin')">
-                        <span>✅</span> Check-in
+                        <i class="fas fa-check-circle"></i> Check-in
                     </button>
                     <button class="btn-status btn-checkout" onclick="setStatus({{ $child->id }}, 'checkout')">
                         <span>📤</span> Check-out

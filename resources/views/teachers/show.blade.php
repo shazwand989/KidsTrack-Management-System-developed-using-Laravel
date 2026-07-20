@@ -341,7 +341,7 @@
                 
                 <div class="profile-header-actions">
                     <a href="{{ route('teachers.edit', $teacher->id) }}" class="btn-edit">
-                        <span>✏️</span> Edit Profile
+                        <i class="fas fa-edit"></i> Edit Profile
                     </a>
                     <a href="{{ route('teachers.index') }}" class="btn-back">
                         <span>⬅️</span> Back to List
@@ -435,7 +435,7 @@
                         <div class="info-value">{{ $teacher->created_at->format('d M Y, h:i A') }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>✏️</span> Last Updated</div>
+                        <div class="info-label"><i class="fas fa-edit"></i> Last Updated</div>
                         <div class="info-value">{{ $teacher->updated_at->format('d M Y, h:i A') }}</div>
                     </div>
                 </div>
