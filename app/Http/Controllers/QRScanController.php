@@ -319,7 +319,7 @@ class QRScanController extends Controller
                         'checkin_time' => $now->format('H:i:s'),
                         'status' => 'present',
                         'status_note' => '✅ Check-in via Confirm Child',
-                        'drop_off_by' => 'Parent ID: ' . $parentId,
+                        'drop_off_by' => 'Kiosk',
                         'is_verified' => true
                     ]);
                 } else {
@@ -330,7 +330,7 @@ class QRScanController extends Controller
                         'checkin_time' => $now->format('H:i:s'),
                         'status' => 'present',
                         'status_note' => '✅ Check-in via Confirm Child',
-                        'drop_off_by' => 'Parent ID: ' . $parentId,
+                        'drop_off_by' => 'Kiosk',
                         'is_verified' => true
                     ]);
                 }
@@ -1235,7 +1235,7 @@ class QRScanController extends Controller
             $attendance->update([
                 'status' => 'checkin',
                 'checkin_time' => Carbon::now('Asia/Kuala_Lumpur')->format('H:i:s'),
-                'drop_off_by' => 'Parent ID: ' . $parentId,
+                'drop_off_by' => 'Kiosk',
             ]);
         } else {
             Attendance::create([
@@ -1244,7 +1244,7 @@ class QRScanController extends Controller
                 'date' => Carbon::now('Asia/Kuala_Lumpur')->toDateString(),
                 'status' => 'checkin',
                 'checkin_time' => Carbon::now('Asia/Kuala_Lumpur')->format('H:i:s'),
-                'drop_off_by' => 'Parent ID: ' . $parentId,
+                'drop_off_by' => 'Kiosk',
             ]);
         }
     }

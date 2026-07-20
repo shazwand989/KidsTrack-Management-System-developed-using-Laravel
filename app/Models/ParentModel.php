@@ -15,9 +15,11 @@ class ParentModel extends Model
         'phone',
         'address',
         'photo',
-        'type',         // <-- TAMBAH INI
+        'type',
         'verified',
         'emergency',
+        'telegram_id',
+        'telegram_notification',
     ];
 
     // ============================================

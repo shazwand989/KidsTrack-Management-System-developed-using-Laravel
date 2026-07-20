@@ -75,9 +75,23 @@ class CheckinController extends Controller
 
         $currentTime = Carbon::now('Asia/Kuala_Lumpur');
         $currentTimeInt = (int) $currentTime->format('Hi');
-        $morningEnd = (int) str_replace(':', '', $timer->morning_end);
+        $morningStart = (int) str_replace(':', '', $timer->morning_start);
         
-        return $currentTimeInt > $morningEnd;
+        // Late if after morning_start (the configured check-in time window start)
+        return $currentTimeInt > $morningStart;
+    }
+
+    private function isLateForCheckout()
+    {
+        $timer = $this->getTimerForToday();
+        if (!$timer) return false;
+
+        $currentTime = Carbon::now('Asia/Kuala_Lumpur');
+        $currentTimeInt = (int) $currentTime->format('Hi');
+        $eveningEnd = (int) str_replace(':', '', $timer->evening_end);
+        
+        // Late if after evening_end (the configured check-out time window end)
+        return $currentTimeInt > $eveningEnd;
     }
 
     private function isWithinGracePeriod($slotType)
@@ -89,12 +103,12 @@ class CheckinController extends Controller
         $currentTimeInt = (int) $currentTime->format('Hi');
         
         if ($slotType === 'checkin') {
-            $morningEnd = (int) str_replace(':', '', $timer->morning_end);
-            $graceEnd = $morningEnd + 15;
-            return $currentTimeInt > $morningEnd && $currentTimeInt <= $graceEnd;
+            $morningStart = (int) str_replace(':', '', $timer->morning_start);
+            $graceEnd = $morningStart + 15; // 15-minute grace period after check-in start
+            return $currentTimeInt > $morningStart && $currentTimeInt <= $graceEnd;
         } else {
             $eveningEnd = (int) str_replace(':', '', $timer->evening_end);
-            $graceEnd = $eveningEnd + 15;
+            $graceEnd = $eveningEnd + 15; // 15-minute grace period after check-out end
             return $currentTimeInt > $eveningEnd && $currentTimeInt <= $graceEnd;
         }
     }
@@ -288,15 +302,19 @@ class CheckinController extends Controller
         $isLate = $this->isLateForCheckin();
         $withinGrace = $this->isWithinGracePeriod('checkin');
         
+        // Get parent name
+        $parent = ParentModel::find($parentId);
+        $parentName = $parent ? $parent->name : 'Unknown';
+        
         $status = 'present';
-        $statusNote = '✅ Check-in berjaya';
+        $statusNote = '✅ Check-in On Time';
         
         if ($isLate && $withinGrace) {
             $status = 'late';
-            $statusNote = '⏰ Late check-in (within grace period)';
+            $statusNote = '⏰ Late (Grace Period)';
         } else if ($isLate && !$withinGrace) {
             $status = 'late';
-            $statusNote = '⏰ Late check-in (past grace period)';
+            $statusNote = '⏰ Late';
         }
         
         if ($existing) {
@@ -304,7 +322,7 @@ class CheckinController extends Controller
                 'checkin_time' => $now->format('H:i:s'),
                 'status' => $status,
                 'status_note' => $statusNote,
-                'drop_off_by' => 'Parent ID: ' . $parentId,
+                'drop_off_by' => $parentName,
                 'is_verified' => true
             ]);
         } else {
@@ -315,12 +333,12 @@ class CheckinController extends Controller
                 'checkin_time' => $now->format('H:i:s'),
                 'status' => $status,
                 'status_note' => $statusNote,
-                'drop_off_by' => 'Parent ID: ' . $parentId,
+                'drop_off_by' => $parentName,
                 'is_verified' => true
             ]);
         }
         
-        $this->sendTelegramNotification($child, $parentId, 'checkin', $isLate);
+        $this->sendTelegramNotification($child, $parentName, 'checkin', $isLate);
         
         return response()->json([
             'success' => true,
@@ -328,6 +346,7 @@ class CheckinController extends Controller
             'child_name' => $child->name,
             'child_classroom' => $child->classroom->name ?? 'Tiada kelas',
             'checkin_time' => $now->format('h:i A'),
+            'status_label' => $isLate ? '⏰ Late' : '✅ On Time',
             'is_late' => $isLate,
             'status_note' => $statusNote
         ]);
@@ -356,24 +375,21 @@ class CheckinController extends Controller
             ]);
         }
         
-        // Check late checkout
-        $timer = $this->getTimerForToday();
-        $isLateCheckout = false;
+        // Get parent name
+        $parent = ParentModel::find($parentId);
+        $parentName = $parent ? $parent->name : 'Unknown';
         
-        if ($timer) {
-            $currentTimeInt = (int) $now->format('Hi');
-            $eveningStartInt = (int) str_replace(':', '', $timer->evening_start);
-            $eveningEndInt = (int) str_replace(':', '', $timer->evening_end);
-            
-            if (!($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt)) {
-                $isLateCheckout = true;
-            }
-        }
+        // Check late checkout using the same logic as isLateForCheckout
+        $isLateCheckout = $this->isLateForCheckout();
+        $withinGrace = $this->isWithinGracePeriod('checkout');
         
         $status = 'checkout';
-        $statusNote = '✅ Check-out berjaya';
+        $statusNote = '✅ Check-out On Time';
         
-        if ($isLateCheckout) {
+        if ($isLateCheckout && $withinGrace) {
+            $status = 'late_checkout';
+            $statusNote = '⏰ Late Checkout (Grace Period)';
+        } else if ($isLateCheckout && !$withinGrace) {
             $status = 'late_checkout';
             $statusNote = '⏰ Late Checkout';
         }
@@ -382,10 +398,10 @@ class CheckinController extends Controller
             'checkout_time' => $now->format('H:i:s'),
             'status' => $status,
             'status_note' => $statusNote,
-            'pickup_by' => 'Parent ID: ' . $parentId,
+            'pickup_by' => $parentName,
         ]);
         
-        $this->sendTelegramNotification($child, $parentId, 'checkout', $isLateCheckout);
+        $this->sendTelegramNotification($child, $parentName, 'checkout', $isLateCheckout);
         
         return response()->json([
             'success' => true,
@@ -393,6 +409,7 @@ class CheckinController extends Controller
             'child_name' => $child->name,
             'child_classroom' => $child->classroom->name ?? 'Tiada kelas',
             'checkout_time' => $now->format('h:i A'),
+            'status_label' => $isLateCheckout ? '⏰ Late' : '✅ On Time',
             'is_late' => $isLateCheckout,
             'status_note' => $statusNote
         ]);
@@ -416,6 +433,9 @@ class CheckinController extends Controller
             $checkedCount = 0;
             $alreadyCount = 0;
             $lateCount = 0;
+            
+            $parent = ParentModel::find($request->parent_id);
+            $parentName = $parent ? $parent->name : 'Unknown';
             
             foreach ($request->child_ids as $childId) {
                 $child = Child::find($childId);
@@ -443,7 +463,7 @@ class CheckinController extends Controller
                         'checkin_time' => $now->format('H:i:s'),
                         'status' => $isLate ? 'late' : 'present',
                         'status_note' => $isLate ? '⏰ Late check-in' : '✅ Check-in via Checkin All',
-                        'drop_off_by' => 'Parent ID: ' . $request->parent_id,
+                        'drop_off_by' => $parentName,
                         'is_verified' => true
                     ]);
                 } else {
@@ -454,7 +474,7 @@ class CheckinController extends Controller
                         'checkin_time' => $now->format('H:i:s'),
                         'status' => $isLate ? 'late' : 'present',
                         'status_note' => $isLate ? '⏰ Late check-in' : '✅ Check-in via Checkin All',
-                        'drop_off_by' => 'Parent ID: ' . $request->parent_id,
+                        'drop_off_by' => $parentName,
                         'is_verified' => true
                     ]);
                 }
@@ -471,7 +491,7 @@ class CheckinController extends Controller
                     'time' => $now->format('h:i A')
                 ];
                 
-                $this->sendTelegramNotification($child, $request->parent_id, 'checkin', $isLate);
+                $this->sendTelegramNotification($child, $parentName, 'checkin', $isLate);
             }
             
             return response()->json([
@@ -509,6 +529,9 @@ class CheckinController extends Controller
             $results = [];
             $checkoutCount = 0;
             $alreadyCount = 0;
+            
+            $parent = ParentModel::find($request->parent_id);
+            $parentName = $parent ? $parent->name : 'Unknown';
             
             foreach ($request->child_ids as $childId) {
                 $child = Child::find($childId);
@@ -555,7 +578,7 @@ class CheckinController extends Controller
                     'checkout_time' => $now->format('H:i:s'),
                     'status' => $isLateCheckout ? 'late_checkout' : 'checkout',
                     'status_note' => $isLateCheckout ? '⏰ Late Checkout' : '✅ Check-out via Checkout All',
-                    'pickup_by' => 'Parent ID: ' . $request->parent_id,
+                    'pickup_by' => $parentName,
                 ]);
                 
                 $checkoutCount++;
@@ -765,27 +788,36 @@ class CheckinController extends Controller
         return $checkedInData;
     }
 
-    private function sendTelegramNotification($child, $parentId, $action, $isLate = false)
+    private function sendTelegramNotification($child, $parentName, $action, $isLate = false)
     {
-        $parent = ParentModel::find($parentId);
+        // Find the parent to check telegram settings
+        $parent = null;
+        if ($child->parent_id) {
+            $parent = ParentModel::find($child->parent_id);
+        }
+        
         if (!$parent || !$parent->telegram_notification || !$parent->telegram_id) {
             return;
         }
         
         $now = Carbon::now('Asia/Kuala_Lumpur');
-        $message = "🧸 KidsTrack Alert\n\n";
-        $message .= "👶 Child: {$child->name}\n";
-        $message .= "🏫 Class: " . ($child->classroom->name ?? 'No class') . "\n";
+        $statusEmoji = $isLate ? '⚠️' : '✅';
+        $statusText = $isLate ? 'LATE' : 'ON TIME';
+        
+        $message = "🧸 <b>KidsTrack Notification</b>\n\n";
+        $message .= "👶 <b>Child:</b> {$child->name}\n";
+        $message .= "🏫 <b>Class:</b> " . ($child->classroom->name ?? 'N/A') . "\n";
+        $message .= "👤 <b>Parent:</b> {$parentName}\n";
+        $message .= "📅 <b>Date:</b> " . $now->format('d M Y') . "\n";
+        $message .= "⏰ <b>Time:</b> " . $now->format('h:i A') . "\n";
         
         if ($action == 'checkin') {
-            $message .= "✅ Checked-in at: " . $now->format('h:i A') . "\n";
-            $message .= "📊 Status: " . ($isLate ? '⏰ Late' : '✅ On Time') . "\n";
+            $message .= "📥 <b>Action:</b> Check-in\n";
         } else {
-            $message .= "👋 Checked-out at: " . $now->format('h:i A') . "\n";
-            $message .= "📊 Status: " . ($isLate ? '⏰ Late Checkout' : '✅ On Time') . "\n";
+            $message .= "📤 <b>Action:</b> Check-out\n";
         }
         
-        $message .= "📅 Date: " . $now->format('d M Y');
+        $message .= "{$statusEmoji} <b>Status:</b> {$statusText}";
         
         $this->telegram->sendMessage($parent->telegram_id, $message);
     }
