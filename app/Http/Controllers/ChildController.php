@@ -86,6 +86,11 @@ class ChildController extends Controller
             $child = Child::create($data);
             $this->generateQRImage($child->id, $qrData);
 
+            // Remove any existing main_parent for this child (one family constraint)
+            \App\Models\Guardianship::where('child_id', $child->id)
+                ->where('relationship', 'main_parent')
+                ->delete();
+
             // Create guardianship for main parent
             \App\Models\Guardianship::create([
                 'user_id' => $parentId,
@@ -95,6 +100,14 @@ class ChildController extends Controller
             ]);
 
             $count++;
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "{$count} child(ren) registered!",
+                'child_id' => $child->id ?? null,
+            ]);
         }
 
         return redirect()->route('children.index')
@@ -159,6 +172,10 @@ class ChildController extends Controller
             $guardianshipData[$request->guardian_id] = ['relationship' => 'guardian', 'is_emergency_contact' => false];
         }
         $child->linkedUsers()->sync($guardianshipData);
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Child updated.']);
+        }
 
         return redirect()->route('children.show', $child)
             ->with('success', 'Child updated successfully!');

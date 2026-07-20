@@ -108,6 +108,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/scan-qr/confirm', [QRScanController::class, 'confirmQR'])->name('scan.qr.confirm');
 
     // ============================================
+    // API: GUARDIANSHIP REMOVAL
+    // ============================================
+    Route::post('/api/guardianship/remove', function (Request $request) {
+        \App\Models\Guardianship::where('user_id', $request->user_id)
+            ->where('child_id', $request->child_id)
+            ->delete();
+        return response()->json(['success' => true]);
+    });
+
+    // ============================================
     // API: CHECK CHILD ACCESS
     // ============================================
     Route::post('/api/check-child-access', function (Request $request) {

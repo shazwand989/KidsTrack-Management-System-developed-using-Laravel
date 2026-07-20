@@ -227,10 +227,36 @@ class ParentController extends Controller
 
     public function edit($id)
     {
-        $parent = \App\Models\User::with('children')->findOrFail($id);
+        $currentUser = \App\Models\User::with('children')->findOrFail($id);
+        $childIds = $currentUser->children->pluck('id')->toArray();
+
+        // Find all family members sharing these children
+        $familyUsers = \App\Models\User::whereHas('guardianships', fn($q) => $q->whereIn('child_id', $childIds))
+            ->whereIn('role', ['parent1', 'parent2', 'guardian'])
+            ->with('children')
+            ->get()
+            ->keyBy('role');
+
+        $main = $familyUsers->get('parent1');
+        $second = $familyUsers->get('parent2');
+        $guardian = $familyUsers->get('guardian');
+
+        // If editing a parent2 or guardian, ensure the main parent is also loaded
+        if (!$main && $currentUser->role !== 'parent1') {
+            $main = $currentUser; // fallback if somehow no parent1 found
+        }
+        if (!$main) $main = $currentUser;
+
+        // All children linked to any family member
+        $allFamilyChildIds = \App\Models\Guardianship::whereIn('user_id', $familyUsers->pluck('id'))
+            ->pluck('child_id')->unique()->toArray();
+        $familyChildren = \App\Models\Child::whereIn('id', $allFamilyChildIds)->with('classroom')->get();
         $allChildren = \App\Models\Child::with('classroom')->orderBy('name')->get();
-        $assignedChildIds = $parent->children->pluck('id')->toArray();
-        return view('parent.edit', compact('parent', 'allChildren', 'assignedChildIds'));
+
+        return view('parent.edit', compact(
+            'currentUser', 'main', 'second', 'guardian',
+            'familyChildren', 'allChildren', 'allFamilyChildIds'
+        ));
     }
 
     // UPDATE
@@ -274,37 +300,34 @@ class ParentController extends Controller
 
         $parent->update($data);
 
-        // Sync children via guardianships — ONE CHILD = ONE FAMILY constraint
-        $childIds = $request->input('child_ids', []);
-        $role = $parent->role;
-        $relationship = match($role) {
-            'parent2' => 'second_parent',
-            'guardian' => 'guardian',
-            default => 'main_parent',
-        };
+        // Sync children only when child_ids is present in the request
+        if ($request->has('child_ids')) {
+            $childIds = $request->input('child_ids', []);
+            $relationship = match($parent->role) {
+                'parent2' => 'second_parent',
+                'guardian' => 'guardian',
+                default => 'main_parent',
+            };
 
-        // Remove this user's guardianships for unchecked children
-        \App\Models\Guardianship::where('user_id', $parent->id)
-            ->whereNotIn('child_id', $childIds)
-            ->delete();
-
-        // For each checked child: remove same-role guardianship from OTHER users first,
-        // then create/update this user's guardianship
-        foreach ($childIds as $childId) {
-            // Remove same relationship from any OTHER user for this child
-            \App\Models\Guardianship::where('child_id', $childId)
-                ->where('relationship', $relationship)
-                ->where('user_id', '!=', $parent->id)
+            \App\Models\Guardianship::where('user_id', $parent->id)
+                ->whereNotIn('child_id', $childIds)
                 ->delete();
 
-            // Create or update this user's guardianship
-            \App\Models\Guardianship::updateOrCreate(
-                ['user_id' => $parent->id, 'child_id' => $childId],
-                [
-                    'relationship' => $relationship,
-                    'is_emergency_contact' => $parent->role === 'parent1',
-                ]
-            );
+            foreach ($childIds as $childId) {
+                \App\Models\Guardianship::where('child_id', $childId)
+                    ->where('relationship', $relationship)
+                    ->where('user_id', '!=', $parent->id)
+                    ->delete();
+
+                \App\Models\Guardianship::updateOrCreate(
+                    ['user_id' => $parent->id, 'child_id' => $childId],
+                    ['relationship' => $relationship, 'is_emergency_contact' => $parent->role === 'parent1']
+                );
+            }
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Updated.']);
         }
 
         return redirect()->route('parent.index')->with('success', 'Parent updated successfully.');

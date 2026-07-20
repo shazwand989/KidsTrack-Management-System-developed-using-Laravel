@@ -255,9 +255,7 @@
     <div class="rg-breadcrumb">
         <a href="{{ route('parents.index') }}"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">family_restroom</i> Loving Guardians</a>
         <span class="sep">›</span>
-        <a href="{{ route('parents.show', $parent->id) }}">{{ $parent->name }}</a>
-        <span class="sep">›</span>
-        <strong>Edit {{ $parent->role === 'parent1' ? 'Parent' : ($parent->role === 'parent2' ? 'Second Parent' : ($parent->role === 'guardian' ? 'Guardian' : 'User')) }}</strong>
+        <strong>Edit Family</strong>
     </div>
 
     {{-- Alerts --}}
@@ -284,150 +282,131 @@
     </div>
     @endif
 
-    <form action="{{ route('parents.update', $parent->id) }}" method="POST" enctype="multipart/form-data">
-    @csrf
-    @method('PUT')
+    {{-- ============================================ --}}
+    {{-- FAMILY EDIT — All members shown together --}}
+    {{-- ============================================ --}}
 
-    {{-- ============================================ --}}
-    {{-- MAIN PARENT --}}
-    {{-- ============================================ --}}
-    <div class="rg-card">
+    {{-- Helper: member card --}}
+    @php
+        $members = [
+            ['role' => 'parent1', 'label' => 'Main Parent', 'icon' => 'family_restroom', 'color' => '#FF6B6B,#FF9E7D', 'data' => $main],
+            ['role' => 'parent2', 'label' => 'Second Parent', 'icon' => 'group', 'color' => '#3b82f6,#60a5fa', 'data' => $second],
+            ['role' => 'guardian', 'label' => 'Guardian', 'icon' => 'shield', 'color' => '#f59e0b,#fbbf24', 'data' => $guardian],
+        ];
+    @endphp
+
+    @foreach($members as $m)
+    @if($m['data'])
+    <div class="rg-card" style="border-left:4px solid {{ explode(',', $m['color'])[0] }};" id="member-{{ $m['role'] }}">
         <div class="rg-section-title">
-            <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">person</i></span> {{ $parent->role === 'parent1' ? 'Main Parent' : ($parent->role === 'parent2' ? 'Second Parent' : ($parent->role === 'guardian' ? 'Guardian' : 'User')) }}
+            <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">{{ $m['icon'] }}</i></span>
+            {{ $m['label'] }}
         </div>
-
-        <div class="card-inner">
-            <div class="card-photo-col">
-                <div class="photo-circle" id="photoCircle1"
-                    onclick="document.getElementById('photoFile1').click()">
-                    @if($parent->photo)
-                        <img src="{{ Storage::url($parent->photo) }}">
-                    @else
-                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">person</i></span>
-                    @endif
-                </div>
-                <div class="upload-zone"
-                    onclick="document.getElementById('photoFile1').click()">
-                    <span>📸</span>
-                    <p>Upload Photo</p>
-                    <small>JPG/PNG · 2MB</small>
-                </div>
-                <input type="file" id="photoFile1" name="photo" accept="image/*">
-                @if($parent->photo)
-                    <small style="display:block; margin-top:6px; color:#888;">
-                        Current: {{ basename($parent->photo) }}
-                    </small>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+            <div class="parent-avatar" style="width:60px;height:60px;border-radius:14px;font-size:22px;background:linear-gradient(135deg,{{ $m['color'] }});">
+                @if($m['data']->photo)
+                    <img src="{{ Storage::url($m['data']->photo) }}" style="width:100%;height:100%;object-fit:cover;border-radius:14px;">
+                @else
+                    {{ strtoupper(substr($m['data']->name, 0, 1)) }}
                 @endif
             </div>
+            <div style="flex:1;min-width:200px;" class="member-info-{{ $m['role'] }}">
+                <div style="font-weight:800;font-size:15px;color:#1e293b;">{{ $m['data']->name }}</div>
+                <div style="font-size:12px;color:#94a3b8;">📞 {{ $m['data']->phone_number ?? '-' }} · ✉️ {{ $m['data']->email ?? '-' }}</div>
+            </div>
+            <button type="button" onclick="toggleMemberEdit('{{ $m['role'] }}')"
+                style="font-size:12px;font-weight:700;color:white;background:linear-gradient(135deg,{{ $m['color'] }});border:none;padding:8px 16px;border-radius:10px;cursor:pointer;white-space:nowrap;">
+                ✏️ Edit
+            </button>
+        </div>
 
+        {{-- Inline edit form --}}
+        <div id="edit-member-{{ $m['role'] }}" style="display:none;margin-top:14px;padding:14px;background:#FFFAF9;border:1px solid #FFE4D6;border-radius:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Name <span style="color:#dc2626;">*</span></label>
+                    <input type="text" id="mem-name-{{ $m['role'] }}" value="{{ $m['data']->name }}" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:7px 10px;font-size:12px;outline:none;"></div>
+                <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Email <span style="color:#dc2626;">*</span></label>
+                    <input type="email" id="mem-email-{{ $m['role'] }}" value="{{ $m['data']->email }}" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:7px 10px;font-size:12px;outline:none;"></div>
+                <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Phone <span style="color:#dc2626;">*</span></label>
+                    <input type="text" id="mem-phone-{{ $m['role'] }}" value="{{ $m['data']->phone_number }}" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:7px 10px;font-size:12px;outline:none;"></div>
+                <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Age</label>
+                    <input type="text" id="mem-age-{{ $m['role'] }}" value="{{ $m['data']->age }}" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:7px 10px;font-size:12px;outline:none;"></div>
+                <div style="grid-column:1/-1;"><label style="font-size:10px;font-weight:700;color:#94a3b8;">Address</label>
+                    <input type="text" id="mem-address-{{ $m['role'] }}" value="{{ $m['data']->address }}" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:7px 10px;font-size:12px;outline:none;"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+                <button type="button" onclick="toggleMemberEdit('{{ $m['role'] }}')" style="background:#f1f5f9;color:#475569;border:none;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">Cancel</button>
+                <button type="button" onclick="saveMemberEdit('{{ $m['role'] }}', {{ $m['data']->id }})" style="background:linear-gradient(135deg,{{ $m['color'] }});color:white;border:none;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">💾 Save</button>
+            </div>
+            <div id="mem-msg-{{ $m['role'] }}" style="font-size:11px;margin-top:6px;display:none;"></div>
+        </div>
+    </div>
+    @else
+    <div class="rg-card" style="border-left:4px solid #e2e8f0;opacity:0.7;">
+        <div class="rg-section-title">
+            <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">{{ $m['icon'] }}</i></span>
+            {{ $m['label'] }}
+            <small style="color:#94a3b8;">(not registered)</small>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div style="width:60px;height:60px;border-radius:14px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:22px;">—</div>
             <div>
-                <div class="rg-group">
-                    <label class="rg-label">Full Name <span class="req">*</span></label>
-                    <input type="text" name="name" value="{{ old('name', $parent->name) }}"
-                        placeholder="e.g. Mrs. Sarah bt Ali">
-                    @error('name')<span class="invalid-msg">{{ $message }}</span>@enderror
-                </div>
-
-                {{-- EMAIL MAIN PARENT --}}
-                <div class="rg-group">
-                    <label class="rg-label">Email Address <span class="req">*</span></label>
-                    <input type="email" name="email" value="{{ old('email', $parent->email ?? '') }}"
-                        placeholder="sarah@example.com">
-                    @error('email')<span class="invalid-msg">{{ $message }}</span>@enderror
-                </div>
-
-                {{-- PASSWORD MAIN PARENT --}}
-                <div class="rg-group">
-                    <label class="rg-label">Password</label>
-                    <input type="password" name="password"
-                        placeholder="Leave blank to keep current password">
-                    <small style="color:#888; font-size:12px;">Leave blank to keep current password</small>
-                    @error('password')<span class="invalid-msg">{{ $message }}</span>@enderror
-                </div>
-
-                <div class="rg-2col">
-                    <div>
-                        <label class="rg-label">Age</label>
-                        <input type="text" name="age" value="{{ old('age', $parent->age) }}"
-                            placeholder="e.g. 35">
-                    </div>
-                    <div>
-                        <label class="rg-label">Phone Number <span class="req">*</span></label>
-                        <input type="text" name="phone" value="{{ old('phone', $parent->phone) }}"
-                            placeholder="012-XXXXXXX">
-                        @error('phone')<span class="invalid-msg">{{ $message }}</span>@enderror
-                    </div>
-                </div>
-
-                <div class="rg-group">
-                    <label class="rg-label">Home Address <span class="req">*</span></label>
-                    <textarea name="address"
-                        placeholder="e.g. No. 12, Jalan Mawar...">{{ old('address', $parent->address) }}</textarea>
-                    @error('address')<span class="invalid-msg">{{ $message }}</span>@enderror
-                </div>
+                <div style="color:#94a3b8;font-size:13px;">No {{ strtolower($m['label']) }} linked to this family.</div>
+                <a href="{{ route('parents.create') }}" style="font-size:12px;color:#3b82f6;font-weight:600;">+ Register {{ $m['label'] }}</a>
             </div>
         </div>
     </div>
+    @endif
+    @endforeach
 
     {{-- ============================================ --}}
-{{-- SPECIAL SETTINGS --}}
-{{-- ============================================ --}}
-<div class="rg-card">
-    <div class="rg-section-title">
-        <span>⚙️</span> Special Settings
-    </div>
-
-    <div style="display:grid; grid-template-columns:1fr; gap:12px;">
-        <label class="check-row">
-            <input type="hidden" name="verified" value="0">
-            <input type="checkbox" name="verified" value="1"
-                {{ old('verified', $parent->verified) ? 'checked' : '' }}>
-            <div class="check-row-text">
-                <p><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified</p>
-                <small>Identity has been confirmed</small>
-            </div>
-        </label>
-    </div>
-</div>
-
-    {{-- ============================================ --}}
-    {{-- LINKED CHILDREN --}}
+    {{-- SHARED CHILDREN --}}
     {{-- ============================================ --}}
     <div class="rg-card">
-        <div class="rg-section-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
-            <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i></span> Linked Children
-            <span style="font-size:12px;color:#94a3b8;font-weight:400;">{{ count($assignedChildIds) }} child(ren)</span>
+        <div class="rg-section-title" style="justify-content:space-between;">
+            <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i></span> Family Children
+            <span style="font-size:12px;color:#94a3b8;">{{ $familyChildren->count() }} child(ren)</span>
         </div>
 
-        @if(count($assignedChildIds) > 0)
+        @if($familyChildren->count() > 0)
         <div style="display:flex;flex-direction:column;gap:8px;">
-            @foreach($parent->children as $child)
-            <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#FFFAF9;border:1px solid #FFE4D6;border-radius:12px;">
+            @foreach($familyChildren as $child)
+            <div id="child-row-{{ $child->id }}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#FFFAF9;border:1px solid #FFE4D6;border-radius:12px;flex-wrap:wrap;">
                 <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#FF6B6B,#FF9E7D);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">
                     {{ strtoupper(substr($child->name, 0, 1)) }}
                 </div>
-                <div style="flex:1;min-width:0;">
+                <div style="flex:1;min-width:0;" class="child-info">
                     <div style="font-weight:700;font-size:13px;color:#1e293b;">{{ $child->name }}</div>
                     <div style="font-size:11px;color:#94a3b8;">{{ $child->classroom->name ?? 'No class' }} · {{ $child->age ?? '?' }} yrs</div>
                 </div>
-                <a href="{{ route('children.edit', $child->id) }}" style="font-size:11px;color:#3b82f6;font-weight:600;text-decoration:none;padding:4px 10px;border:1px solid #bfdbfe;border-radius:8px;white-space:nowrap;">✏️ Edit</a>
-                <button type="button" onclick="removeChild({{ $child->id }}, '{{ addslashes($child->name) }}')"
+                <button type="button" onclick="editChildInline({{ $child->id }})"
+                    style="font-size:11px;color:#3b82f6;font-weight:600;background:none;border:1px solid #bfdbfe;border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap;">✏️ Edit</button>
+                <button type="button" onclick="removeChildFromFamily({{ $child->id }}, {{ $currentUser->id }})"
                     style="font-size:11px;color:#dc2626;font-weight:600;background:none;border:1px solid #fecaca;border-radius:8px;padding:4px 10px;cursor:pointer;white-space:nowrap;">🗑 Remove</button>
+
+                {{-- Inline edit form (hidden) --}}
+                <div class="inline-edit-form" id="edit-form-{{ $child->id }}" style="display:none;width:100%;padding:10px 0 0 48px;border-top:1px dashed #FFE4D6;margin-top:4px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                        <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Name</label><input type="text" id="edit-name-{{ $child->id }}" value="{{ $child->name }}" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:6px 10px;font-size:12px;outline:none;"></div>
+                        <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Classroom</label><select id="edit-classroom-{{ $child->id }}" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:6px 10px;font-size:12px;outline:none;">@foreach(\App\Models\Classroom::all() as $c)<option value="{{ $c->id }}" {{ $child->classroom_id == $c->id ? 'selected' : '' }}>{{ $c->name }}</option>@endforeach</select></div>
+                        <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Age</label><input type="number" id="edit-age-{{ $child->id }}" value="{{ $child->age }}" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:6px 10px;font-size:12px;outline:none;"></div>
+                        <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Address</label><input type="text" id="edit-address-{{ $child->id }}" value="{{ $child->address }}" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:6px 10px;font-size:12px;outline:none;"></div>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;">
+                        <button type="button" onclick="cancelEditChild({{ $child->id }})" style="background:#f1f5f9;color:#475569;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">Cancel</button>
+                        <button type="button" onclick="saveChildEdit({{ $child->id }})" style="background:linear-gradient(135deg,#3b82f6,#60a5fa);color:white;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">💾 Save</button>
+                    </div>
+                    <div id="edit-msg-{{ $child->id }}" style="font-size:11px;margin-top:4px;display:none;"></div>
+                </div>
             </div>
             @endforeach
         </div>
         @else
-        <p style="color:#94a3b8;text-align:center;padding:16px;">No children linked yet.</p>
+        <p style="color:#94a3b8;text-align:center;padding:16px;">No children in this family yet.</p>
         @endif
 
-        {{-- Add Child: dropdown for existing + button for new --}}
+        {{-- Add Child --}}
         <div style="margin-top:14px;padding-top:14px;border-top:1px dashed #FFE4D6;display:flex;gap:10px;flex-wrap:wrap;">
-            <select id="addChildSelect" style="flex:1;min-width:200px;border:1.5px solid #FFE4D6;border-radius:12px;padding:10px 14px;font-size:13px;color:#1e293b;outline:none;cursor:pointer;">
-                <option value="">+ Link existing child...</option>
-                @foreach($allChildren->whereNotIn('id', $assignedChildIds) as $child)
-                <option value="{{ $child->id }}">{{ $child->name }} ({{ $child->classroom->name ?? 'No class' }})</option>
-                @endforeach
-            </select>
             <button type="button" onclick="showNewChildForm()"
                 style="background:linear-gradient(135deg,#6d28d9,#9333ea);color:white;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 4px 12px rgba(109,40,217,0.2);">
                 ➕ Register New Child
@@ -438,142 +417,197 @@
         <div id="newChildForm" style="display:none;margin-top:14px;padding:16px;background:#faf5ff;border:1.5px solid #ddd6fe;border-radius:14px;">
             <div style="font-weight:700;font-size:13px;color:#4c1d95;margin-bottom:12px;">✨ Quick Register Child</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                <div>
-                    <label style="font-size:11px;font-weight:700;color:#7c3aed;">Full Name <span style="color:#dc2626;">*</span></label>
-                    <input type="text" id="newChildName" placeholder="e.g. Ahmad bin Abdullah"
-                        style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;">
-                </div>
-                <div>
-                    <label style="font-size:11px;font-weight:700;color:#7c3aed;">IC / Birth Cert <span style="color:#dc2626;">*</span></label>
-                    <input type="text" id="newChildIc" placeholder="YYMMDD-BP-####" maxlength="14"
-                        style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;">
-                </div>
-                <div>
-                    <label style="font-size:11px;font-weight:700;color:#7c3aed;">Date of Birth</label>
-                    <input type="date" id="newChildDob"
-                        style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;">
-                </div>
-                <div>
-                    <label style="font-size:11px;font-weight:700;color:#7c3aed;">Age</label>
-                    <input type="number" id="newChildAge" placeholder="Auto from IC" readonly
-                        style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;background:#f5f3ff;">
-                </div>
-                <div>
-                    <label style="font-size:11px;font-weight:700;color:#7c3aed;">Classroom</label>
-                    <select id="newChildClassroom" style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;">
-                        <option value="">-- Select --</option>
-                        @foreach(\App\Models\Classroom::all() as $c)
-                        <option value="{{ $c->id }}">{{ $c->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div>
-                    <label style="font-size:11px;font-weight:700;color:#7c3aed;">Address</label>
-                    <input type="text" id="newChildAddress" placeholder="Home address"
-                        style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;">
-                </div>
+                <div><label style="font-size:11px;font-weight:700;color:#7c3aed;">Full Name <span style="color:#dc2626;">*</span></label><input type="text" id="newChildName" placeholder="e.g. Ahmad bin Abdullah" style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;"></div>
+                <div><label style="font-size:11px;font-weight:700;color:#7c3aed;">IC / Birth Cert <span style="color:#dc2626;">*</span></label><input type="text" id="newChildIc" placeholder="YYMMDD-BP-####" maxlength="14" style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;"></div>
+                <div><label style="font-size:11px;font-weight:700;color:#7c3aed;">Date of Birth</label><input type="date" id="newChildDob" style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;"></div>
+                <div><label style="font-size:11px;font-weight:700;color:#7c3aed;">Age</label><input type="number" id="newChildAge" placeholder="Auto from IC" readonly style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;background:#f5f3ff;"></div>
+                <div><label style="font-size:11px;font-weight:700;color:#7c3aed;">Classroom</label><select id="newChildClassroom" style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;"><option value="">-- Select --</option>@foreach(\App\Models\Classroom::all() as $c)<option value="{{ $c->id }}">{{ $c->name }}</option>@endforeach</select></div>
+                <div><label style="font-size:11px;font-weight:700;color:#7c3aed;">Address</label><input type="text" id="newChildAddress" placeholder="Home address" style="width:100%;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 12px;font-size:13px;outline:none;"></div>
             </div>
             <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
-                <button type="button" onclick="hideNewChildForm()"
-                    style="background:#f1f5f9;color:#475569;border:none;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">Cancel</button>
-                <button type="button" onclick="registerAndLinkChild({{ $parent->id }})"
-                    style="background:linear-gradient(135deg,#6d28d9,#9333ea);color:white;border:none;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">💾 Register & Link</button>
+                <button type="button" onclick="hideNewChildForm()" style="background:#f1f5f9;color:#475569;border:none;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">Cancel</button>
+                <button type="button" onclick="registerAndLinkChild({{ $currentUser->id }})" style="background:linear-gradient(135deg,#6d28d9,#9333ea);color:white;border:none;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">💾 Register & Link to Family</button>
             </div>
             <div id="newChildMsg" style="margin-top:8px;font-size:12px;display:none;"></div>
         </div>
     </div>
 
-    {{-- Hidden checkboxes container for form submission --}}
-    <div id="childIdsContainer" style="display:none;">
-        @foreach($assignedChildIds as $cid)
-            <input type="checkbox" name="child_ids[]" value="{{ $cid }}" checked data-child="{{ $cid }}">
-        @endforeach
-        <input type="checkbox" name="child_ids[]" value="_marker" data-marker="1" style="display:none;">
-    </div>
-
-    {{-- ============================================ --}}
-    {{-- ACTIONS --}}
-    {{-- ============================================ --}}
-    <div class="rg-actions">
-        <button type="submit" class="btn-save">
-            <span>💾</span> Update Parent
-        </button>
+    {{-- Back button --}}
+    <div class="rg-actions" style="margin-top:18px;">
         <a href="{{ route('parents.index') }}" class="btn-cancel">
-            <span>✖️</span> Cancel
+            <span>⬅️</span> Back to Families
         </a>
     </div>
-
-    </form>
 
 </div>
 
 <script>
-    // Add Child via dropdown
-    document.getElementById('addChildSelect').addEventListener('change', function() {
-        const childId = this.value;
-        if (!childId) return;
-        const name = this.options[this.selectedIndex].text;
+    // Toggle member edit form
+    function toggleMemberEdit(role) {
+        const form = document.getElementById('edit-member-' + role);
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
 
-        // Add hidden checkbox
-        const cb = document.createElement('input');
-        cb.type = 'checkbox'; cb.name = 'child_ids[]'; cb.value = childId;
-        cb.checked = true; cb.dataset.child = childId;
-        cb.style.display = 'none';
-        document.getElementById('childIdsContainer').appendChild(cb);
+    // Save member via AJAX
+    async function saveMemberEdit(role, userId) {
+        const name = document.getElementById('mem-name-' + role).value.trim();
+        const email = document.getElementById('mem-email-' + role).value.trim();
+        const phone = document.getElementById('mem-phone-' + role).value.trim();
+        const age = document.getElementById('mem-age-' + role).value.trim();
+        const address = document.getElementById('mem-address-' + role).value.trim();
+        const msg = document.getElementById('mem-msg-' + role);
 
-        // Add visual row
-        const row = document.createElement('div');
-        row.id = 'child-row-' + childId;
-        row.style.cssText = 'display:flex;align-items:center;gap:12px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;margin-top:8px;';
-        row.innerHTML = `
-            <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#FF6B6B,#FF9E7D);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">${name.charAt(0).toUpperCase()}</div>
-            <div style="flex:1;min-width:0;"><div style="font-weight:700;font-size:13px;color:#1e293b;">${name}</div><div style="font-size:11px;color:#16a34a;">🆕 Will be added</div></div>
-            <button type="button" onclick="undoAdd(${childId})" style="font-size:11px;color:#dc2626;font-weight:600;background:none;border:1px solid #fecaca;border-radius:8px;padding:4px 10px;cursor:pointer;">✕ Undo</button>
-        `;
-        document.getElementById('childIdsContainer').previousElementSibling.appendChild(row);
-        this.value = '';
-    });
+        if (!name || !email || !phone) { msg.style.display='block'; msg.style.color='#dc2626'; msg.textContent='Name, email, and phone are required.'; return; }
 
-    // Remove Child
-    function removeChild(childId, name) {
-        if (!confirm('Remove ' + name + ' from this family?')) return;
+        msg.style.display = 'block'; msg.style.color = '#3b82f6'; msg.textContent = 'Saving...';
 
-        // Uncheck hidden checkbox
-        document.querySelectorAll('#childIdsContainer input[data-child="' + childId + '"]').forEach(cb => cb.checked = false);
+        try {
+            await fetch('/parents/' + userId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify({ name, email, phone, age, address, _method: 'PUT' })
+            });
 
-        // Hide visual row
-        const row = document.getElementById('child-row-' + childId) || event.target.closest('[id^="child-row-"]')?.previousElementSibling?.querySelector('[id="child-row-' + childId + '"]');
-        const parentRow = event.target.closest('div[style*="display:flex"]');
-        if (parentRow && parentRow.parentElement) {
-            parentRow.style.opacity = '0.3';
-            parentRow.style.textDecoration = 'line-through';
-            parentRow.querySelector('button').textContent = 'Will be removed';
-            parentRow.querySelector('button').style.color = '#94a3b8';
+            // Update visible info
+            const info = document.querySelector('.member-info-' + role);
+            if (info) {
+                info.innerHTML = '<div style="font-weight:800;font-size:15px;color:#1e293b;">' + name + '</div><div style="font-size:12px;color:#94a3b8;">📞 ' + phone + ' · ✉️ ' + email + '</div>';
+            }
+
+            msg.style.color = '#16a34a'; msg.textContent = '✅ Updated!';
+            setTimeout(() => { document.getElementById('edit-member-' + role).style.display = 'none'; msg.style.display = 'none'; }, 800);
+        } catch(e) {
+            msg.style.color = '#dc2626'; msg.textContent = '❌ Error.';
         }
     }
 
-    // Undo Add
-    function undoAdd(childId) {
-        document.querySelectorAll('#childIdsContainer input[data-child="' + childId + '"]').forEach(cb => cb.remove());
+    // Remove child from this family member via AJAX
+    async function removeChildFromFamily(childId, userId) {
         const row = document.getElementById('child-row-' + childId);
-        if (row) row.remove();
+        if (!row) return;
+        row.style.opacity = '0.35'; row.style.textDecoration = 'line-through'; row.style.pointerEvents = 'none';
+
+        try {
+            await fetch('/api/guardianship/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify({ child_id: childId, user_id: userId })
+            });
+            setTimeout(() => row.remove(), 500);
+        } catch(e) { row.style.opacity = '1'; row.style.textDecoration = ''; row.style.pointerEvents = ''; }
     }
 
-    // Clean up marker before submit
-    document.querySelector('form').addEventListener('submit', function() {
-        document.querySelectorAll('#childIdsContainer input[data-marker]').forEach(m => m.remove());
+    // Inline Edit
+    function editChildInline(childId) {
+        document.querySelectorAll('.inline-edit-form').forEach(f => f.style.display = 'none');
+        const form = document.getElementById('edit-form-' + childId);
+        if (form) form.style.display = 'block';
+    }
+
+    function cancelEditChild(childId) {
+        document.getElementById('edit-form-' + childId).style.display = 'none';
+    }
+
+    async function saveChildEdit(childId) {
+        const name = document.getElementById('edit-name-' + childId).value.trim();
+        const classroomId = document.getElementById('edit-classroom-' + childId).value;
+        const age = document.getElementById('edit-age-' + childId).value;
+        const address = document.getElementById('edit-address-' + childId).value;
+        const msg = document.getElementById('edit-msg-' + childId);
+
+        if (!name) { msg.style.display='block'; msg.style.color='#dc2626'; msg.textContent='Name required.'; return; }
+
+        msg.style.display = 'block'; msg.style.color = '#3b82f6'; msg.textContent = 'Saving...';
+
+        try {
+            const res = await fetch('/children/' + childId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify({ name, classroom_id: classroomId, age, address, _method: 'PUT' })
+            });
+
+            // Update visible info
+            const row = document.getElementById('child-row-' + childId);
+            if (row) {
+                const info = row.querySelector('.child-info');
+                if (info) {
+                    const cname = document.getElementById('edit-classroom-' + childId);
+                    info.innerHTML = '<div style="font-weight:700;font-size:13px;color:#1e293b;">' + name + '</div><div style="font-size:11px;color:#94a3b8;">' + (cname ? cname.options[cname.selectedIndex].text : '') + ' · ' + age + ' yrs</div>';
+                }
+            }
+
+            msg.style.color = '#16a34a'; msg.textContent = '✅ Saved!';
+            setTimeout(() => { document.getElementById('edit-form-' + childId).style.display = 'none'; msg.style.display = 'none'; }, 1000);
+        } catch(e) {
+            msg.style.color = '#dc2626'; msg.textContent = '❌ Error saving.';
+        }
+    }
+
+    // Show/hide new child form
+    function showNewChildForm() { document.getElementById('newChildForm').style.display = 'block'; }
+    function hideNewChildForm() { document.getElementById('newChildForm').style.display = 'none'; }
+
+    // IC → DOB → Age auto-fill
+    document.getElementById('newChildIc').addEventListener('input', function() {
+        let val = this.value.replace(/[^0-9]/g, '');
+        if (val.length > 6) val = val.substring(0,6) + '-' + val.substring(6);
+        if (val.length > 9) val = val.substring(0,9) + '-' + val.substring(9);
+        if (val.length > 14) val = val.substring(0, 14);
+        this.value = val;
+
+        const cleaned = val.replace(/[^0-9]/g, '');
+        if (cleaned.length >= 6) {
+            const yy = parseInt(cleaned.substring(0,2));
+            const mm = parseInt(cleaned.substring(2,4));
+            const dd = parseInt(cleaned.substring(4,6));
+            const now = new Date();
+            let fullYear = 2000 + yy;
+            if (fullYear > now.getFullYear()) fullYear = 1900 + yy;
+            if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) {
+                const dob = fullYear + '-' + String(mm).padStart(2,'0') + '-' + String(dd).padStart(2,'0');
+                document.getElementById('newChildDob').value = dob;
+                const age = now.getFullYear() - fullYear - (now.getMonth()+1 < mm || (now.getMonth()+1 === mm && now.getDate() < dd) ? 1 : 0);
+                document.getElementById('newChildAge').value = age;
+            }
+        }
     });
 
-    // Photo preview
-    ['photoFile1','photoFile2','photoFile3'].forEach((id, i) => {
-        const input = document.getElementById(id);
-        if (input) input.addEventListener('change', function() {
-            if (!this.files[0]) return;
-            const r = new FileReader();
-            r.onload = e => document.getElementById('photoCircle' + (i+1)).innerHTML = `<img src="${e.target.result}">`;
-            r.readAsDataURL(this.files[0]);
-        });
-    });
+    // Register & Link new child via AJAX
+    async function registerAndLinkChild(parentId) {
+        const name = document.getElementById('newChildName').value.trim();
+        const ic = document.getElementById('newChildIc').value.trim();
+        const dob = document.getElementById('newChildDob').value;
+        const age = document.getElementById('newChildAge').value;
+        const classroomId = document.getElementById('newChildClassroom').value;
+        const address = document.getElementById('newChildAddress').value.trim();
+        const msg = document.getElementById('newChildMsg');
+
+        if (!name || !ic) { msg.style.display='block'; msg.style.color='#dc2626'; msg.textContent='Name and IC are required.'; return; }
+
+        msg.style.display = 'block'; msg.style.color = '#7c3aed'; msg.textContent = 'Registering...';
+
+        try {
+            const res = await fetch('{{ route('children.store') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    parent_id: parentId,
+                    address: address || 'TBD',
+                    children: [{ name, ic_number: ic.replace(/[^0-9]/g,''), dob, age, classroom_id: classroomId }]
+                })
+            });
+            const data = await res.json();
+            if (res.ok && data.child_id) {
+                // Success — reload to show new child in list
+                msg.style.color = '#16a34a'; msg.textContent = '✅ Child registered & linked! Reloading...';
+                setTimeout(() => location.reload(), 800);
+            } else {
+                msg.style.color = '#dc2626'; msg.textContent = '❌ ' + (data.message || 'Registration failed.');
+            }
+        } catch(e) {
+            msg.style.color = '#dc2626'; msg.textContent = '❌ Network error.';
+        }
+    }
 </script>
 
 @endsection
