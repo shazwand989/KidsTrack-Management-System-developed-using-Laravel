@@ -431,6 +431,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('parents', ParentController::class);
     Route::post('/parents/check-email', [ParentController::class, 'checkEmail'])->name('parents.check-email');
     Route::resource('children', ChildController::class);
+    Route::post('/children/check-ic', [ChildController::class, 'checkIc'])->name('children.check-ic');
     Route::resource('teachers', TeacherController::class);
     Route::resource('classrooms', ClassroomController::class);
 

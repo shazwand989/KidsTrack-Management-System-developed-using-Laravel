@@ -10,7 +10,7 @@
 
     .rg-wrap input,
     .rg-wrap textarea,
-    .rg-wrap select {
+    .rg-wrap select.classroom-select {
         display: block !important;
         width: 100% !important;
         border: 1.5px solid #e8e8e8 !important;
@@ -20,10 +20,12 @@
         color: #1e293b !important;
         background: white !important;
         outline: none !important;
-        box-shadow: none !important;
         font-family: 'Inter', sans-serif !important;
-        line-height: 1.5 !important;
-        transition: border-color .2s, box-shadow .2s !important;
+        cursor: pointer !important;
+    }
+    .rg-wrap select.classroom-select:focus {
+        border-color: #FF9E7D !important;
+        box-shadow: 0 0 0 3px rgba(255,158,125,0.15) !important;
     }
 
     .rg-wrap input[type="file"] { display: none !important; }
@@ -421,6 +423,31 @@
         font-size: 12px;
         color: #94a3b8;
     }
+
+    /* IC AJAX feedback */
+    .ic-input-wrap { position: relative; }
+    .ic-input-wrap input { padding-right: 36px !important; }
+    .ic-feedback {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        display: none;
+        pointer-events: none;
+    }
+    .ic-feedback.checking { display: block; color: #94a3b8; animation: icSpin 0.8s linear infinite; }
+    .ic-feedback.available { display: block; color: #16a34a; }
+    .ic-feedback.taken { display: block; color: #dc2626; }
+    .ic-feedback-msg {
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 4px;
+        display: none;
+    }
+    .ic-feedback-msg.available { display: block; color: #16a34a; }
+    .ic-feedback-msg.taken { display: block; color: #dc2626; }
+    @keyframes icSpin { from { transform: translateY(-50%) rotate(0deg); } to { transform: translateY(-50%) rotate(360deg); } }
 </style>
 
 <div class="rg-wrap">
@@ -448,134 +475,33 @@
     </div>
     @endif
 
-    <form action="{{ route('children.store') }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('children.store') }}" method="POST" enctype="multipart/form-data" id="childForm">
     @csrf
 
-    {{-- Child Information --}}
+    {{-- ============================================ --}}
+    {{-- SHARED INFO: Parent, Address --}}
+    {{-- ============================================ --}}
+
+    {{-- Parent & Guardian --}}
     <div class="rg-card">
-        <div class="rg-section-title">
-            <span>👶</span> Child Information
-        </div>
+        <div class="rg-section-title"><span>👨‍👩‍👧‍👦</span> Parent & Guardian</div>
 
-        <div class="card-inner">
-            <div class="card-photo-col">
-                <div class="photo-circle" id="photoCircle" onclick="document.getElementById('childPhoto').click()">
-                    <span>👶</span>
-                </div>
-                <div class="upload-zone" onclick="document.getElementById('childPhoto').click()">
-                    <span>📸</span>
-                    <p>Upload Photo</p>
-                    <small>JPG/PNG · 2MB</small>
-                </div>
-                <input type="file" id="childPhoto" name="photo" accept="image/*">
-            </div>
-
-            <div>
-                <div class="rg-group">
-                    <label class="rg-label">Full Name <span class="req">*</span></label>
-                    <input type="text" name="name" value="{{ old('name') }}"
-                        placeholder="e.g. Ahmad bin Abdullah">
-                    @error('name')<span class="invalid-msg">{{ $message }}</span>@enderror
-                </div>
-
-                <div class="rg-3col">
-                    <div>
-                        <label class="rg-label">Age <span class="req">*</span></label>
-                        <input type="number" name="age" value="{{ old('age') }}"
-                            placeholder="e.g. 4" min="0" max="17">
-                        @error('age')<span class="invalid-msg">{{ $message }}</span>@enderror
-                    </div>
-                    <div>
-                        <label class="rg-label">IC / Birth Cert <span class="req">*</span></label>
-                        <input type="text" name="ic_number" value="{{ old('ic_number') }}"
-                            placeholder="e.g. 200120-01-1234">
-                        @error('ic_number')<span class="invalid-msg">{{ $message }}</span>@enderror
-                    </div>
-                    <div>
-                        <label class="rg-label">Date of Birth</label>
-                        <input type="date" name="dob" value="{{ old('dob') }}">
-                    </div>
-                </div>
-
-                <div class="rg-group">
-                    <label class="rg-label">Home Address <span class="req">*</span></label>
-                    <textarea name="address" rows="2"
-                        placeholder="e.g. No. 12, Jalan Mawar, Taman Sentosa...">{{ old('address') }}</textarea>
-                    @error('address')<span class="invalid-msg">{{ $message }}</span>@enderror
-                </div>
-
-                <div class="add-another-container">
-                    <span class="info-text">💡 Need to register another child?</span>
-                    <a href="{{ route('children.create') }}" class="add-another-link">
-                        <span class="icon">➕</span>
-                        Add Another Child
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Classroom Assignment --}}
-    <div class="rg-card">
-        <div class="rg-section-title">
-            <span>🏫</span> Classroom Assignment
-        </div>
-
-        <div class="classroom-grid" id="classroomGrid">
-            @foreach($classrooms as $classroom)
-            <label class="classroom-option">
-                <input type="radio" name="classroom_id" value="{{ $classroom->id }}" {{ old('classroom_id') == $classroom->id ? 'checked' : '' }}>
-                <span class="classroom-icon">🏫</span>
-                <div class="classroom-name">{{ $classroom->name }}</div>
-                <div class="classroom-age">Age: {{ $classroom->min_age }}-{{ $classroom->max_age }} yrs</div>
-                <div class="classroom-age">Code: {{ $classroom->code }}</div>
-            </label>
-            @endforeach
-        </div>
-        @error('classroom_id')<span class="invalid-msg">{{ $message }}</span>@enderror
-    </div>
-
-    {{-- Parent & Guardian Assignment --}}
-    <div class="rg-card">
-        <div class="rg-section-title">
-            <span>👨‍👩‍👧‍👦</span> Parent & Guardian Assignment
-        </div>
-
-        {{-- Main Parent --}}
         <div class="rg-group">
             <label class="rg-label">Main Parent <span class="req">*</span></label>
             <div class="guardian-select" id="parentSelect">
                 <div class="guardian-preview" onclick="toggleDropdown('parentDropdown')">
-                    <div class="guardian-avatar" id="parentAvatar">
-                        <span>👤</span>
-                    </div>
+                    <div class="guardian-avatar" id="parentAvatar"><span>👤</span></div>
                     <div class="guardian-info">
                         <div class="guardian-name" id="parentName">-- Select Main Parent --</div>
-                        <div class="guardian-detail" id="parentDetail">
-                            <span>📞 Click to select</span>
-                        </div>
+                        <div class="guardian-detail" id="parentDetail"><span>📞 Click to select</span></div>
                     </div>
                     <span class="dropdown-arrow">▼</span>
                 </div>
                 <div class="guardian-dropdown-list" id="parentDropdown">
                     @foreach($parents as $parent)
                     <div class="guardian-option" onclick="selectParent({{ $parent->id }}, '{{ addslashes($parent->name) }}', '{{ addslashes($parent->phone ?? '') }}', '{{ $parent->photo ?? '' }}', '{{ $parent->id }}')">
-                        <div class="option-avatar">
-                            @if($parent->photo)
-                                <img src="{{ asset('storage/'.$parent->photo) }}" alt="">
-                            @else
-                                <span>{{ strtoupper(substr($parent->name, 0, 1)) }}</span>
-                            @endif
-                        </div>
-                        <div class="option-info">
-                            <div class="option-name">{{ $parent->name }}</div>
-                            <div class="option-detail">
-                                📞 {{ $parent->phone ?? '-' }}
-                                @if(isset($parent->verified) && $parent->verified)
-                                <span class="option-badge">✅ Verified</span>
-                                @endif
-                            </div>
-                        </div>
+                        <div class="option-avatar">@if($parent->photo)<img src="{{ asset('storage/'.$parent->photo) }}">@else<span>{{ strtoupper(substr($parent->name,0,1)) }}</span>@endif</div>
+                        <div class="option-info"><div class="option-name">{{ $parent->name }}</div><div class="option-detail">📞 {{ $parent->phone ?? '-' }}</div></div>
                     </div>
                     @endforeach
                 </div>
@@ -584,94 +510,135 @@
             @error('parent_id')<span class="invalid-msg">{{ $message }}</span>@enderror
         </div>
 
-        {{-- 🔥🔥🔥 SECOND PARENT - FIXED! 🔥🔥🔥 --}}
-        <div class="rg-group" style="margin-top: 16px;">
+        <div class="rg-group" style="margin-top:16px;">
             <label class="rg-label">Second Parent (Optional)</label>
             <div class="guardian-select" id="secondParentSelect">
                 <div class="guardian-preview" onclick="toggleDropdown('secondParentDropdown')">
-                    <div class="guardian-avatar" id="secondParentAvatar">
-                        <span>👤</span>
-                    </div>
+                    <div class="guardian-avatar" id="secondParentAvatar"><span>👤</span></div>
                     <div class="guardian-info">
                         <div class="guardian-name" id="secondParentName">-- Select Main Parent First --</div>
-                        <div class="guardian-detail" id="secondParentDetail">
-                            <span>📞 Please select main parent first</span>
-                        </div>
+                        <div class="guardian-detail" id="secondParentDetail"><span>📞 Please select main parent first</span></div>
                     </div>
                     <span class="dropdown-arrow">▼</span>
                 </div>
                 <div class="guardian-dropdown-list" id="secondParentDropdown">
-                    <div class="guardian-option" onclick="selectSecondParent('', '-- None --', '', '')">
-                        <div class="option-avatar"><span>➖</span></div>
-                        <div class="option-info">
-                            <div class="option-name">-- None / Skip --</div>
-                        </div>
-                    </div>
+                    <div class="guardian-option" onclick="selectSecondParent('', '-- None --', '', '')"><div class="option-avatar"><span>➖</span></div><div class="option-info"><div class="option-name">-- None / Skip --</div></div></div>
                     <div id="secondParentList"></div>
                 </div>
             </div>
             <input type="hidden" name="second_parent_id" id="second_parent_id" value="{{ old('second_parent_id') }}">
-            <div class="text-muted" id="secondParentHint">💡 Pilih Main Parent dahulu untuk melihat Second Parent yang berkaitan.</div>
+            <div class="text-muted" id="secondParentHint">💡 Select Main Parent first.</div>
         </div>
 
-        {{-- Guardian --}}
-        <div class="rg-group" style="margin-top: 16px;">
+        <div class="rg-group" style="margin-top:16px;">
             <label class="rg-label">Guardian (Optional)</label>
             <div class="guardian-select" id="guardianSelect">
                 <div class="guardian-preview" onclick="toggleDropdown('guardianDropdown')">
-                    <div class="guardian-avatar" id="guardianAvatar">
-                        <span>🛡️</span>
-                    </div>
+                    <div class="guardian-avatar" id="guardianAvatar"><span>🛡️</span></div>
                     <div class="guardian-info">
                         <div class="guardian-name" id="guardianName">-- Select Main Parent First --</div>
-                        <div class="guardian-detail" id="guardianDetail">
-                            <span>📞 Please select main parent first</span>
-                        </div>
+                        <div class="guardian-detail" id="guardianDetail"><span>📞 Please select main parent first</span></div>
                     </div>
                     <span class="dropdown-arrow">▼</span>
                 </div>
                 <div class="guardian-dropdown-list" id="guardianDropdown">
-                    <div class="guardian-option" onclick="selectGuardian('', '-- None --', '', '')">
-                        <div class="option-avatar"><span>➖</span></div>
-                        <div class="option-info">
-                            <div class="option-name">-- None / Skip --</div>
-                        </div>
-                    </div>
+                    <div class="guardian-option" onclick="selectGuardian('', '-- None --', '', '')"><div class="option-avatar"><span>➖</span></div><div class="option-info"><div class="option-name">-- None / Skip --</div></div></div>
                     <div id="guardianList"></div>
                 </div>
             </div>
             <input type="hidden" name="guardian_id" id="guardian_id" value="{{ old('guardian_id') }}">
-            <div class="text-muted" id="guardianHint">💡 Pilih Main Parent dahulu untuk melihat Guardian yang berkaitan.</div>
+            <div class="text-muted" id="guardianHint">💡 Select Main Parent first.</div>
         </div>
     </div>
 
-    {{-- Additional Information --}}
+    {{-- Shared Address --}}
     <div class="rg-card">
-        <div class="rg-section-title">
-            <span>📝</span> Additional Information
-        </div>
-
+        <div class="rg-section-title"><span>📍</span> Home Address</div>
         <div class="rg-group">
-            <label class="rg-label">Medical Notes / Allergies</label>
-            <textarea name="medical_notes" rows="2"
-                placeholder="e.g. Allergic to peanuts, asthma, takes medication...">{{ old('medical_notes') }}</textarea>
-        </div>
-
-        <div class="rg-group">
-            <label class="rg-label">Dietary Requirements</label>
-            <textarea name="dietary" rows="2"
-                placeholder="e.g. Vegetarian, no pork, halal only, lactose intolerant">{{ old('dietary') }}</textarea>
+            <label class="rg-label">Address <span class="req">*</span></label>
+            <textarea name="address" rows="2" placeholder="e.g. No. 12, Jalan Mawar, Taman Sentosa...">{{ old('address') }}</textarea>
+            @error('address')<span class="invalid-msg">{{ $message }}</span>@enderror
         </div>
     </div>
 
-    {{-- Action Buttons --}}
-    <div class="rg-actions">
-        <button type="submit" class="btn-save">
-            <span>💾</span> Register Child
+    {{-- ============================================ --}}
+    {{-- DYNAMIC CHILDREN --}}
+    {{-- ============================================ --}}
+    <div id="childrenContainer">
+        <div class="rg-card child-card" data-index="0">
+            <div class="rg-section-title" style="justify-content:space-between;">
+                <span><span>👶</span> Child #1</span>
+                <span class="remove-child" style="display:none;cursor:pointer;color:#dc2626;font-size:12px;" onclick="removeChild(this)">✕ Remove</span>
+            </div>
+            <div class="card-inner">
+                <div class="card-photo-col">
+                    <div class="photo-circle" onclick="this.nextElementSibling.nextElementSibling.click()">
+                        <span>👶</span>
+                    </div>
+                    <div class="upload-zone" onclick="this.previousElementSibling.click()">
+                        <span>📸</span><p>Upload Photo</p><small>JPG/PNG · 2MB</small>
+                    </div>
+                    <input type="file" name="children[0][photo]" accept="image/*" onchange="previewChildPhoto(this,0)">
+                </div>
+                <div>
+                    <div class="rg-group">
+                        <label class="rg-label">Full Name <span class="req">*</span></label>
+                        <input type="text" name="children[0][name]" placeholder="e.g. Ahmad bin Abdullah">
+                    </div>
+                    <div class="rg-group">
+                        <label class="rg-label">🏫 Classroom</label>
+                        <select name="children[0][classroom_id]" class="classroom-select" style="width:100%;">
+                            <option value="">-- Select Classroom --</option>
+                            @foreach($classrooms as $c)
+                            <option value="{{ $c->id }}">{{ $c->name }} ({{ $c->min_age }}-{{ $c->max_age }} yrs)</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="rg-3col">
+                        <div>
+                            <label class="rg-label">IC / Birth Cert <span class="req">*</span></label>
+                            <div class="ic-input-wrap">
+                                <input type="text" name="children[0][ic_number]" class="ic-check" data-index="0"
+                                    placeholder="YYMMDD-BP-####" maxlength="14">
+                                <span class="ic-feedback" id="ic_fb_0"></span>
+                            </div>
+                            <span class="ic-feedback-msg" id="ic_msg_0"></span>
+                        </div>
+                        <div>
+                            <label class="rg-label">Date of Birth <small style="color:#FF9E7D;">(auto)</small></label>
+                            <input type="date" name="children[0][dob]" readonly style="background:#f9fafb;cursor:default;">
+                        </div>
+                        <div>
+                            <label class="rg-label">Age <small style="color:#FF9E7D;">(auto)</small></label>
+                            <input type="number" name="children[0][age]" readonly style="background:#f9fafb;cursor:default;" min="0" max="17">
+                        </div>
+                    </div>
+                    <div class="rg-2col">
+                        <div>
+                            <label class="rg-label">Medical Notes</label>
+                            <textarea name="children[0][medical_notes]" rows="1" placeholder="e.g. Allergies, asthma..."></textarea>
+                        </div>
+                        <div>
+                            <label class="rg-label">Dietary</label>
+                            <textarea name="children[0][dietary]" rows="1" placeholder="e.g. Vegetarian, halal..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Add Child Button --}}
+    <div style="text-align:center;margin:18px 0;">
+        <button type="button" onclick="addChild()" class="add-another-link" style="font-size:14px;padding:10px 24px;">
+            <span class="icon">➕</span> Add Another Child
         </button>
-        <a href="{{ route('children.index') }}" class="btn-cancel">
-            <span>✖️</span> Cancel
-        </a>
+    </div>
+
+    {{-- Submit --}}
+    <div class="rg-actions">
+        <button type="submit" class="btn-save"><span>💾</span> Register All Children</button>
+        <a href="{{ route('children.index') }}" class="btn-cancel"><span>✖️</span> Cancel</a>
     </div>
 
     </form>
@@ -679,6 +646,231 @@
 </div>
 
 <script>
+    // ============================================
+    // DYNAMIC CHILD COUNTER
+    // ============================================
+    let childCount = 1;
+
+    function addChild() {
+        const container = document.getElementById('childrenContainer');
+        const template = container.querySelector('.child-card').cloneNode(true);
+        const idx = childCount;
+        template.setAttribute('data-index', idx);
+        template.querySelector('.rg-section-title span:first-child').innerHTML = '<span>👶</span> Child #' + (idx + 1);
+        template.querySelector('.remove-child').style.display = 'inline';
+        template.querySelectorAll('input, textarea').forEach(el => {
+            const name = el.getAttribute('name');
+            if (name) {
+                el.setAttribute('name', name.replace(/\[\d+\]/, '[' + idx + ']'));
+                el.value = '';
+                if (el.type === 'file') el.setAttribute('onchange', el.getAttribute('onchange').replace(/,\d+\)/, ',' + idx + ')'));
+            }
+            if (el.classList.contains('ic-check')) {
+                el.setAttribute('data-index', idx);
+                el.removeAttribute('data-ic-bound');
+            }
+        });
+        template.querySelectorAll('.photo-circle').forEach(c => {
+            c.innerHTML = '<span>👶</span>';
+            c.previousElementSibling && (c.previousElementSibling.innerHTML = '');
+        });
+        template.querySelectorAll('.ic-feedback').forEach(f => { f.className = 'ic-feedback'; f.innerHTML = ''; f.id = 'ic_fb_' + idx; });
+        template.querySelectorAll('.ic-feedback-msg').forEach(m => { m.className = 'ic-feedback-msg'; m.textContent = ''; m.id = 'ic_msg_' + idx; });
+        container.appendChild(template);
+        setupIcCheck(idx);
+        childCount++;
+        updateRemoveButtons();
+    }
+
+    function removeChild(btn) {
+        const card = btn.closest('.child-card');
+        if (document.querySelectorAll('.child-card').length > 1) {
+            card.remove();
+            updateRemoveButtons();
+        }
+    }
+
+    function updateRemoveButtons() {
+        const cards = document.querySelectorAll('.child-card');
+        cards.forEach(c => {
+            const btn = c.querySelector('.remove-child');
+            btn.style.display = cards.length > 1 ? 'inline' : 'none';
+        });
+    }
+
+    function previewChildPhoto(input, idx) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                const circle = input.closest('.card-inner').querySelector('.photo-circle');
+                circle.innerHTML = '<img src="' + e.target.result + '">';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // ============================================
+    // FORM VALIDATION
+    // ============================================
+    const form = document.getElementById('childForm');
+    form.addEventListener('submit', function(e) {
+        let hasError = false;
+        form.querySelectorAll('.client-err').forEach(el => el.remove());
+        form.querySelectorAll('input:not([type="radio"]):not([type="hidden"]), textarea').forEach(el => el.style.borderColor = '');
+
+        // Check parent
+        if (!document.getElementById('parent_id').value) {
+            showErr(document.getElementById('parentSelect'), 'Please select a Main Parent');
+            hasError = true;
+        }
+        // Check address
+        const addr = form.querySelector('[name="address"]');
+        if (!addr.value.trim()) { showErr(addr, 'Address is required'); hasError = true; }
+        // Check each child
+        document.querySelectorAll('.child-card').forEach(card => {
+            const idx = card.getAttribute('data-index');
+            const nameEl = card.querySelector('[name$="[name]"]');
+            const ageEl = card.querySelector('[name$="[age]"]');
+            const icEl = card.querySelector('[name$="[ic_number]"]');
+            if (!nameEl.value.trim()) { showErr(nameEl, 'Name is required'); hasError = true; }
+            if (!ageEl.value.trim() || isNaN(ageEl.value) || ageEl.value < 0 || ageEl.value > 17) {
+                showErr(ageEl, 'Age must be 0-17'); hasError = true;
+            }
+            if (!icEl.value.trim()) { showErr(icEl, 'IC is required'); hasError = true; }
+            const icFb = document.getElementById('ic_fb_' + idx);
+            if (icFb && icFb.classList.contains('taken')) {
+                showErr(icEl, 'IC already registered'); hasError = true;
+            }
+        });
+
+        if (hasError) {
+            e.preventDefault();
+            const firstErr = form.querySelector('.client-err');
+            if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+
+    function showErr(el, msg) {
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            el.style.borderColor = '#ef4444';
+            el.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+        }
+        const err = document.createElement('span');
+        err.className = 'client-err';
+        err.style.cssText = 'font-size:12px;color:#ef4444;font-weight:700;margin-top:4px;display:block;';
+        err.textContent = msg;
+        el.parentElement.appendChild(err);
+    }
+
+    // ============================================
+    // IC ↔ DOB ↔ AGE AUTO-FILL
+    // ============================================
+    function parseIcToDob(ic) {
+        // Accept: 200704010123, 200704-01-0123, 070401-01-0123
+        const cleaned = ic.replace(/[^0-9]/g, '');
+        if (cleaned.length < 6) return null;
+        const yy = parseInt(cleaned.substring(0, 2));
+        const mm = parseInt(cleaned.substring(2, 4));
+        const dd = parseInt(cleaned.substring(4, 6));
+        const currentFullYear = new Date().getFullYear();
+        let fullYear = 2000 + yy;
+        if (fullYear > currentFullYear) fullYear = 1900 + yy;
+        if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
+        return fullYear + '-' + String(mm).padStart(2,'0') + '-' + String(dd).padStart(2,'0');
+    }
+
+    function calcAgeFromDob(dobStr) {
+        if (!dobStr) return null;
+        const dob = new Date(dobStr);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+        return age;
+    }
+
+    function autoFormatIc(input) {
+        let val = input.value.replace(/[^0-9]/g, '');
+        if (val.length > 6) val = val.substring(0,6) + '-' + val.substring(6);
+        if (val.length > 9) val = val.substring(0,9) + '-' + val.substring(9);
+        if (val.length > 14) val = val.substring(0, 14);
+        input.value = val;
+        return val;
+    }
+
+    // ============================================
+    // AJAX IC CHECK + AUTO DOB/AGE (per child)
+    // ============================================
+    const checkIcRoute = "{{ route('children.check-ic') }}";
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const icTimers = {};
+
+    function setupIcCheck(idx) {
+        const icInput = document.querySelector('[name="children[' + idx + '][ic_number]"]');
+        const dobInput = document.querySelector('[name="children[' + idx + '][dob]"]');
+        const ageInput = document.querySelector('[name="children[' + idx + '][age]"]');
+        if (!icInput || icInput.dataset.icBound) return;
+        icInput.dataset.icBound = '1';
+        icInput.maxLength = 14;
+
+        icInput.addEventListener('input', function() {
+            const raw = autoFormatIc(this);
+            const fb = document.getElementById('ic_fb_' + idx);
+            const msg = document.getElementById('ic_msg_' + idx);
+
+            // If cleared, reset DOB, Age, and feedback
+            if (!raw) {
+                if (dobInput) dobInput.value = '';
+                if (ageInput) ageInput.value = '';
+                if (fb) { fb.className = 'ic-feedback'; fb.innerHTML = ''; }
+                if (msg) { msg.className = 'ic-feedback-msg'; msg.textContent = ''; }
+                return;
+            }
+
+            // Try parse DOB from IC
+            const dob = parseIcToDob(raw);
+            if (dob && dobInput) {
+                dobInput.value = dob;
+                if (ageInput) {
+                    const age = calcAgeFromDob(dob);
+                    if (age !== null) ageInput.value = age;
+                }
+            }
+
+            // AJAX check — only when 12 digits complete
+            const cleaned = raw.replace(/[^0-9]/g, '');
+            if (!fb || !msg) return;
+
+            if (cleaned.length < 12) {
+                fb.innerHTML = '&#9888;';
+                fb.className = 'ic-feedback taken';
+                msg.textContent = '⚠ Need ' + (12 - cleaned.length) + ' more digit(s)';
+                msg.className = 'ic-feedback-msg taken';
+                return;
+            }
+
+            if (cleaned.length > 12) {
+                fb.innerHTML = '&#10007;';
+                fb.className = 'ic-feedback taken';
+                msg.textContent = '✗ Too many digits';
+                msg.className = 'ic-feedback-msg taken';
+                return;
+            }
+
+            fb.innerHTML = '&#8635;'; fb.className = 'ic-feedback checking'; msg.className = 'ic-feedback-msg';
+            clearTimeout(icTimers[idx]);
+            icTimers[idx] = setTimeout(() => {
+                fetch(checkIcRoute, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }, body: JSON.stringify({ ic: raw }) })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.available) { fb.innerHTML = '&#10003;'; fb.className = 'ic-feedback available'; msg.textContent = '✓ IC available'; msg.className = 'ic-feedback-msg available'; }
+                    else { fb.innerHTML = '&#10007;'; fb.className = 'ic-feedback taken'; msg.textContent = '✗ ' + data.message; msg.className = 'ic-feedback-msg taken'; }
+                })
+                .catch(() => { fb.className = 'ic-feedback'; msg.className = 'ic-feedback-msg'; });
+            }, 500);
+        });
+    }
+    setupIcCheck(0);
     // ============================================
     // DATA DARI PHP
     // ============================================
@@ -757,7 +949,7 @@
         document.getElementById('parent_id').value = id;
         document.getElementById('parentName').innerHTML = name;
         document.getElementById('parentDetail').innerHTML = `<span>📞 ${phone}</span><span class="guardian-badge">Main Parent</span>`;
-        
+
         const avatarDiv = document.getElementById('parentAvatar');
         if (photo) {
             avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
@@ -765,7 +957,7 @@
             avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
         }
         document.getElementById('parentDropdown').style.display = 'none';
-        
+
         populateSecondParents(parentId);
         populateGuardians(parentId);
     }
@@ -776,9 +968,9 @@
     function populateSecondParents(parentId) {
         const listContainer = document.getElementById('secondParentList');
         const hint = document.getElementById('secondParentHint');
-        
+
         const filtered = allSecondParents.filter(sp => sp.parent_id == parentId);
-        
+
         if (filtered.length > 0) {
             let html = '';
             filtered.forEach(sp => {
@@ -807,7 +999,7 @@
             `;
             hint.innerHTML = '💡 No Second Parent found for this Main Parent.';
         }
-        
+
         document.getElementById('second_parent_id').value = '';
         document.getElementById('secondParentName').innerHTML = '-- Select Second Parent --';
         document.getElementById('secondParentDetail').innerHTML = '<span>📞 Click to select</span>';
@@ -820,9 +1012,9 @@
     function populateGuardians(parentId) {
         const listContainer = document.getElementById('guardianList');
         const hint = document.getElementById('guardianHint');
-        
+
         const filtered = allGuardians.filter(g => g.parent_id == parentId);
-        
+
         if (filtered.length > 0) {
             let html = '';
             filtered.forEach(g => {
@@ -851,7 +1043,7 @@
             `;
             hint.innerHTML = '💡 No Guardian found for this Main Parent.';
         }
-        
+
         document.getElementById('guardian_id').value = '';
         document.getElementById('guardianName').innerHTML = '-- Select Guardian --';
         document.getElementById('guardianDetail').innerHTML = '<span>📞 Click to select</span>';
@@ -866,10 +1058,9 @@
 function selectSecondParent(id, name, phone, photo) {
     // Cari second parent dalam allSecondParents
     const sp = allSecondParents.find(item => item.id == id);
-    
+
     if (sp) {
-        // 🔥🔥🔥 GUNA sp.parent_id (BUKAN sp.id!) 🔥🔥🔥
-        document.getElementById('second_parent_id').value = sp.parent_id;
+        document.getElementById('second_parent_id').value = sp.id;
         console.log('✅ Second Parent selected:', {
             id: sp.id,
             parent_id: sp.parent_id,
@@ -878,7 +1069,7 @@ function selectSecondParent(id, name, phone, photo) {
     } else {
         document.getElementById('second_parent_id').value = '';
     }
-    
+
     if (id === '' || !sp) {
         document.getElementById('secondParentName').innerHTML = '-- None / Skip --';
         document.getElementById('secondParentDetail').innerHTML = '<span>📞 No second parent selected</span>';
@@ -927,7 +1118,7 @@ function selectSecondParent(id, name, phone, photo) {
         @endphp
         @if($selectedParent)
             selectParent({{ $selectedParent->id }}, '{{ addslashes($selectedParent->name) }}', '{{ addslashes($selectedParent->phone ?? '') }}', '{{ $selectedParent->photo ?? '' }}', '{{ $selectedParent->id }}');
-            
+
             @if(old('second_parent_id'))
                 @php
                     $selectedSecondParent = $secondParents->firstWhere('id', old('second_parent_id'));
@@ -938,7 +1129,7 @@ function selectSecondParent(id, name, phone, photo) {
                     }, 100);
                 @endif
             @endif
-            
+
             @if(old('guardian_id'))
                 @php
                     $selectedGuardian = $guardians->firstWhere('id', old('guardian_id'));

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class ChildController extends Controller
 {
@@ -20,56 +21,80 @@ class ChildController extends Controller
         return view('children.index', compact('children'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $classrooms = Classroom::all();
         $parents = ParentModel::all();
         $secondParents = SecondParent::all();
         $guardians = Guardian::all();
+        $preSelectedParentId = $request->query('parent_id');
 
-        return view('children.create', compact('classrooms', 'parents', 'secondParents', 'guardians'));
+        return view('children.create', compact('classrooms', 'parents', 'secondParents', 'guardians', 'preSelectedParentId'));
+    }
+
+    // AJAX CHECK IC NUMBER
+    public function checkIc(Request $request)
+    {
+        $ic = $request->input('ic', '');
+        if (!$ic) {
+            return response()->json(['available' => false, 'message' => 'IC number is required']);
+        }
+        $exists = Child::where('ic_number', $ic)->exists();
+        return response()->json([
+            'available' => !$exists,
+            'message' => $exists ? 'IC number already registered' : 'IC number available'
+        ]);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'age' => 'required|integer|min:0|max:17',
-            'ic_number' => 'required|string|unique:children',
-            'dob' => 'nullable|date',
-            'address' => 'required|string',
-            'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'classroom_id' => 'nullable|exists:classrooms,id',
             'parent_id' => 'required|exists:parents,id',
-            // 🔥🔥🔥 FIX: GUNA exists:parents BUKAN second_parents! 🔥🔥🔥
-           // RUJUK second_parents (BUKAN parents!)
-'second_parent_id' => 'nullable|exists:second_parents,id',  // ✅
+            'second_parent_id' => 'nullable|exists:second_parents,id',
             'guardian_id' => 'nullable|exists:guardians,id',
-            'medical_notes' => 'nullable|string',
-            'dietary' => 'nullable|string',
+            'address' => 'required|string',
+            'children' => 'required|array|min:1',
+            'children.*.name' => 'required|string|max:255',
+            'children.*.classroom_id' => 'nullable|exists:classrooms,id',
+            'children.*.age' => 'required|integer|min:0|max:17',
+            'children.*.ic_number' => 'required|string|distinct',
+            'children.*.dob' => 'nullable|date',
+            'children.*.photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'children.*.medical_notes' => 'nullable|string',
+            'children.*.dietary' => 'nullable|string',
         ]);
 
-        $data = $request->all();
+        $shared = $request->only(['parent_id', 'second_parent_id', 'guardian_id', 'address']);
+        $shared['enrollment_date'] = now();
+        $children = $request->input('children', []);
+        $count = 0;
 
-        if ($request->hasFile('photo')) {
-            $data['photo'] = $request->file('photo')->store('children', 'public');
+        foreach ($children as $i => $childInput) {
+            $data = $shared;
+            $data['name'] = $childInput['name'];
+            $data['age'] = $childInput['age'];
+            $data['ic_number'] = $childInput['ic_number'];
+            $data['classroom_id'] = $childInput['classroom_id'] ?? null;
+            $data['dob'] = $childInput['dob'] ?? null;
+            $data['medical_notes'] = $childInput['medical_notes'] ?? null;
+            $data['dietary'] = $childInput['dietary'] ?? null;
+
+            if ($request->hasFile("children.{$i}.photo")) {
+                $data['photo'] = $request->file("children.{$i}.photo")->store('children', 'public');
+            }
+
+            $nextId = Child::max('id') + 1;
+            $qrData = 'KID-' . str_pad($nextId, 4, '0', STR_PAD_LEFT) . '-' . time() . '-' . Str::random(8);
+            $data['qr_code'] = $qrData;
+            $data['qr_code_url'] = rtrim(config('app.url'), '/') . '/scan-qr/' . $qrData;
+
+            $child = Child::create($data);
+            $this->generateQRImage($child->id, $qrData);
+            $count++;
         }
 
-        $data['enrollment_date'] = now();
-
-        $nextId = Child::max('id') + 1;
-        $qrData = 'KID-' . str_pad($nextId, 4, '0', STR_PAD_LEFT) . '-' . time() . '-' . Str::random(8);
-        $qrCodeUrl = rtrim(config('app.url'), '/') . '/scan-qr/' . $qrData;
-
-        $data['qr_code'] = $qrData;
-        $data['qr_code_url'] = $qrCodeUrl;
-
-        $child = Child::create($data);
-
-        $this->generateQRImage($child->id, $qrData);
-
         return redirect()->route('children.index')
-            ->with('success', 'Child registered successfully! QR Code generated.');
+            ->with('success', "{$count} child(ren) registered successfully! QR Codes generated.");
     }
 
     public function show(Child $child)

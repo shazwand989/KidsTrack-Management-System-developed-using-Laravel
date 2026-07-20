@@ -37,9 +37,11 @@ class ProfileController extends Controller
             'age' => 'nullable|integer|min:18|max:100',
             'photo' => 'nullable|image|max:2048',
         ]);
-        
-        Auth::user()->update(['name' => $validated['name'], 'email' => $validated['email']]);
-        
+
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        $authUser->update(['name' => $validated['name'], 'email' => $validated['email']]);
+
         $photoPath = null;
         if ($request->hasFile('photo')) {
             foreach ([$parent, $secondParent, $guardian] as $model) {
@@ -49,27 +51,29 @@ class ProfileController extends Controller
             }
             $photoPath = $request->file('photo')->store('profile-photos', 'public');
         }
-        
+
         $data = [
             'name' => $validated['name'], 'phone' => $validated['phone'],
             'address' => $validated['address'] ?? null, 'age' => $validated['age'] ?? null,
         ];
         if ($photoPath) $data['photo'] = $photoPath;
-        
+
         if ($parent) $parent->update($data);
         if ($secondParent) $secondParent->update($data);
         if ($guardian) $guardian->update($data);
-        
+
         return redirect()->route('parent.profile.index')->with('success', 'Profil berjaya dikemaskini!');
     }
 
     public function updatePassword(Request $request)
     {
         $request->validate(['current_password' => 'required|string', 'password' => 'required|string|min:8|confirmed']);
-        if (!Hash::check($request->current_password, Auth::user()->password)) {
+        /** @var \App\Models\User $authUser */
+        $authUser = Auth::user();
+        if (!Hash::check($request->current_password, $authUser->password)) {
             return back()->withErrors(['current_password' => 'Kata laluan semasa tidak tepat.']);
         }
-        Auth::user()->update(['password' => Hash::make($request->password)]);
+        $authUser->update(['password' => Hash::make($request->password)]);
         return redirect()->route('parent.profile.index')->with('success', 'Kata laluan berjaya dikemaskini!');
     }
 
