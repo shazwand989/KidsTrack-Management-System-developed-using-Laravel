@@ -1256,6 +1256,18 @@ public function exportSinglePdf($id)
         $today = date('Y-m-d', SimulationClock::getCurrentTime());
         $now = date('H:i:s', SimulationClock::getCurrentTime());
 
+        // 🔥 BLOCK if already checked in OR checked out today
+        $existing = Attendance::where('child_id', $child->id)
+            ->where('date', $today)
+            ->first();
+
+        if ($existing && $existing->checkin_time) {
+            $msg = $existing->checkout_time
+                ? 'Anak ini sudah check-in dan check-out hari ini!'
+                : 'Anak ini sudah check-in hari ini pada ' . date('h:i A', strtotime($existing->checkin_time)) . '!';
+            return response()->json(['success' => false, 'message' => $msg]);
+        }
+
         // Get timer settings for today
         $dayName = date('l', SimulationClock::getCurrentTime());
         $timer = TimerSetting::where('day_name', 'like', '%' . $dayName . '%')->first();
@@ -1265,22 +1277,22 @@ public function exportSinglePdf($id)
         $isLate = $now > $morningEnd;
         $status = $isLate ? 'late' : 'checkin';
 
-        // Get parent name from child's actual parent user
+        // Get parent name
         $parent = $child->parent;
         $dropOffName = $parent ? $parent->name : 'Parent';
 
-        $attendance = Attendance::firstOrCreate(
-            ['child_id' => $child->id, 'date' => $today],
-            [
+        if ($existing) {
+            $existing->update([
                 'status' => $status,
                 'checkin_time' => $now,
                 'drop_off_by' => $dropOffName,
                 'is_verified' => true,
-            ]
-        );
-
-        if (!$attendance->wasRecentlyCreated) {
-            $attendance->update([
+            ]);
+            $attendance = $existing;
+        } else {
+            $attendance = Attendance::create([
+                'child_id' => $child->id,
+                'date' => $today,
                 'status' => $status,
                 'checkin_time' => $now,
                 'drop_off_by' => $dropOffName,
@@ -1351,8 +1363,8 @@ public function exportSinglePdf($id)
     {
         try {
             $telegram = new TelegramService();
-            $parent = ParentModel::find($child->parent?->id);
-            $user = $parent ? \App\Models\User::find($parent->user_id) : null;
+            $parent = $child->parent;
+            $user = $parent; // Parent IS the user now
 
             $icon = $type === 'check-in' ? '⏰' : '📤';
             $message = "{$icon} <b>Late {$type} Notification</b>\n\n"
