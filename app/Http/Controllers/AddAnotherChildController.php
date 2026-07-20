@@ -4,9 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Child;
 use App\Models\Attendance;
-use App\Models\ParentModel;
-use App\Models\Guardian;
-use App\Models\SecondParent;
 use App\Models\TimerSetting;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
@@ -304,37 +301,18 @@ class AddAnotherChildController extends Controller
 
         switch ($role) {
             case 'main_parent':
-                $parent = ParentModel::where('id', $user->id)->first();
-                if ($parent) {
-                    $parentId = $parent->id;
-                    $allChildren = Child::where(function($query) use ($parent) {
-                        $query->where('parent_id', $parent->id)
-                              ->orWhere('second_parent_id', $parent->id);
-                    })->where('is_active', true)->get();
-                }
+                $parentId = $user->id;
+                $allChildren = $user->children()->where('is_active', true)->get();
                 break;
 
             case 'second_parent':
-                $secondParent = SecondParent::where('id', $user->id)->first();
-                if ($secondParent) {
-                    $parentId = $secondParent->parent_id; // Main parent ID for lookup
-                    $mainParent = ParentModel::find($secondParent->parent_id);
-                    if ($mainParent) {
-                        $allChildren = Child::where(function($query) use ($mainParent) {
-                            $query->where('parent_id', $mainParent->id)
-                                  ->orWhere('second_parent_id', $mainParent->id);
-                        })->where('is_active', true)->get();
-                    }
-                }
+                $parentId = $user->id;
+                $allChildren = $user->children()->where('is_active', true)->get();
                 break;
 
             case 'guardian':
-                $guardian = Guardian::where('id', $user->id)->first();
-                if ($guardian) {
-                    $parentId = $guardian->parent_id; // Main parent ID for checkout redirect
-                    $allChildren = Child::where('guardian_id', $guardian->id)
-                        ->where('is_active', true)->get();
-                }
+                $parentId = $user->id;
+                $allChildren = $user->children()->where('is_active', true)->get();
                 break;
 
             case 'admin':
@@ -526,8 +504,8 @@ class AddAnotherChildController extends Controller
 
     private function sendTelegramNotification($child, $parentId, $action)
     {
-        $parent = ParentModel::find($parentId);
-        if (!$parent || !$parent->telegram_notification || !$parent->telegram_id) {
+        $parent = \App\Models\User::find($parentId);
+        if (!$parent || !$parent->telegram_chat_id) {
             return;
         }
 
@@ -544,6 +522,6 @@ class AddAnotherChildController extends Controller
 
         $message .= "📅 Date: " . $now->format('d M Y');
 
-        $this->telegram->sendMessage($parent->telegram_id, $message);
+        $this->telegram->sendMessage($parent->telegram_chat_id, $message);
     }
 }

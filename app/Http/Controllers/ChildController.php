@@ -3,9 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Child;
-use App\Models\ParentModel;
-use App\Models\SecondParent;
-use App\Models\Guardian;
 use App\Models\Classroom;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -24,9 +21,9 @@ class ChildController extends Controller
     public function create(Request $request)
     {
         $classrooms = Classroom::all();
-        $parents = ParentModel::all();
-        $secondParents = SecondParent::all();
-        $guardians = Guardian::all();
+        $parents = \App\Models\User::whereIn('role', ['parent1'])->get();
+        $secondParents = \App\Models\User::whereIn('role', ['parent2'])->get();
+        $guardians = \App\Models\User::whereIn('role', ['guardian'])->get();
         $preSelectedParentId = $request->query('parent_id');
 
         return view('children.create', compact('classrooms', 'parents', 'secondParents', 'guardians', 'preSelectedParentId'));
@@ -115,9 +112,9 @@ class ChildController extends Controller
     public function edit(Child $child)
     {
         $classrooms = Classroom::all();
-        $parents = ParentModel::all();
-        $secondParents = SecondParent::all();
-        $guardians = Guardian::all();
+        $parents = \App\Models\User::whereIn('role', ['parent1'])->get();
+        $secondParents = \App\Models\User::whereIn('role', ['parent2'])->get();
+        $guardians = \App\Models\User::whereIn('role', ['guardian'])->get();
 
         return view('children.edit', compact('child', 'classrooms', 'parents', 'secondParents', 'guardians'));
     }
@@ -132,16 +129,16 @@ class ChildController extends Controller
             'address' => 'required|string',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'classroom_id' => 'nullable|exists:classrooms,id',
-            'parent_id' => 'required|exists:parents,id',
-            // 🔥🔥🔥 FIX: GUNA exists:parents BUKAN second_parents! 🔥🔥🔥
-            'second_parent_id' => 'nullable|exists:parents,id',
-            'guardian_id' => 'nullable|exists:guardians,id',
+            'parent_id' => 'required|exists:users,id',
+            'second_parent_id' => 'nullable|exists:users,id',
+            'guardian_id' => 'nullable|exists:users,id',
             'medical_notes' => 'nullable|string',
             'dietary' => 'nullable|string',
             'is_active' => 'nullable|boolean',
         ]);
 
-        $data = $request->all();
+        $data = $request->only(['name', 'age', 'ic_number', 'dob', 'address', 'classroom_id', 'medical_notes', 'dietary']);
+        $data['is_active'] = $request->has('is_active');
 
         if ($request->hasFile('photo')) {
             if ($child->photo) {
@@ -150,9 +147,20 @@ class ChildController extends Controller
             $data['photo'] = $request->file('photo')->store('children', 'public');
         }
 
-        $data['is_active'] = $request->has('is_active');
-
         $child->update($data);
+
+        // Sync guardianships
+        $guardianshipData = [];
+        if ($request->parent_id) {
+            $guardianshipData[$request->parent_id] = ['relationship' => 'main_parent', 'is_emergency_contact' => true];
+        }
+        if ($request->second_parent_id && $request->second_parent_id != $request->parent_id) {
+            $guardianshipData[$request->second_parent_id] = ['relationship' => 'second_parent', 'is_emergency_contact' => false];
+        }
+        if ($request->guardian_id && !isset($guardianshipData[$request->guardian_id])) {
+            $guardianshipData[$request->guardian_id] = ['relationship' => 'guardian', 'is_emergency_contact' => false];
+        }
+        $child->linkedUsers()->sync($guardianshipData);
 
         return redirect()->route('children.show', $child)
             ->with('success', 'Child updated successfully!');

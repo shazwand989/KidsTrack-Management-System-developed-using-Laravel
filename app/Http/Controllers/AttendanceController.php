@@ -4,9 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Attendance;
 use App\Models\Child;
-use App\Models\ParentModel;
-use App\Models\SecondParent;
-use App\Models\Guardian;
+use App\Models\Guardianship;
+use App\Models\User;
 use App\Models\TimerSetting;
 use App\Models\Classroom;
 use App\Models\SimulationClock;
@@ -61,41 +60,31 @@ class AttendanceController extends Controller
             $children = Child::with('classroom')->get();
             $classrooms = Classroom::all();
         } elseif (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('id', $user->id)->first();
-            if ($parent) {
-                $children = Child::where('parent_id', $parent->id)
-                    ->orWhere('second_parent_id', $parent->id)
-                    ->get();
+            $children = $user->children;
+            if ($children->isNotEmpty()) {
                 $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
                     ->orderBy('date', 'desc')
                     ->orderBy('checkin_time', 'desc')
                     ->paginate(20);
-                $classrooms = Classroom::all(); // 🔥 TAMBAH INI
+                $classrooms = Classroom::all();
             }
         } elseif ($user->role === 'parent2') {
-            $secondParent = SecondParent::where('id', $user->id)->first();
-            if ($secondParent) {
-                $mainParent = ParentModel::find($secondParent->parent_id);
-                if ($mainParent) {
-                    $children = Child::where('parent_id', $mainParent->id)
-                        ->orWhere('second_parent_id', $mainParent->id)
-                        ->get();
-                    $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
-                        ->orderBy('date', 'desc')
-                        ->orderBy('checkin_time', 'desc')
-                        ->paginate(20);
-                    $classrooms = Classroom::all(); // 🔥 TAMBAH INI
-                }
-            }
-        } elseif ($user->role === 'guardian') {
-            $guardian = Guardian::where('id', $user->id)->first();
-            if ($guardian) {
-                $children = Child::where('guardian_id', $guardian->id)->get();
+            $children = $user->children;
+            if ($children->isNotEmpty()) {
                 $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
                     ->orderBy('date', 'desc')
                     ->orderBy('checkin_time', 'desc')
                     ->paginate(20);
-                $classrooms = Classroom::all(); // 🔥 TAMBAH INI
+                $classrooms = Classroom::all();
+            }
+        } elseif ($user->role === 'guardian') {
+            $children = $user->children;
+            if ($children->isNotEmpty()) {
+                $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
+                    ->orderBy('date', 'desc')
+                    ->orderBy('checkin_time', 'desc')
+                    ->paginate(20);
+                $classrooms = Classroom::all();
             }
         }
 
@@ -134,30 +123,14 @@ class AttendanceController extends Controller
 
             // Filter by user role
             if (in_array($user->role, ['parent', 'parent1'])) {
-                $parent = ParentModel::where('id', $user->id)->first();
-                if ($parent) {
-                    $childIds = Child::where('parent_id', $parent->id)
-                        ->orWhere('second_parent_id', $parent->id)
-                        ->pluck('id');
-                    $query->whereIn('child_id', $childIds);
-                }
+                $childIds = $user->children->pluck('id');
+                $query->whereIn('child_id', $childIds);
             } elseif ($user->role === 'parent2') {
-                $secondParent = SecondParent::where('id', $user->id)->first();
-                if ($secondParent) {
-                    $mainParent = ParentModel::find($secondParent->parent_id);
-                    if ($mainParent) {
-                        $childIds = Child::where('parent_id', $mainParent->id)
-                            ->orWhere('second_parent_id', $mainParent->id)
-                            ->pluck('id');
-                        $query->whereIn('child_id', $childIds);
-                    }
-                }
+                $childIds = $user->children->pluck('id');
+                $query->whereIn('child_id', $childIds);
             } elseif ($user->role === 'guardian') {
-                $guardian = Guardian::where('id', $user->id)->first();
-                if ($guardian) {
-                    $childIds = Child::where('guardian_id', $guardian->id)->pluck('id');
-                    $query->whereIn('child_id', $childIds);
-                }
+                $childIds = $user->children->pluck('id');
+                $query->whereIn('child_id', $childIds);
             }
 
             $attendances = $query->orderBy('date', 'desc')
@@ -169,29 +142,15 @@ class AttendanceController extends Controller
                 // 🔥 AMBIL NAMA UNTUK DROP_OFF_BY
                 $dropOffName = $attendance->drop_off_by;
                 if ($dropOffName && is_numeric($dropOffName)) {
-                    $parent = ParentModel::find($dropOffName);
-                    if ($parent) {
-                        $dropOffName = $parent->name;
-                    } else {
-                        $user = \App\Models\User::find($dropOffName);
-                        if ($user) {
-                            $dropOffName = $user->name;
-                        }
-                    }
+                    $dropOffUser = \App\Models\User::find($dropOffName);
+                    $dropOffName = $dropOffUser ? $dropOffUser->name : $dropOffName;
                 }
 
                 // 🔥 AMBIL NAMA UNTUK PICKUP_BY
                 $pickupName = $attendance->pickup_by;
                 if ($pickupName && is_numeric($pickupName)) {
-                    $parent = ParentModel::find($pickupName);
-                    if ($parent) {
-                        $pickupName = $parent->name;
-                    } else {
-                        $user = \App\Models\User::find($pickupName);
-                        if ($user) {
-                            $pickupName = $user->name;
-                        }
-                    }
+                    $pickupUser = \App\Models\User::find($pickupName);
+                    $pickupName = $pickupUser ? $pickupUser->name : $pickupName;
                 }
 
                 // 🔥 AMBIL CLASSROOM INFO
@@ -239,7 +198,7 @@ class AttendanceController extends Controller
         try {
             $request->validate([
                 'child_id' => 'required|exists:children,id',
-                'parent_id' => 'required|exists:parents,id',
+                'parent_id' => 'required|exists:users,id',
             ]);
 
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
@@ -257,7 +216,7 @@ class AttendanceController extends Controller
             }
 
             // 🔥 AMBIL NAMA PARENT
-            $parent = ParentModel::find($request->parent_id);
+            $parent = \App\Models\User::find($request->parent_id);
             $parentName = $parent ? $parent->name : 'Unknown';
 
             // 🔥 CEK SLOT
@@ -318,7 +277,7 @@ class AttendanceController extends Controller
         try {
             $request->validate([
                 'child_id' => 'required|exists:children,id',
-                'parent_id' => 'required|exists:parents,id',
+                'parent_id' => 'required|exists:users,id',
             ]);
 
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
@@ -343,7 +302,7 @@ class AttendanceController extends Controller
             }
 
             // 🔥 AMBIL NAMA PARENT
-            $parent = ParentModel::find($request->parent_id);
+            $parent = \App\Models\User::find($request->parent_id);
             $parentName = $parent ? $parent->name : 'Unknown';
 
             $attendance->update([
@@ -375,7 +334,7 @@ class AttendanceController extends Controller
     {
         try {
             $request->validate([
-                'parent_id' => 'required|exists:parents,id',
+                'parent_id' => 'required|exists:users,id',
                 'child_ids' => 'required|array',
                 'child_ids.*' => 'exists:children,id'
             ]);
@@ -385,7 +344,7 @@ class AttendanceController extends Controller
             $results = [];
 
             // 🔥 AMBIL NAMA PARENT
-            $parent = ParentModel::find($request->parent_id);
+            $parent = \App\Models\User::find($request->parent_id);
             $parentName = $parent ? $parent->name : 'Unknown';
 
             // 🔥 CEK SLOT
@@ -465,7 +424,7 @@ class AttendanceController extends Controller
     {
         try {
             $request->validate([
-                'parent_id' => 'required|exists:parents,id',
+                'parent_id' => 'required|exists:users,id',
                 'child_ids' => 'required|array',
                 'child_ids.*' => 'exists:children,id'
             ]);
@@ -475,7 +434,7 @@ class AttendanceController extends Controller
             $results = [];
 
             // 🔥 AMBIL NAMA PARENT
-            $parent = ParentModel::find($request->parent_id);
+            $parent = \App\Models\User::find($request->parent_id);
             $parentName = $parent ? $parent->name : 'Unknown';
 
             foreach ($request->child_ids as $childId) {
@@ -589,45 +548,29 @@ class AttendanceController extends Controller
                 ->orderBy('date', 'asc')
                 ->get();
         } elseif (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('id', $user->id)->first();
-            if ($parent) {
-                $classrooms = Classroom::all();
-                $children = Child::where('parent_id', $parent->id)
-                    ->orWhere('second_parent_id', $parent->id)
-                    ->get();
-                $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
-                    ->whereMonth('date', Carbon::now()->month)
-                    ->whereYear('date', Carbon::now()->year)
-                    ->orderBy('date', 'asc')
-                    ->get();
-            }
+            $classrooms = Classroom::all();
+            $children = $user->children;
+            $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
+                ->whereMonth('date', Carbon::now()->month)
+                ->whereYear('date', Carbon::now()->year)
+                ->orderBy('date', 'asc')
+                ->get();
         } elseif ($user->role === 'parent2') {
-            $secondParent = SecondParent::where('id', $user->id)->first();
-            if ($secondParent) {
-                $mainParent = ParentModel::find($secondParent->parent_id);
-                if ($mainParent) {
-                    $classrooms = Classroom::all();
-                    $children = Child::where('parent_id', $mainParent->id)
-                        ->orWhere('second_parent_id', $mainParent->id)
-                        ->get();
-                    $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
-                        ->whereMonth('date', Carbon::now()->month)
-                        ->whereYear('date', Carbon::now()->year)
-                        ->orderBy('date', 'asc')
-                        ->get();
-                }
-            }
+            $classrooms = Classroom::all();
+            $children = $user->children;
+            $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
+                ->whereMonth('date', Carbon::now()->month)
+                ->whereYear('date', Carbon::now()->year)
+                ->orderBy('date', 'asc')
+                ->get();
         } elseif ($user->role === 'guardian') {
-            $guardian = Guardian::where('id', $user->id)->first();
-            if ($guardian) {
-                $classrooms = Classroom::all();
-                $children = Child::where('guardian_id', $guardian->id)->get();
-                $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
-                    ->whereMonth('date', Carbon::now()->month)
-                    ->whereYear('date', Carbon::now()->year)
-                    ->orderBy('date', 'asc')
-                    ->get();
-            }
+            $classrooms = Classroom::all();
+            $children = $user->children;
+            $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
+                ->whereMonth('date', Carbon::now()->month)
+                ->whereYear('date', Carbon::now()->year)
+                ->orderBy('date', 'asc')
+                ->get();
         }
 
         return view('attendance.calendar', compact('children', 'attendances', 'classrooms'));
@@ -651,42 +594,26 @@ class AttendanceController extends Controller
                 ->orderBy('date', 'asc')
                 ->get();
         } elseif (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('id', $user->id)->first();
-            if ($parent) {
-                $childrenIds = Child::where('parent_id', $parent->id)
-                    ->orWhere('second_parent_id', $parent->id)
-                    ->pluck('id');
-                $attendances = Attendance::whereIn('child_id', $childrenIds)
-                    ->whereMonth('date', $month)
-                    ->whereYear('date', $year)
-                    ->orderBy('date', 'asc')
-                    ->get();
-            }
+            $childrenIds = $user->children->pluck('id');
+            $attendances = Attendance::whereIn('child_id', $childrenIds)
+                ->whereMonth('date', $month)
+                ->whereYear('date', $year)
+                ->orderBy('date', 'asc')
+                ->get();
         } elseif ($user->role === 'parent2') {
-            $secondParent = SecondParent::where('id', $user->id)->first();
-            if ($secondParent) {
-                $mainParent = ParentModel::find($secondParent->parent_id);
-                if ($mainParent) {
-                    $childrenIds = Child::where('parent_id', $mainParent->id)
-                        ->orWhere('second_parent_id', $mainParent->id)
-                        ->pluck('id');
-                    $attendances = Attendance::whereIn('child_id', $childrenIds)
-                        ->whereMonth('date', $month)
-                        ->whereYear('date', $year)
-                        ->orderBy('date', 'asc')
-                        ->get();
-                }
-            }
+            $childrenIds = $user->children->pluck('id');
+            $attendances = Attendance::whereIn('child_id', $childrenIds)
+                ->whereMonth('date', $month)
+                ->whereYear('date', $year)
+                ->orderBy('date', 'asc')
+                ->get();
         } elseif ($user->role === 'guardian') {
-            $guardian = Guardian::where('id', $user->id)->first();
-            if ($guardian) {
-                $childrenIds = Child::where('guardian_id', $guardian->id)->pluck('id');
-                $attendances = Attendance::whereIn('child_id', $childrenIds)
-                    ->whereMonth('date', $month)
-                    ->whereYear('date', $year)
-                    ->orderBy('date', 'asc')
-                    ->get();
-            }
+            $childrenIds = $user->children->pluck('id');
+            $attendances = Attendance::whereIn('child_id', $childrenIds)
+                ->whereMonth('date', $month)
+                ->whereYear('date', $year)
+                ->orderBy('date', 'asc')
+                ->get();
         }
 
         return response()->json([
@@ -837,30 +764,14 @@ public function exportPdf(Request $request)
 
         // Filter by user role
         if (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('id', $user->id)->first();
-            if ($parent) {
-                $childIds = Child::where('parent_id', $parent->id)
-                    ->orWhere('second_parent_id', $parent->id)
-                    ->pluck('id');
-                $query->whereIn('child_id', $childIds);
-            }
+            $childIds = $user->children->pluck('id');
+            $query->whereIn('child_id', $childIds);
         } elseif ($user->role === 'parent2') {
-            $secondParent = SecondParent::where('id', $user->id)->first();
-            if ($secondParent) {
-                $mainParent = ParentModel::find($secondParent->parent_id);
-                if ($mainParent) {
-                    $childIds = Child::where('parent_id', $mainParent->id)
-                        ->orWhere('second_parent_id', $mainParent->id)
-                        ->pluck('id');
-                    $query->whereIn('child_id', $childIds);
-                }
-            }
+            $childIds = $user->children->pluck('id');
+            $query->whereIn('child_id', $childIds);
         } elseif ($user->role === 'guardian') {
-            $guardian = Guardian::where('id', $user->id)->first();
-            if ($guardian) {
-                $childIds = Child::where('guardian_id', $guardian->id)->pluck('id');
-                $query->whereIn('child_id', $childIds);
-            }
+            $childIds = $user->children->pluck('id');
+            $query->whereIn('child_id', $childIds);
         }
 
         $attendances = $query->orderBy('date', 'desc')
@@ -909,27 +820,17 @@ public function exportSinglePdf($id)
         // Format drop_off_by name
         $dropOff = $attendance->drop_off_by;
         if ($dropOff && is_numeric($dropOff)) {
-            $parent = ParentModel::find($dropOff);
-            if ($parent) {
-                $dropOff = $parent->name;
-            } else {
-                $user = \App\Models\User::find($dropOff);
-                if ($user) {
-                    $dropOff = $user->name;
-                }
+            $dropOffUser = \App\Models\User::find($dropOff);
+            if ($dropOffUser) {
+                $dropOff = $dropOffUser->name;
             }
         }
 
         $pickup = $attendance->pickup_by;
         if ($pickup && is_numeric($pickup)) {
-            $parent = ParentModel::find($pickup);
-            if ($parent) {
-                $pickup = $parent->name;
-            } else {
-                $user = \App\Models\User::find($pickup);
-                if ($user) {
-                    $pickup = $user->name;
-                }
+            $pickupUser = \App\Models\User::find($pickup);
+            if ($pickupUser) {
+                $pickup = $pickupUser->name;
             }
         }
 
@@ -1200,7 +1101,7 @@ public function exportSinglePdf($id)
         $phone = preg_replace('/[\s\-]/', '', $phone);
 
         // Check against parent's phone
-        $parent = ParentModel::find($child->parent?->id);
+        $parent = $child->parent;
         if ($parent) {
             $parentPhone = preg_replace('/[\s\-]/', '', $parent->phone ?? '');
             if ($parentPhone && str_contains($phone, substr($parentPhone, -7))) {
@@ -1210,7 +1111,7 @@ public function exportSinglePdf($id)
         }
 
         // Check against second parent's phone
-        $secondParent = SecondParent::find($child->second_parent_id);
+        $secondParent = $child->secondParent;
         if ($secondParent) {
             $spPhone = preg_replace('/[\s\-]/', '', $secondParent->phone ?? '');
             if ($spPhone && str_contains($phone, substr($spPhone, -7))) {
@@ -1335,7 +1236,7 @@ public function exportSinglePdf($id)
         $status = $isLateCheckout ? 'late_checkout' : 'checkout';
 
         // Get parent name
-        $parent = ParentModel::find($child->parent?->id);
+        $parent = $child->parent;
         $pickupName = $parent ? $parent->name : 'Parent';
 
         $attendance->update([
@@ -1421,6 +1322,134 @@ public function exportSinglePdf($id)
             });
 
         return response()->json($attendances);
+    }
+
+    // ============================================
+    // 🔥 NEW: VERIFY PARENT BY IC + PHONE
+    // ============================================
+    public function verifyParent(Request $request)
+    {
+        $ic = str_replace(['-', ' '], '', $request->input('ic', ''));
+        $phone = preg_replace('/[\s\-]/', '', $request->input('phone', ''));
+
+        if (strlen($ic) < 12 || strlen($phone) < 7) {
+            return response()->json(['success' => false, 'message' => 'IC atau telefon tidak lengkap.']);
+        }
+
+        // Find user by IC (stored as ic_number on children) or by phone
+        // First, find children matching this IC
+        $child = Child::where('ic_number', 'like', '%' . substr($ic, -6) . '%')->first();
+
+        if (!$child) {
+            // Try finding by phone on any parent user
+            $user = \App\Models\User::where('phone_number', 'like', '%' . substr($phone, -7) . '%')
+                ->whereIn('role', ['parent1', 'parent2', 'guardian'])
+                ->first();
+            if (!$user) {
+                return response()->json(['success' => false, 'message' => 'IC atau telefon tidak dijumpai.']);
+            }
+            // Find children linked to this user
+            $childIds = Guardianship::where('user_id', $user->id)->pluck('child_id');
+        } else {
+            // Find parent user linked to this child
+            $gs = Guardianship::where('child_id', $child->id)
+                ->where('relationship', 'main_parent')
+                ->first();
+            if (!$gs) {
+                return response()->json(['success' => false, 'message' => 'Parent tidak dijumpai.']);
+            }
+            $user = User::find($gs->user_id);
+            // Verify phone matches
+            if ($user && $user->phone_number) {
+                $userPhone = preg_replace('/[\s\-]/', '', $user->phone_number);
+                if (!str_contains($phone, substr($userPhone, -7))) {
+                    return response()->json(['success' => false, 'message' => 'Nombor telefon tidak sepadan.']);
+                }
+            }
+            $childIds = Guardianship::where('user_id', $user->id)->pluck('child_id');
+        }
+
+        // Get all children linked to this parent
+        $children = Child::whereIn('id', $childIds)
+            ->where('is_active', true)
+            ->with('classroom')
+            ->get();
+
+        if ($children->isEmpty()) {
+            return response()->json(['success' => false, 'message' => 'Tiada anak berdaftar.']);
+        }
+
+        $today = date('Y-m-d');
+        $attendances = Attendance::whereIn('child_id', $children->pluck('id'))
+            ->where('date', $today)
+            ->get()
+            ->keyBy('child_id');
+
+        $childrenData = $children->map(function ($c) use ($attendances) {
+            $att = $attendances->get($c->id);
+            return [
+                'id' => $c->id,
+                'name' => $c->name,
+                'age' => $c->age,
+                'classroom' => $c->classroom->name ?? '-',
+                'initial' => strtoupper(substr($c->name, 0, 1)),
+                'checked_in' => $att && $att->checkin_time ? true : false,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'parent_id' => $user->id,
+            'parent_name' => $user->name,
+            'children' => $childrenData,
+        ]);
+    }
+
+    // ============================================
+    // 🔥 NEW: BULK CHECKIN FROM SCAN PAGE
+    // ============================================
+    public function bulkCheckinScan(Request $request)
+    {
+        $request->validate([
+            'parent_id' => 'required|exists:users,id',
+            'child_ids' => 'required|array',
+            'child_ids.*' => 'exists:children,id',
+        ]);
+
+        $user = User::find($request->parent_id);
+        $today = date('Y-m-d');
+        $now = date('H:i:s');
+        $count = 0;
+
+        foreach ($request->child_ids as $childId) {
+            $existing = Attendance::where('child_id', $childId)
+                ->where('date', $today)
+                ->first();
+
+            if ($existing && $existing->checkin_time) continue;
+
+            $status = 'present';
+            if ($existing) {
+                $existing->update([
+                    'checkin_time' => $now, 'status' => $status,
+                    'drop_off_by' => $user->name, 'is_verified' => true,
+                ]);
+            } else {
+                Attendance::create([
+                    'child_id' => $childId, 'user_id' => $user->id,
+                    'date' => $today, 'checkin_time' => $now,
+                    'status' => $status, 'drop_off_by' => $user->name,
+                    'is_verified' => true,
+                ]);
+            }
+            $count++;
+        }
+
+        return response()->json([
+            'success' => true,
+            'count' => $count,
+            'message' => "{$count} anak berjaya check-in!",
+        ]);
     }
 }
 

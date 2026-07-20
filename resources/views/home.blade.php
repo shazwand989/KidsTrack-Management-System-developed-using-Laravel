@@ -5,34 +5,33 @@
 
 @php
     use App\Models\Child;
-    use App\Models\ParentModel;
     use App\Models\Teacher;
     use App\Models\Classroom;
     use App\Models\Attendance;
     use App\Models\SimulationClock;
-    
+
     $hour = (int)date('H', SimulationClock::getCurrentTime());
     $greeting = $hour < 12 ? 'Selamat Pagi' : ($hour < 17 ? 'Selamat Tengah Hari' : ($hour < 19 ? 'Selamat Petang' : 'Selamat Malam'));
-    
+
     $todayStr = date('Y-m-d', SimulationClock::getCurrentTime());
     $todayAttendances = Attendance::with('child.classroom')->where('date', $todayStr)->get();
     $totalChildren = Child::where('is_active', true)->count();
     $checkedIn = $todayAttendances->whereIn('status', ['checkin','present','late'])->count();
     $checkedOut = $todayAttendances->whereIn('status', ['checkout','late_checkout'])->count();
     $absent = $totalChildren - $todayAttendances->filter(fn($a) => !in_array($a->status, ['absent']))->count();
-    $totalParents = ParentModel::where('type', 'main')->count();
+    $totalParents = \App\Models\User::whereIn('role', ['parent1', 'parent2', 'guardian'])->count();
     $totalTeachers = Teacher::count();
     $totalClassrooms = Classroom::count();
-    
+
     $classrooms = Classroom::withCount(['children'])->get();
-    
+
     $recentCheckins = Attendance::with('child.classroom')
         ->whereDate('date', $todayStr)
         ->whereNotNull('checkin_time')
         ->orderBy('checkin_time', 'desc')
         ->take(8)
         ->get();
-        
+
     $weekDays = ['Mon','Tue','Wed','Thu','Fri'];
     $weekData = [];
     foreach ($weekDays as $i => $label) {
@@ -58,7 +57,7 @@
         padding: 10px 20px; border-radius: 14px; font-weight: 700; font-size: 13px;
         backdrop-filter: blur(4px); cursor: pointer;
     }
-    
+
     .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 20px; }
     .stat-card {
         background: white; border-radius: 20px; padding: 22px;
@@ -79,9 +78,9 @@
     .stat-trend { font-size: 11px; font-weight: 700; margin-left: 6px; }
     .stat-trend.up { color: #16a34a; }
     .stat-trend.down { color: #dc2626; }
-    
+
     .content-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
-    
+
     .card {
         background: white; border-radius: 20px; padding: 20px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
@@ -95,7 +94,7 @@
         background: #e8f5e9; color: #2e7d32; font-size: 11px; font-weight: 700;
         padding: 4px 10px; border-radius: 20px;
     }
-    
+
     .att-overview { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 16px; }
     .att-item { text-align: center; padding: 14px; border-radius: 14px; background: #f8fafc; }
     .att-item .num { font-size: 28px; font-weight: 800; }
@@ -103,7 +102,7 @@
     .att-item.checkin { background: #e8f5e9; } .att-item.checkin .num { color: #2e7d32; }
     .att-item.checkout { background: #e3f2fd; } .att-item.checkout .num { color: #1565c0; }
     .att-item.absent { background: #fce4ec; } .att-item.absent .num { color: #c62828; }
-    
+
     .progress-wrap { margin-bottom: 14px; }
     .progress-label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; margin-bottom: 4px; color: #475569; }
     .progress-bar { height: 8px; border-radius: 8px; background: #f1f5f9; overflow: hidden; }
@@ -111,7 +110,7 @@
     .progress-fill.green { background: linear-gradient(90deg, #43a047, #66bb6a); }
     .progress-fill.blue { background: linear-gradient(90deg, #1e88e5, #42a5f5); }
     .progress-fill.orange { background: linear-gradient(90deg, #fb8c00, #ffa726); }
-    
+
     .checkin-list { max-height: 380px; overflow-y: auto; }
     .checkin-item {
         display: flex; align-items: center; gap: 12px; padding: 10px 0;
@@ -129,7 +128,7 @@
     .ci-sub { font-size: 11px; color: #94a3b8; }
     .ci-time { font-size: 12px; font-weight: 700; color: #16a34a; }
     .ci-time.late { color: #dc2626; }
-    
+
     .classroom-cards { display: grid; gap: 10px; }
     .classroom-card {
         display: flex; align-items: center; gap: 12px; padding: 14px;
@@ -141,7 +140,7 @@
     .cc-fill { height: 100%; border-radius: 6px; }
     .cc-name { font-size: 13px; font-weight: 700; color: #1e293b; }
     .cc-count { font-size: 11px; color: #94a3b8; }
-    
+
     .quick-actions { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 16px; }
     .qa-btn {
         display: flex; flex-direction: column; align-items: center; gap: 6px;
@@ -151,9 +150,9 @@
     }
     .qa-btn:hover { background: #e8f5e9; border-color: #c8e6c9; color: #2e7d32; }
     .qa-btn i, .qa-btn .material-symbols-rounded { font-size: 24px; }
-    
+
     .chart-wrap { height: 200px; margin-top: 10px; }
-    
+
     @media (max-width: 992px) {
         .stats-row { grid-template-columns: repeat(2,1fr); }
         .content-grid { grid-template-columns: 1fr; }
@@ -173,7 +172,7 @@
         </div>
         <div style="display:flex;gap:10px;align-items:center;">
             <span style="background:rgba(255,255,255,0.15);padding:8px 16px;border-radius:12px;font-size:13px;font-weight:700;">
-                <i class="material-symbols-rounded" style="font-size:16px;vertical-align:middle;">schedule</i> 
+                <i class="material-symbols-rounded" style="font-size:16px;vertical-align:middle;">schedule</i>
                 {{ \App\Models\SimulationClock::getFormattedTime() }}
             </span>
             <a href="{{ route('simulation.dashboard') }}" class="db-date-btn">

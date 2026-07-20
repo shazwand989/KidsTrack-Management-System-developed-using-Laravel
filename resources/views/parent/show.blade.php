@@ -399,22 +399,15 @@
             <div class="profile-info">
                 <h1>{{ $parent->name }}</h1>
                 <p><span>📞</span> {{ $parent->phone ?? '-' }}</p>
-                <p><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> {{ $parent->user->email ?? 'No email' }}</p>
+                <p><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> {{ $parent->email ?? 'No email' }}</p>
                 
                 <div class="profile-badges">
                     <span class="badge-status">
                         <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">family_restroom</i></span> 
-                        @if($parent->user)
-                            {{ $parent->user->role == 'parent1' ? 'Main Parent' : 'Parent' }}
-                        @else
-                            Main Parent
-                        @endif
+                        {{ $parent->role == 'parent1' ? 'Main Parent' : ($parent->role == 'parent2' ? 'Second Parent' : ($parent->role == 'guardian' ? 'Guardian' : 'Parent')) }}
                     </span>
                     @if($parent->verified)
                         <span class="badge-status"><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified</span>
-                    @endif
-                    @if($parent->emergency)
-                        <span class="badge-status"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i> Emergency</span>
                     @endif
                 </div>
             </div>
@@ -450,7 +443,7 @@
                     </div>
                     <div class="info-row">
                         <div class="info-label"><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> Email</div>
-                        <div class="info-value">{{ $parent->user->email ?? '-' }}</div>
+                        <div class="info-value">{{ $parent->email ?? '-' }}</div>
                     </div>
                     <div class="info-row">
                         <div class="info-label"><span>📊</span> Age</div>
@@ -458,82 +451,14 @@
                     </div>
                     <div class="info-row">
                         <div class="info-label"><span>📞</span> Phone Number</div>
-                        <div class="info-value">{{ $parent->phone ?? '-' }}</div>
+                        <div class="info-value">{{ $parent->phone_number ?? '-' }}</div>
                     </div>
                     <div class="info-row">
                         <div class="info-label"><span>🏠</span> Home Address</div>
                         <div class="info-value">{{ $parent->address ?? '-' }}</div>
                     </div>
                 </div>
-                
-                {{-- SECOND PARENT INFO CARD --}}
-                <div class="info-card">
-                    <div class="info-card-header">
-                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">group</i></span>
-                        <h3>Second Parent Information</h3>
-                    </div>
-                    @if($parent->secondParent)
-                        <div class="info-row">
-                            <div class="info-label"><span>📛</span> Full Name</div>
-                            <div class="info-value">{{ $parent->secondParent->name ?? '-' }}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label"><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> Email</div>
-                            <div class="info-value">{{ $parent->secondParent->user->email ?? '-' }}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label"><span>📊</span> Age</div>
-                            <div class="info-value">{{ $parent->secondParent->age ?? '-' }} years old</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label"><span>📞</span> Phone Number</div>
-                            <div class="info-value">{{ $parent->secondParent->phone ?? '-' }}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label"><span>🏠</span> Address</div>
-                            <div class="info-value">{{ $parent->secondParent->address ?? '-' }}</div>
-                        </div>
-                    @else
-                        <div class="info-row">
-                            <div class="info-value empty-text" style="color:#cbd5e1;">No second parent registered</div>
-                        </div>
-                    @endif
-                </div>
-                
-                {{-- GUARDIAN INFO CARD --}}
-                <div class="info-card">
-                    <div class="info-card-header">
-                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">shield</i></span>
-                        <h3>Guardian Information</h3>
-                    </div>
-                    @if($parent->guardian)
-                        <div class="info-row">
-                            <div class="info-label"><span>📛</span> Full Name</div>
-                            <div class="info-value">{{ $parent->guardian->name ?? '-' }}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label"><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> Email</div>
-                            <div class="info-value">{{ $parent->guardian->user->email ?? '-' }}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label"><span>📊</span> Age</div>
-                            <div class="info-value">{{ $parent->guardian->age ?? '-' }} years old</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label"><span>📞</span> Phone Number</div>
-                            <div class="info-value">{{ $parent->guardian->phone ?? '-' }}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label"><span>🏠</span> Address</div>
-                            <div class="info-value">{{ $parent->guardian->address ?? '-' }}</div>
-                        </div>
-                    @else
-                        <div class="info-row">
-                            <div class="info-value empty-text" style="color:#cbd5e1;">No guardian registered</div>
-                        </div>
-                    @endif
-                </div>
-                
+
                 {{-- CHILDREN CARD --}}
                 <div class="info-card">
                     <div class="info-card-header">

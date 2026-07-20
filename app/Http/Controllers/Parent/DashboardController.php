@@ -5,9 +5,6 @@ namespace App\Http\Controllers\Parent;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Child;
-use App\Models\ParentModel;
-use App\Models\SecondParent;
-use App\Models\Guardian;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -22,29 +19,25 @@ class DashboardController extends Controller
         $children = collect();
 
         if (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('id', Auth::id())->first();
-            if ($parent) {
-                $children = $parent->children;
-            } else {
+            $parent = $user;
+            $children = $user->children;
+            if ($children->isEmpty()) {
                 return redirect()->route('profile.edit')->with('error', 'Sila lengkapkan profil anda terlebih dahulu.');
             }
         }
-        
+
         if ($user->role === 'parent2') {
-            $secondParent = SecondParent::where('id', Auth::id())->first();
-            if ($secondParent) {
-                $mainParent = ParentModel::find($secondParent->parent_id);
-                if ($mainParent) $children = $mainParent->children;
-            } else {
+            $secondParent = $user;
+            $children = $user->children;
+            if ($children->isEmpty()) {
                 return redirect()->route('profile.edit')->with('error', 'Sila lengkapkan profil second parent anda.');
             }
         }
-        
+
         if ($user->role === 'guardian') {
-            $guardian = Guardian::where('id', Auth::id())->first();
-            if ($guardian) {
-                $children = $guardian->children;
-            } else {
+            $guardian = $user;
+            $children = $user->children;
+            if ($children->isEmpty()) {
                 return redirect()->route('profile.edit')->with('error', 'Sila lengkapkan profil guardian anda.');
             }
         }
@@ -57,11 +50,11 @@ class DashboardController extends Controller
         $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
         $childIds = $children->pluck('id')->toArray();
         $attendances = Attendance::whereIn('child_id', $childIds)->whereDate('date', $today)->get()->keyBy('child_id');
-        
+
         $attendanceToday = $attendances->filter(function($att) {
             return $att->checkin_time && !$att->checkout_time;
         })->count();
-        
+
         foreach ($children as $child) {
             $att = $attendances->get($child->id);
             if ($att) {

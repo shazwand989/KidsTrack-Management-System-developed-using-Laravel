@@ -358,7 +358,7 @@
                         $badgeClass = 'absent';
                         $badgeIcon = '❌';
                         $badgeText = 'Absent';
-                        
+
                         if (in_array($status, ['checkin', 'present'])) {
                             $badgeClass = 'checkin';
                             $badgeIcon = '✅';
@@ -414,14 +414,9 @@
                     @php
                         $dropOff = $attendance->drop_off_by;
                         if ($dropOff && is_numeric($dropOff)) {
-                            $parent = \App\Models\ParentModel::find($dropOff);
-                            if ($parent) {
-                                $dropOff = $parent->name;
-                            } else {
-                                $user = \App\Models\User::find($dropOff);
-                                if ($user) {
-                                    $dropOff = $user->name;
-                                }
+                            $user = \App\Models\User::find($dropOff);
+                            if ($user) {
+                                $dropOff = $user->name;
                             }
                         }
                     @endphp
@@ -435,14 +430,9 @@
                     @php
                         $pickup = $attendance->pickup_by;
                         if ($pickup && is_numeric($pickup)) {
-                            $parent = \App\Models\ParentModel::find($pickup);
-                            if ($parent) {
-                                $pickup = $parent->name;
-                            } else {
-                                $user = \App\Models\User::find($pickup);
-                                if ($user) {
-                                    $pickup = $user->name;
-                                }
+                            $user = \App\Models\User::find($pickup);
+                            if ($user) {
+                                $pickup = $user->name;
                             }
                         }
                     @endphp

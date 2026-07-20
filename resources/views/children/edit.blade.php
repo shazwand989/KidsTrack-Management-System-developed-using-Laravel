@@ -426,9 +426,9 @@
         @endforeach
         <hr style="margin: 8px 0; border-color: #dbeafe;">
         <strong>Current Child Data:</strong><br>
-        • Parent ID: {{ $child->parent_id }}<br>
-        • Second Parent ID: {{ $child->second_parent_id ?? 'NULL' }}<br>
-        • Guardian ID: {{ $child->guardian_id ?? 'NULL' }}
+        • Parent ID: {{ $child->parent?->id }}<br>
+        • Second Parent ID: {{ $child->secondParent?->id ?? 'NULL' }}<br>
+        • Guardian ID: {{ $child->guardian?->id ?? 'NULL' }}
     </div>
 
     {{-- Breadcrumb --}}
@@ -607,7 +607,7 @@
                     @endforeach
                 </div>
             </div>
-            <input type="hidden" name="parent_id" id="parent_id" value="{{ old('parent_id', $child->parent_id) }}">
+            <input type="hidden" name="parent_id" id="parent_id" value="{{ old('parent_id', $child->parent?->id) }}">
             @error('parent_id')<span class="invalid-msg">{{ $message }}</span>@enderror
         </div>
 
@@ -652,7 +652,7 @@
                 </div>
             </div>
             <!-- 🔥 Hidden input untuk simpan parent_id (BUKAN second_parents.id!) -->
-            <input type="hidden" name="second_parent_id" id="second_parent_id" value="{{ old('second_parent_id', $child->second_parent_id) }}">
+            <input type="hidden" name="second_parent_id" id="second_parent_id" value="{{ old('second_parent_id', $child->secondParent?->id) }}">
             <div class="text-muted" id="secondParentHint">💡 Pilih Main Parent dahulu untuk melihat Second Parent yang berkaitan.</div>
         </div>
 
@@ -696,7 +696,7 @@
                     <div id="guardianList"></div>
                 </div>
             </div>
-            <input type="hidden" name="guardian_id" id="guardian_id" value="{{ old('guardian_id', $child->guardian_id) }}">
+            <input type="hidden" name="guardian_id" id="guardian_id" value="{{ old('guardian_id', $child->guardian?->id) }}">
             <div class="text-muted" id="guardianHint">💡 Pilih Main Parent dahulu untuk melihat Guardian yang berkaitan.</div>
         </div>
     </div>
@@ -824,7 +824,7 @@
         document.getElementById('parent_id').value = id;
         document.getElementById('parentName').innerHTML = name;
         document.getElementById('parentDetail').innerHTML = `<span>📞 ${phone}</span><span class="guardian-badge">Main Parent</span>`;
-        
+
         const avatarDiv = document.getElementById('parentAvatar');
         if (photo) {
             avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
@@ -832,7 +832,7 @@
             avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
         }
         document.getElementById('parentDropdown').style.display = 'none';
-        
+
         console.log('Selected Parent ID:', parentId);
         populateSecondParents(parentId);
         populateGuardians(parentId);
@@ -844,13 +844,13 @@
     function populateSecondParents(parentId) {
         const listContainer = document.getElementById('secondParentList');
         const hint = document.getElementById('secondParentHint');
-        
+
         console.log('Populating Second Parents for Parent ID:', parentId);
-        
+
         const filtered = allSecondParents.filter(sp => sp.parent_id == parentId);
-        
+
         console.log('Filtered Second Parents:', filtered);
-        
+
         if (filtered.length > 0) {
             let html = '';
             filtered.forEach(sp => {
@@ -879,7 +879,7 @@
             `;
             hint.innerHTML = '💡 No Second Parent found for this Main Parent.';
         }
-        
+
         // Reset second parent selection if current selection doesn't belong to this parent
         const currentSecondParentId = document.getElementById('second_parent_id').value;
         const stillValid = filtered.some(sp => sp.parent_id == currentSecondParentId);
@@ -897,13 +897,13 @@
     function populateGuardians(parentId) {
         const listContainer = document.getElementById('guardianList');
         const hint = document.getElementById('guardianHint');
-        
+
         console.log('Populating Guardians for Parent ID:', parentId);
-        
+
         const filtered = allGuardians.filter(g => g.parent_id == parentId);
-        
+
         console.log('Filtered Guardians:', filtered);
-        
+
         if (filtered.length > 0) {
             let html = '';
             filtered.forEach(g => {
@@ -932,7 +932,7 @@
             `;
             hint.innerHTML = '💡 No Guardian found for this Main Parent.';
         }
-        
+
         // Reset guardian selection if current selection doesn't belong to this parent
         const currentGuardianId = document.getElementById('guardian_id').value;
         const stillValid = filtered.some(g => g.id == currentGuardianId);
@@ -950,7 +950,7 @@
 function selectSecondParent(id, name, phone, photo) {
     // Cari second parent dalam allSecondParents
     const sp = allSecondParents.find(item => item.id == id);
-    
+
     if (sp) {
         // 🔥🔥🔥 GUNA sp.parent_id (BUKAN sp.id!) 🔥🔥🔥
         document.getElementById('second_parent_id').value = sp.parent_id;
@@ -962,7 +962,7 @@ function selectSecondParent(id, name, phone, photo) {
     } else {
         document.getElementById('second_parent_id').value = '';
     }
-    
+
     if (id === '' || !sp) {
         document.getElementById('secondParentName').innerHTML = '-- None / Skip --';
         document.getElementById('secondParentDetail').innerHTML = '<span>📞 No second parent selected</span>';
@@ -1008,10 +1008,10 @@ function selectSecondParent(id, name, phone, photo) {
     document.addEventListener('DOMContentLoaded', function() {
         // Get current parent ID
         const currentParentId = document.getElementById('parent_id').value;
-        
+
         if (currentParentId) {
             console.log('Initializing with Parent ID:', currentParentId);
-            
+
             // Get parent name from dropdown
             const parentOption = document.querySelector(`#parentDropdown .guardian-option[onclick*="selectParent(${currentParentId}"]`);
             if (parentOption) {
@@ -1025,7 +1025,7 @@ function selectSecondParent(id, name, phone, photo) {
                 populateGuardians(currentParentId);
             }
         }
-        
+
         // 🔥 Check if second parent is already selected and display correctly
         const secondParentId = document.getElementById('second_parent_id').value;
         if (secondParentId) {

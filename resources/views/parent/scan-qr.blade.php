@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Child;
 use App\Models\Attendance;
-use App\Models\ParentModel;
 use App\Services\TelegramService;
 
 class QRScanController extends Controller
@@ -34,23 +33,23 @@ class QRScanController extends Controller
         try {
             $qrData = $request->input('qr_data');
             $parentId = $request->input('parent_id');
-            
+
             // If QR data provided, find parent from QR
             if ($qrData) {
                 $child = Child::where('qr_code', $qrData)->first();
                 if ($child) {
-                    $parentId = $child->parent_id;
+                    $parentId = $child->parent?->id;
                 }
             }
-            
+
             // If no parent_id, get first parent
             if (!$parentId) {
-                $firstParent = ParentModel::first();
+                $firstParent = \App\Models\User::where('role', 'parent1')->first();
                 if ($firstParent) {
                     $parentId = $firstParent->id;
                 }
             }
-            
+
             if (!$parentId) {
                 return response()->json([
                     'status' => 'error',
@@ -59,8 +58,10 @@ class QRScanController extends Controller
                 ]);
             }
 
-            $children = Child::where('parent_id', $parentId)->get();
-            
+            $children = Child::whereHas('guardianships', function($q) use ($parentId) {
+                $q->where('user_id', $parentId);
+            })->get();
+
             if ($children->isEmpty()) {
                 return response()->json([
                     'status' => 'error',
@@ -82,7 +83,7 @@ class QRScanController extends Controller
                     ];
                 })
             ]);
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
@@ -117,14 +118,14 @@ class QRScanController extends Controller
             }
 
             // Send Telegram notification to parent
-            $parent = ParentModel::find($parentId);
-            if ($parent && $parent->telegram_notification && $parent->telegram_id) {
+            $parent = \App\Models\User::find($parentId);
+            if ($parent && $parent->telegram_chat_id) {
                 $childNames = Child::whereIn('id', $childIds)->pluck('name')->join(', ');
-                $message = $action === 'checkin' 
+                $message = $action === 'checkin'
                     ? "🧸 KidsTrack Check-in Alert\n\n<i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i> Children: {$childNames}\n<i class="fas fa-check-circle" style="font-size:10px;"></i> Checked-in at: " . now()->format('h:i A') . "\n<i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">calendar_month</i> Date: " . now()->format('d M Y')
                     : "🧸 KidsTrack Check-out Alert\n\n<i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i> Children: {$childNames}\n<i class="fas fa-check-circle" style="font-size:10px;"></i> Checked-out at: " . now()->format('h:i A') . "\n<i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">calendar_month</i> Date: " . now()->format('d M Y');
-                
-                $this->telegram->sendMessage($parent->telegram_id, $message);
+
+                $this->telegram->sendMessage($parent->telegram_chat_id, $message);
             }
 
             return response()->json([
@@ -159,7 +160,7 @@ class QRScanController extends Controller
         $attendance = Attendance::where('child_id', $childId)
             ->whereDate('date', today())
             ->first();
-        
+
         if ($attendance) {
             $attendance->update([
                 'status' => 'checkin',
@@ -186,7 +187,7 @@ class QRScanController extends Controller
         $attendance = Attendance::where('child_id', $childId)
             ->whereDate('date', today())
             ->first();
-        
+
         if ($attendance) {
             $attendance->update([
                 'status' => 'checkout',

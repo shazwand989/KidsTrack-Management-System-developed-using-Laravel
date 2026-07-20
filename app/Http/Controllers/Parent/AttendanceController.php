@@ -5,9 +5,6 @@ namespace App\Http\Controllers\Parent;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Child;
-use App\Models\ParentModel;
-use App\Models\SecondParent;
-use App\Models\Guardian;
 use App\Models\SimulationClock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,19 +14,7 @@ class AttendanceController extends Controller
 {
     private function getChildren($user)
     {
-        if (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('id', Auth::id())->first();
-            return $parent ? $parent->children : collect();
-        }
-        if ($user->role === 'parent2') {
-            $sp = SecondParent::where('id', Auth::id())->first();
-            if ($sp && ($mp = ParentModel::find($sp->parent_id))) return $mp->children;
-        }
-        if ($user->role === 'guardian') {
-            $g = Guardian::where('id', Auth::id())->first();
-            return $g ? $g->children : collect();
-        }
-        return collect();
+        return $user->children ?? collect();
     }
 
     public function index()
@@ -108,11 +93,11 @@ class AttendanceController extends Controller
                     'extendedProps' => [
                         'child_name' => $attendance->child->name ?? 'Child',
                         'status' => $status,
-                        'checkin_time' => $attendance->checkin_time 
-                            ? Carbon::parse($attendance->checkin_time)->format('h:i A') 
+                        'checkin_time' => $attendance->checkin_time
+                            ? Carbon::parse($attendance->checkin_time)->format('h:i A')
                             : null,
-                        'checkout_time' => $attendance->checkout_time 
-                            ? Carbon::parse($attendance->checkout_time)->format('h:i A') 
+                        'checkout_time' => $attendance->checkout_time
+                            ? Carbon::parse($attendance->checkout_time)->format('h:i A')
                             : null,
                         'is_late' => in_array($attendance->status, ['late', 'late_checkout']),
                         'color' => $color,

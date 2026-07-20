@@ -2,519 +2,124 @@
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KidsTrack — Cari Anak</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>KidsTrack — Check In/Out</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #FF6B6B, #FF9E7D);
-            min-height: 100vh;
-            padding: 30px 20px;
-        }
-
-        .container { max-width: 500px; margin: 0 auto; }
-
-        .logo { text-align: center; color: white; margin-bottom: 30px; }
-        .logo h1 { font-size: 32px; font-weight: 800; }
-        .logo p   { opacity: 0.85; margin-top: 5px; font-size: 14px; }
-
-        .card {
-            background: white;
-            border-radius: 30px;
-            padding: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-        }
-
-        .section-label {
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 10px;
-            display: block;
-            font-size: 15px;
-        }
-
-        /* Search box */
-        .search-box {
-            display: flex;
-            align-items: center;
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 12px 16px;
-            gap: 10px;
-            transition: border 0.2s;
-            position: relative;
-        }
-        .search-box:focus-within { border-color: #FF6B6B; }
-        .search-box input {
-            flex: 1;
-            border: none;
-            background: none;
-            font-size: 16px;
-            outline: none;
-            font-family: 'Inter', sans-serif;
-            color: #1e293b;
-        }
-
-        /* Dropdown results */
-        .dropdown {
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0; right: 0;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-            z-index: 100;
-            overflow: hidden;
-            display: none;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .dropdown.show { display: block; }
-
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 15px;
-            cursor: pointer;
-            transition: background 0.15s;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .dropdown-item:last-child { border-bottom: none; }
-        .dropdown-item:hover { background: #FFF5F2; }
-        .dropdown-item.selected { background: #FFF5F2; }
-
-        .avatar {
-            width: 44px; height: 44px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #FF6B6B, #FF9E7D);
-            display: flex; align-items: center; justify-content: center;
-            color: white; font-size: 18px; font-weight: 800;
-            overflow: hidden; flex-shrink: 0;
-        }
-        .avatar img { width: 100%; height: 100%; object-fit: cover; }
-
-        .item-info .name { font-weight: 700; color: #1e293b; font-size: 14px; }
-        .item-info .meta { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-
-        .hint-text {
-            padding: 15px;
-            text-align: center;
-            color: #cbd5e1;
-            font-size: 13px;
-        }
-
-        /* Selected child display */
-        .selected-child {
-            display: none;
-            align-items: center;
-            gap: 12px;
-            background: #FFF5F2;
-            border: 2px solid #FF6B6B;
-            border-radius: 16px;
-            padding: 12px 15px;
-            margin-top: 10px;
-        }
-        .selected-child.show { display: flex; }
-        .selected-child .info .name { font-weight: 700; color: #1e293b; }
-        .selected-child .info .meta { font-size: 12px; color: #94a3b8; }
-        .clear-btn {
-            margin-left: auto;
-            background: none;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            font-size: 18px;
-            padding: 4px;
-        }
-
-        /* Phone section */
-        .phone-section {
-            display: none;
-            margin-top: 20px;
-        }
-        .phone-section.show { display: block; }
-
-        .phone-box {
-            display: flex;
-            align-items: center;
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 12px 16px;
-            gap: 10px;
-            transition: border 0.2s;
-            margin-bottom: 12px;
-        }
-        .phone-box:focus-within { border-color: #FF6B6B; }
-        .phone-box input {
-            flex: 1;
-            border: none;
-            background: none;
-            font-size: 16px;
-            outline: none;
-            font-family: 'Inter', sans-serif;
-            color: #1e293b;
-        }
-
-        .btn-submit {
-            width: 100%;
-            border: none;
-            padding: 15px;
-            border-radius: 16px;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            background: linear-gradient(135deg, #FF6B6B, #FF9E7D);
-            color: white;
-            box-shadow: 0 4px 15px rgba(255,107,107,0.3);
-            transition: all 0.2s;
-        }
-        .btn-submit:active { transform: translateY(-2px); }
-        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .error-msg {
-            background: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
-            border-radius: 12px;
-            padding: 10px 14px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-top: 10px;
-            display: none;
-            text-align: center;
-        }
-        .error-msg.show { display: block; }
-
-        .footer-note {
-            text-align: center;
-            padding: 20px;
-            color: white;
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
-        .divider {
-            border: none;
-            border-top: 1px solid #f0f0f0;
-            margin: 20px 0;
-        }
-        
-        .loading-spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #FF6B6B;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
+        * { margin:0;padding:0;box-sizing:border-box; }
+        body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#FF6B6B,#FF9E7D);min-height:100vh;padding:30px 15px;}
+        .container{max-width:440px;margin:0 auto;}
+        .logo{text-align:center;color:white;margin-bottom:24px;}
+        .logo h1{font-size:28px;font-weight:800;}
+        .logo p{opacity:.85;margin-top:4px;font-size:14px;}
+        .card{background:white;border-radius:24px;padding:24px;box-shadow:0 20px 40px rgba(0,0,0,.15);margin-bottom:14px;}
+        .step-label{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#94a3b8;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+        .input-group{margin-bottom:14px;}
+        .input-group label{display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:5px;}
+        .input-box{display:flex;align-items:center;background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:12px 14px;gap:10px;transition:border .2s;}
+        .input-box:focus-within{border-color:#FF6B6B;}
+        .input-box input{flex:1;border:none;background:none;font-size:16px;outline:none;font-family:'Inter',sans-serif;color:#1e293b;}
+        .btn{width:100%;border:none;padding:14px;border-radius:14px;font-weight:800;font-size:15px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+        .btn-primary{background:linear-gradient(135deg,#FF6B6B,#FF9E7D);color:white;box-shadow:0 4px 15px rgba(255,107,107,.3);}
+        .btn-primary:hover{transform:translateY(-1px);}
+        .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+        .error-msg{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;text-align:center;display:none;margin-top:10px;}
+        .error-msg.show{display:block;}
+        .success-msg{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;text-align:center;display:none;margin-bottom:14px;}
+        .success-msg.show{display:block;}
+        .children-section{display:none;}
+        .children-section.show{display:block;}
+        .parent-info{background:#f0f9ff;border-radius:12px;padding:12px;margin-bottom:14px;text-align:center;font-weight:700;color:#0369a1;font-size:14px;}
+        .child-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;border:2px solid #f1f5f9;cursor:pointer;transition:all .2s;margin-bottom:8px;}
+        .child-item:hover{border-color:#3b82f6;background:#eff6ff;}
+        .child-item.selected{border-color:#16a34a;background:#f0fdf4;}
+        .child-avatar{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#FF6B6B,#FF9E7D);display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:800;flex-shrink:0;}
+        .child-info{flex:1;}
+        .child-name{font-weight:800;color:#1e293b;font-size:15px;}
+        .child-meta{font-size:11px;color:#94a3b8;}
+        .check-icon{color:#16a34a;font-size:20px;display:none;}
+        .child-item.selected .check-icon{display:block;}
+        .status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+        .status-checkin{background:#dcfce7;color:#16a34a;}
+        .footer{text-align:center;color:white;font-size:12px;opacity:.8;padding:10px;}
+        .spinner{display:inline-block;width:16px;height:16px;border:2px solid #f3f3f3;border-top:2px solid #FF6B6B;border-radius:50%;animation:spin .8s linear infinite;}
+        @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
     </style>
 </head>
 <body>
 <div class="container">
-
-    <div class="logo">
-        <h1>🏫 KidsTrack</h1>
-        <p>Check in / Check out anak anda</p>
+    <div class="logo"><h1><i class="fas fa-school"></i> KidsTrack</h1><p>Check In / Check Out — Sahkan Identiti</p></div>
+    <div class="card" id="verifyCard">
+        <div class="step-label"><i class="fas fa-id-card"></i> Sahkan Identiti Ibu Bapa</div>
+        <div class="success-msg" id="successMsg"></div>
+        <div class="error-msg" id="errorMsg"></div>
+        <div class="input-group"><label><i class="fas fa-id-card"></i> IC Number</label><div class="input-box"><i class="fas fa-id-card" style="font-size:18px;color:#94a3b8;"></i><input type="text" id="icInput" placeholder="YYMMDD-BP-####" maxlength="14" autocomplete="off" autofocus></div></div>
+        <div class="input-group"><label><i class="fas fa-mobile-alt"></i> Phone Number</label><div class="input-box"><i class="fas fa-mobile-alt" style="font-size:18px;color:#94a3b8;"></i><input type="tel" id="phoneInput" placeholder="0123456789" autocomplete="tel"></div></div>
+        <button class="btn btn-primary" id="verifyBtn" onclick="verifyIdentity()"><i class="fas fa-lock-open"></i> Sahkan & Cari Anak</button>
     </div>
-
-    <div class="card">
-
-        {{-- STEP 1: Cari nama anak --}}
-        <span class="section-label">👶 Step 1: Cari Nama Anak</span>
-
-        <div class="search-box" id="searchWrap">
-            <span style="font-size:20px">🔍</span>
-            <input
-                type="text"
-                id="searchInput"
-                placeholder="Taip nama anak..."
-                autocomplete="off"
-                autofocus
-                onkeyup="searchChild(this.value)"
-            >
-            <span id="loadingIcon" style="display:none"><div class="loading-spinner"></div></span>
-
-            <div class="dropdown" id="dropdown"></div>
-        </div>
-
-        {{-- Selected child --}}
-        <div class="selected-child" id="selectedChild">
-            <div class="avatar" id="selectedAvatar"></div>
-            <div class="info">
-                <div class="name" id="selectedName"></div>
-                <div class="meta" id="selectedMeta"></div>
-            </div>
-            <button class="clear-btn" onclick="clearSelection()">✕</button>
-        </div>
-
-        <hr class="divider" id="divider" style="display:none">
-
-        {{-- STEP 2: Masuk no phone --}}
-        <div class="phone-section" id="phoneSection">
-            <span class="section-label">📱 Step 2: Masukkan No Telefon Ibu Bapa</span>
-
-            <div class="phone-box">
-                <span style="font-size:20px">📱</span>
-                <input
-                    type="tel"
-                    id="phoneInput"
-                    placeholder="Contoh: 0123456789"
-                    autocomplete="tel"
-                >
-            </div>
-
-            <div class="error-msg" id="errorMsg"></div>
-
-            <button class="btn-submit" id="submitBtn" onclick="submitVerify()">
-                🔓 Sahkan & Teruskan
-            </button>
-        </div>
-
+    <div class="card children-section" id="childrenCard">
+        <div class="step-label"><i class="fas fa-child"></i> Pilih Anak Untuk Check In</div>
+        <div class="parent-info" id="parentInfo"></div>
+        <div id="childrenList"></div>
+        <button class="btn btn-primary" id="checkinBtn" onclick="submitCheckin()" style="margin-top:12px;"><i class="fas fa-check-circle"></i> Check In Anak Dipilih</button>
     </div>
-
-    <div class="footer-note">
-        🔒 Sistem check in/out selamat — KidsTrack
-    </div>
-
+    <div class="footer"><i class="fas fa-shield-alt"></i> Sistem selamat — KidsTrack SAFECARE</div>
 </div>
-
 <script>
-    // Global variables
-    let selectedChildId = null;
-    let selectedChildName = null;
-    let typingTimer;
-    
-    const searchUrl = window.location.origin + '/attendance-scan/search/results';
-    const verifyUrl = window.location.origin + '/attendance-scan/child';
-    const csrfToken = '{{ csrf_token() }}';
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+let verifiedParentId = null;
+let childrenData = [];
 
-    // MAIN SEARCH FUNCTION - FIXED VERSION
-    function searchChild(query) {
-        // Clear timeout
-        clearTimeout(typingTimer);
-        
-        // Get elements
-        const dropdown = document.getElementById('dropdown');
-        const loadingIcon = document.getElementById('loadingIcon');
-        
-        if (query.length < 2) {
-            dropdown.classList.remove('show');
-            dropdown.innerHTML = '';
-            return;
-        }
-        
-        // Show loading
-        loadingIcon.style.display = 'inline-block';
-        
-        // Wait for user to stop typing
-        typingTimer = setTimeout(async () => {
-            try {
-                // Build URL
-                const url = searchUrl + '?q=' + encodeURIComponent(query);
-                console.log('Fetching:', url);
-                
-                // Fetch data
-                const response = await fetch(url, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
-                }
-                
-                const data = await response.json();
-                console.log('Data received:', data);
-                
-                // Hide loading
-                loadingIcon.style.display = 'none';
-                
-                // Generate HTML
-                let html = '';
-                
-                if (data.length === 0) {
-                    html = '<div class="hint-text">😕 Tiada anak dijumpai</div>';
-                } else {
-                    data.forEach(child => {
-                        html += `
-                            <div class="dropdown-item" onclick="selectChild(${child.id}, '${escapeJS(child.name)}', '${escapeJS(child.classroom)}', ${child.age}, '${escapeJS(child.initial)}', '${escapeJS(child.photo || '')}')">
-                                <div class="avatar">
-                                    ${child.photo ? `<img src="${child.photo}" alt="${escapeHTML(child.name)}">` : escapeHTML(child.initial || child.name.charAt(0))}
-                                </div>
-                                <div class="item-info">
-                                    <div class="name">${escapeHTML(child.name)}</div>
-                                    <div class="meta">🏫 ${escapeHTML(child.classroom)} • 👶 ${child.age} thn</div>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-                
-                dropdown.innerHTML = html;
-                dropdown.classList.add('show');
-                
-            } catch (error) {
-                console.error('Search error:', error);
-                loadingIcon.style.display = 'none';
-                const dropdown = document.getElementById('dropdown');
-                dropdown.innerHTML = '<div class="hint-text">⚠️ Ralat: ' + error.message + '</div>';
-                dropdown.classList.add('show');
-            }
-        }, 500);
-    }
-    
-    // Helper functions
-    function escapeHTML(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-    
-    function escapeJS(str) {
-        if (!str) return '';
-        return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
-    }
-    
-    // Select child function
-    function selectChild(id, name, classroom, age, initial, photo) {
-        selectedChildId = id;
-        selectedChildName = name;
-        
-        // Update UI
-        const avatar = document.getElementById('selectedAvatar');
-        if (photo) {
-            avatar.innerHTML = `<img src="${photo}" alt="${escapeHTML(name)}">`;
-        } else {
-            avatar.innerHTML = escapeHTML(initial || name.charAt(0).toUpperCase());
-        }
-        
-        document.getElementById('selectedName').textContent = name;
-        document.getElementById('selectedMeta').textContent = `🏫 ${classroom} • 👶 ${age} thn`;
-        
-        // Show selected child section
-        document.getElementById('selectedChild').classList.add('show');
-        document.getElementById('searchInput').value = name;
-        document.getElementById('dropdown').classList.remove('show');
-        
-        // Show phone section
-        document.getElementById('divider').style.display = 'block';
-        document.getElementById('phoneSection').classList.add('show');
-        document.getElementById('phoneInput').focus();
-        
-        hideError();
-    }
-    
-    // Clear selection
-    function clearSelection() {
-        selectedChildId = null;
-        selectedChildName = null;
-        document.getElementById('searchInput').value = '';
-        document.getElementById('selectedChild').classList.remove('show');
-        document.getElementById('phoneSection').classList.remove('show');
-        document.getElementById('divider').style.display = 'none';
-        document.getElementById('phoneInput').value = '';
-        hideError();
-        document.getElementById('searchInput').focus();
-    }
-    
-    // Submit verification
-    async function submitVerify() {
-        const phone = document.getElementById('phoneInput').value.trim();
-        
-        if (!selectedChildId) {
-            showError('Sila pilih anak dahulu.');
-            return;
-        }
-        
-        if (!phone) {
-            showError('Sila masukkan no telefon.');
-            return;
-        }
-        
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = true;
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = '⏳ Mengesahkan...';
-        hideError();
-        
-        try {
-            const response = await fetch(`${verifyUrl}/${selectedChildId}/verify`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ phone: phone })
-            });
-            
-            const data = await response.json();
-            console.log('Verify response:', data);
-            
-            if (data.success) {
-                window.location.href = `${verifyUrl}/${selectedChildId}`;
-            } else {
-                showError(data.message || 'No telefon tidak sepadan. Cuba semula.');
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-            }
-        } catch (error) {
-            console.error('Verify error:', error);
-            showError('Ralat sambungan. Cuba semula.');
-            submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
-        }
-    }
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        const searchWrap = document.getElementById('searchWrap');
-        if (searchWrap && !searchWrap.contains(e.target)) {
-            document.getElementById('dropdown').classList.remove('show');
-        }
+function hideMsg(){document.getElementById('errorMsg').classList.remove('show');document.getElementById('successMsg').classList.remove('show');}
+function showErr(m){const e=document.getElementById('errorMsg');e.innerHTML='<i class=\"fas fa-exclamation-triangle\"></i> '+m;e.classList.add('show');document.getElementById('successMsg').classList.remove('show');}
+function showOk(m){const e=document.getElementById('successMsg');e.innerHTML='<i class=\"fas fa-check-circle\"></i> '+m;e.classList.add('show');document.getElementById('errorMsg').classList.remove('show');}
+
+async function verifyIdentity(){
+    const ic=document.getElementById('icInput').value.trim();
+    const phone=document.getElementById('phoneInput').value.trim();
+    const btn=document.getElementById('verifyBtn');
+    if(!ic||ic.replace(/[^0-9]/g,'').length<12){showErr('Sila masukkan IC number lengkap (12 digit).');return;}
+    if(!phone||phone.replace(/[^0-9]/g,'').length<7){showErr('Sila masukkan nombor telefon yang sah.');return;}
+    hideMsg();btn.disabled=true;btn.innerHTML='<span class=\"spinner\"></span> Mengesahkan...';
+    try{
+        const r=await fetch('/attendance-scan/verify-parent',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrfToken,'Accept':'application/json'},body:JSON.stringify({ic:ic,phone:phone})});
+        const d=await r.json();
+        if(!d.success){showErr(d.message||'Gagal. Semak IC & telefon.');btn.disabled=false;btn.innerHTML='<i class=\"fas fa-lock-open\"></i> Sahkan & Cari Anak';return;}
+        verifiedParentId=d.parent_id;childrenData=d.children||[];
+        if(childrenData.length===0){showErr('Tiada anak berdaftar.');btn.disabled=false;btn.innerHTML='<i class=\"fas fa-lock-open\"></i> Sahkan & Cari Anak';return;}
+        document.getElementById('parentInfo').innerHTML = '<i class=\"fas fa-user\"></i> ' + d.parent_name + ' &mdash; ' + childrenData.length + ' anak';
+        renderChildren();document.getElementById('childrenCard').classList.add('show');
+        showOk('Identiti disahkan! Pilih anak untuk check-in.');
+        btn.disabled=false;btn.innerHTML='<i class=\"fas fa-check-circle\"></i> Disahkan';btn.style.background='#16a34a';
+    }catch(e){showErr('Ralat: '+e.message);btn.disabled=false;btn.innerHTML='<i class=\"fas fa-lock-open\"></i> Sahkan & Cari Anak';}
+}
+
+function renderChildren(){
+    const c=document.getElementById('childrenList');let h='';
+    childrenData.forEach((ch,i)=>{
+        const badge=ch.checked_in?'<span class="status-badge status-checkin"><i class="fas fa-check-circle"></i> Checked In</span>':'';
+        const dis=ch.checked_in?' style="opacity:0.5;pointer-events:none;"':'';
+        h+=`<div class="child-item" onclick="toggleChild(${i})"${dis} data-index="${i}"><div class="child-avatar">${ch.initial}</div><div class="child-info"><div class="child-name">${ch.name} ${badge}</div><div class="child-meta"><i class="fas fa-school"></i> ${ch.classroom} &bull; <i class="fas fa-child"></i> ${ch.age} thn</div></div><span class="check-icon"><i class="fas fa-check-circle"></i></span></div>`;
     });
-    
-    // Enter key on phone input
-    document.getElementById('phoneInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') submitVerify();
-    });
-    
-    // Error handling
-    function showError(msg) {
-        const errorMsg = document.getElementById('errorMsg');
-        errorMsg.textContent = '⚠️ ' + msg;
-        errorMsg.classList.add('show');
-        setTimeout(() => {
-            errorMsg.classList.remove('show');
-        }, 5000);
-    }
-    
-    function hideError() {
-        document.getElementById('errorMsg').classList.remove('show');
-    }
+    c.innerHTML=h;
+}
+
+function toggleChild(i){const el=document.querySelector('.child-item[data-index="'+i+'"]');if(!el||childrenData[i].checked_in)return;el.classList.toggle('selected');}
+
+async function submitCheckin(){
+    const sel=document.querySelectorAll('.child-item.selected');
+    if(sel.length===0){showErr('Sila pilih sekurang-kurangnya seorang anak.');return;}
+    const ids=[];sel.forEach(e=>ids.push(childrenData[e.dataset.index].id));
+    const btn=document.getElementById('checkinBtn');btn.disabled=true;btn.innerHTML='<span class=\"spinner\"></span> Mendaftar...';hideMsg();
+    try{
+        const r=await fetch('/attendance-scan/bulk-checkin',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrfToken,'Accept':'application/json'},body:JSON.stringify({parent_id:verifiedParentId,child_ids:ids})});
+        const d=await r.json();
+        if(d.success){showOk('Check-in berjaya untuk '+d.count+' anak!');childrenData=d.children||childrenData;renderChildren();btn.innerHTML='<i class=\"fas fa-check-circle\"></i> Selesai';btn.style.background='#16a34a';}
+        else{showErr(d.message||'Gagal.');btn.disabled=false;btn.innerHTML='<i class=\"fas fa-check-circle\"></i> Check In Anak Dipilih';}
+    }catch(e){showErr('Ralat: '+e.message);btn.disabled=false;btn.innerHTML='<i class=\"fas fa-check-circle\"></i> Check In Anak Dipilih';}
+}
 </script>
-
 </body>
 </html>

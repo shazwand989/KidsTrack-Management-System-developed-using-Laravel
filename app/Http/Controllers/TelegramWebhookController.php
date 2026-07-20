@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\ParentModel;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -13,7 +12,7 @@ class TelegramWebhookController extends Controller
     public function handle(Request $request)
     {
         $update = $request->all();
-        
+
         // Only handle messages
         if (!isset($update['message'])) {
             return response()->json(['status' => 'ok']);
@@ -23,7 +22,7 @@ class TelegramWebhookController extends Controller
         $chatId = $message['chat']['id'] ?? null;
         $text = $message['text'] ?? '';
         $firstName = $message['from']['first_name'] ?? 'User';
-        
+
         if (!$chatId) {
             return response()->json(['status' => 'ok']);
         }
@@ -35,7 +34,7 @@ class TelegramWebhookController extends Controller
             // Check if already linked
             $existing = User::where('telegram_chat_id', $chatId)->first();
             if ($existing) {
-                $telegram->sendMessage($chatId, 
+                $telegram->sendMessage($chatId,
                     "✅ Hello {$firstName}! You are already linked as *{$existing->name}*.\n\nYou will receive late check-in/check-out notifications here.\n\nType /status to see today's attendance."
                 );
                 return response()->json(['status' => 'ok']);
@@ -84,42 +83,40 @@ class TelegramWebhookController extends Controller
         $telegram->sendMessage($chatId,
             "🤔 I didn't understand that. Type /start to begin."
         );
-        
+
         return response()->json(['status' => 'ok']);
     }
 
     private function linkUserByPhone($chatId, $phone, TelegramService $telegram)
     {
-        // Search in parents table
-        $parent = ParentModel::where('phone', 'like', '%' . substr($phone, -7) . '%')->first();
-        
-        if ($parent && $parent->user_id) {
-            $user = User::find($parent->user_id);
-            if ($user) {
-                $user->update(['telegram_chat_id' => $chatId]);
-                $telegram->sendMessage($chatId,
-                    "✅ Account linked! Welcome *{$parent->name}*!\n\n"
-                    . "You will now receive late check-in/check-out notifications for your child(ren).\n\n"
-                    . "Commands:\n"
-                    . "/status - Check today's attendance\n"
-                    . "/help - Show help"
-                );
-                return true;
-            }
+        // Search in users table for parent role
+        $parent = User::whereIn('role', ['parent', 'parent1'])
+            ->where('phone_number', 'like', '%' . substr($phone, -7) . '%')
+            ->first();
+
+        if ($parent) {
+            $parent->update(['telegram_chat_id' => $chatId]);
+            $telegram->sendMessage($chatId,
+                "✅ Account linked! Welcome *{$parent->name}*!\n\n"
+                . "You will now receive late check-in/check-out notifications for your child(ren).\n\n"
+                . "Commands:\n"
+                . "/status - Check today's attendance\n"
+                . "/help - Show help"
+            );
+            return true;
         }
 
-        // Search in guardians table
-        $guardian = \App\Models\Guardian::where('phone', 'like', '%' . substr($phone, -7) . '%')->first();
-        if ($guardian && $guardian->user_id) {
-            $user = User::find($guardian->user_id);
-            if ($user) {
-                $user->update(['telegram_chat_id' => $chatId]);
-                $telegram->sendMessage($chatId,
-                    "✅ Account linked! Welcome *{$guardian->name}*!\n\n"
-                    . "You will now receive notifications for your linked child(ren)."
-                );
-                return true;
-            }
+        // Search in users table for guardian role
+        $guardian = User::where('role', 'guardian')
+            ->where('phone_number', 'like', '%' . substr($phone, -7) . '%')
+            ->first();
+        if ($guardian) {
+            $guardian->update(['telegram_chat_id' => $chatId]);
+            $telegram->sendMessage($chatId,
+                "✅ Account linked! Welcome *{$guardian->name}*!\n\n"
+                . "You will now receive notifications for your linked child(ren)."
+            );
+            return true;
         }
 
         $telegram->sendMessage($chatId,
@@ -131,15 +128,14 @@ class TelegramWebhookController extends Controller
 
     private function sendStatusReport($chatId, $user, TelegramService $telegram)
     {
-        $parent = ParentModel::where('id', $user->id)->first();
-        if (!$parent) {
+        if (!in_array($user->role, ['parent', 'parent1', 'parent2', 'guardian'])) {
             $telegram->sendMessage($chatId, "❌ No parent account linked.");
             return;
         }
 
         $today = \App\Models\SimulationClock::getCurrentTime();
         $todayDate = date('Y-m-d', $today);
-        $children = $parent->children;
+        $children = $user->children;
 
         if ($children->isEmpty()) {
             $telegram->sendMessage($chatId, "👶 No children registered under your account.");
@@ -151,7 +147,7 @@ class TelegramWebhookController extends Controller
             $att = \App\Models\Attendance::where('child_id', $child->id)
                 ->where('date', $todayDate)
                 ->first();
-            
+
             $status = '❓ Unknown';
             $emoji = '❓';
             if (!$att) {

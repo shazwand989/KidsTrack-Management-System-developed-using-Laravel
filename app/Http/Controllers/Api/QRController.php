@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Child;
 use App\Models\Attendance;
-use App\Models\ParentModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
@@ -30,10 +29,10 @@ class QRController extends Controller
         }
 
         $child = Child::find($request->child_id);
-        
+
         // Generate unique QR data
         $qrData = 'KID-' . str_pad($child->id, 4, '0', STR_PAD_LEFT) . '-' . time() . '-' . substr(md5($child->id . time()), 0, 8);
-        
+
         // Call external QR API
         $qrResponse = Http::get('https://api.qrserver.com/v1/create-qr-code/', [
             'size' => '300x300',
@@ -87,7 +86,7 @@ class QRController extends Controller
         }
 
         $qrData = $request->qr_data;
-        
+
         // Parse QR data
         if (!preg_match('/^KID-(\d{4})-(\d+)-([a-f0-9]{8})$/', $qrData, $matches)) {
             return response()->json([
@@ -99,7 +98,7 @@ class QRController extends Controller
 
         $childId = (int)$matches[1];
         $timestamp = (int)$matches[2];
-        
+
         // Check expiry (24 hours)
         if (time() - $timestamp > 86400) {
             return response()->json([
@@ -111,7 +110,7 @@ class QRController extends Controller
 
         // Find child
         $child = Child::with(['parent', 'classroom'])->find($childId);
-        
+
         if (!$child) {
             return response()->json([
                 'status' => 'error',
@@ -176,7 +175,7 @@ class QRController extends Controller
 
         $childId = (int)$matches[1];
         $child = Child::find($childId);
-        
+
         if (!$child) {
             return response()->json([
                 'status' => 'error',
@@ -295,7 +294,7 @@ public function kiosk()
     public function getChildByQR($qrData)
     {
         $child = Child::where('qr_code', $qrData)->with(['parent', 'classroom'])->first();
-        
+
         if (!$child) {
             return response()->json([
                 'status' => 'error',
@@ -335,7 +334,7 @@ public function kiosk()
         $allowedRadius = env('NURSERY_RADIUS', 100); // meters
 
         $distance = $this->calculateDistance($lat, $lng, $nurseryLat, $nurseryLng);
-        
+
         return $distance <= $allowedRadius;
     }
 

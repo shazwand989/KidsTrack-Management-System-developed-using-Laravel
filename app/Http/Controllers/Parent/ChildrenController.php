@@ -5,9 +5,6 @@ namespace App\Http\Controllers\Parent;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\Child;
-use App\Models\ParentModel;
-use App\Models\SecondParent;
-use App\Models\Guardian;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -18,10 +15,10 @@ class ChildrenController extends Controller
         $user = Auth::user();
         $children = $this->getChildren($user);
         $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
-        
+
         $childIds = $children->pluck('id')->toArray();
         $attendances = Attendance::whereIn('child_id', $childIds)->whereDate('date', $today)->get()->keyBy('child_id');
-        
+
         foreach ($children as $child) {
             $att = $attendances->get($child->id);
             if ($att) {
@@ -49,51 +46,21 @@ class ChildrenController extends Controller
         $user = Auth::user();
         $child = $this->findChild($user, $id);
         if (!$child) return redirect()->route('parent.children.index')->with('error', 'Anak tidak ditemui.');
-        
+
         $totalPresent = $child->attendances->whereIn('status', ['present', 'checkin'])->count();
         $totalAbsent = $child->attendances->where('status', 'absent')->count();
         $totalLate = $child->attendances->where('status', 'late')->count();
-        
+
         return view('parent.children.show', compact('child', 'totalPresent', 'totalAbsent', 'totalLate'));
     }
 
     private function getChildren($user)
     {
-        if (in_array($user->role, ['parent', 'parent1'])) {
-            $parent = ParentModel::where('id', Auth::id())->first();
-            return $parent ? $parent->children()->with('classroom')->get() : collect();
-        }
-        if ($user->role === 'parent2') {
-            $sp = SecondParent::where('id', Auth::id())->first();
-            if ($sp) {
-                $mp = ParentModel::find($sp->parent_id);
-                return $mp ? $mp->children()->with('classroom')->get() : collect();
-            }
-        }
-        if ($user->role === 'guardian') {
-            $g = Guardian::where('id', Auth::id())->first();
-            return $g ? $g->children()->with('classroom')->get() : collect();
-        }
-        return collect();
+        return $user->children()->with('classroom')->get();
     }
 
     private function findChild($user, $id)
     {
-        if (in_array($user->role, ['parent', 'parent1'])) {
-            $p = ParentModel::where('id', Auth::id())->first();
-            return $p ? Child::where('parent_id', $p->id)->orWhere('second_parent_id', $p->id)->with(['classroom', 'attendances'])->find($id) : null;
-        }
-        if ($user->role === 'parent2') {
-            $sp = SecondParent::where('id', Auth::id())->first();
-            if ($sp) {
-                $mp = ParentModel::find($sp->parent_id);
-                return $mp ? Child::where('parent_id', $mp->id)->orWhere('second_parent_id', $mp->id)->with(['classroom', 'attendances'])->find($id) : null;
-            }
-        }
-        if ($user->role === 'guardian') {
-            $g = Guardian::where('id', Auth::id())->first();
-            return $g ? Child::where('guardian_id', $g->id)->with(['classroom', 'attendances'])->find($id) : null;
-        }
-        return null;
+        return $user->children()->with(['classroom', 'attendances'])->find($id);
     }
 }

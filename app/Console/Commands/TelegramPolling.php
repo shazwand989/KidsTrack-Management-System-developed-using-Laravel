@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Services\TelegramService;
-use App\Models\ParentModel;
 
 class TelegramPolling extends Command
 {
@@ -35,19 +34,18 @@ class TelegramPolling extends Command
 
                         // Cari email dalam message
                         preg_match('/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/', $text, $matches);
-                        
+
                         if (isset($matches[0])) {
                             $email = $matches[0];
-                            
-                            // Cari parent
-                            $parent = ParentModel::whereHas('user', function($query) use ($email) {
-                                $query->where('email', $email);
-                            })->first();
+
+                            // Cari user dengan role parent
+                            $parent = \App\Models\User::whereIn('role', ['parent', 'parent1'])
+                                ->where('email', $email)
+                                ->first();
 
                             if ($parent) {
                                 $parent->update([
-                                    'telegram_id' => $chatId,
-                                    'telegram_notification' => true,
+                                    'telegram_chat_id' => $chatId,
                                 ]);
 
                                 $this->telegram->sendMessage($chatId, "✅ Email registered successfully! You will receive notifications.");

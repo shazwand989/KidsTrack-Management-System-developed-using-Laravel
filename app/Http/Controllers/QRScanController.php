@@ -1,16 +1,15 @@
-<?php
+﻿<?php
 
 namespace App\Http\Controllers;
 
 use App\Models\Child;
 use App\Models\Attendance;
-use App\Models\ParentModel;
-use App\Models\Guardian;
-use App\Models\SecondParent;
 use App\Models\TimerSetting;
+use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class QRScanController extends Controller
@@ -23,7 +22,7 @@ class QRScanController extends Controller
     }
 
     // ============================================
-    // 🔥 TIMER FUNCTIONS
+    // ðŸ”¥ TIMER FUNCTIONS
     // ============================================
 
     private function getTimerForToday()
@@ -150,16 +149,16 @@ class QRScanController extends Controller
     public static function getRoleDataStatic($role)
     {
         $roleMap = [
-            'parent1' => ['badge_class' => 'main-parent', 'badge_text' => '👨‍👩‍👦 Main Parent', 'icon' => '👨‍👩‍👦', 'display_name' => 'Main Parent', 'name_class' => 'main'],
-            'parent' => ['badge_class' => 'main-parent', 'badge_text' => '👨‍👩‍👦 Main Parent', 'icon' => '👨‍👩‍👦', 'display_name' => 'Main Parent', 'name_class' => 'main'],
-            'parent2' => ['badge_class' => 'second-parent', 'badge_text' => '👫 Second Parent', 'icon' => '👫', 'display_name' => 'Second Parent', 'name_class' => 'second'],
-            'second_parent' => ['badge_class' => 'second-parent', 'badge_text' => '👫 Second Parent', 'icon' => '👫', 'display_name' => 'Second Parent', 'name_class' => 'second'],
-            'guardian' => ['badge_class' => 'guardian', 'badge_text' => '🛡️ Guardian', 'icon' => '🛡️', 'display_name' => 'Guardian', 'name_class' => 'guardian'],
-            'admin' => ['badge_class' => 'admin', 'badge_text' => '👑 Admin', 'icon' => '👑', 'display_name' => 'Admin', 'name_class' => 'admin'],
-            'teacher' => ['badge_class' => 'teacher', 'badge_text' => '👨‍🏫 Teacher', 'icon' => '👨‍🏫', 'display_name' => 'Teacher', 'name_class' => 'teacher'],
+            'parent1' => ['badge_class' => 'main-parent', 'badge_text' => 'ðŸ‘¨â€ðŸ‘©â€ðŸ‘¦ Main Parent', 'icon' => 'ðŸ‘¨â€ðŸ‘©â€ðŸ‘¦', 'display_name' => 'Main Parent', 'name_class' => 'main'],
+            'parent' => ['badge_class' => 'main-parent', 'badge_text' => 'ðŸ‘¨â€ðŸ‘©â€ðŸ‘¦ Main Parent', 'icon' => 'ðŸ‘¨â€ðŸ‘©â€ðŸ‘¦', 'display_name' => 'Main Parent', 'name_class' => 'main'],
+            'parent2' => ['badge_class' => 'second-parent', 'badge_text' => 'ðŸ‘« Second Parent', 'icon' => 'ðŸ‘«', 'display_name' => 'Second Parent', 'name_class' => 'second'],
+            'second_parent' => ['badge_class' => 'second-parent', 'badge_text' => 'ðŸ‘« Second Parent', 'icon' => 'ðŸ‘«', 'display_name' => 'Second Parent', 'name_class' => 'second'],
+            'guardian' => ['badge_class' => 'guardian', 'badge_text' => 'ðŸ›¡ï¸ Guardian', 'icon' => 'ðŸ›¡ï¸', 'display_name' => 'Guardian', 'name_class' => 'guardian'],
+            'admin' => ['badge_class' => 'admin', 'badge_text' => 'ðŸ‘‘ Admin', 'icon' => 'ðŸ‘‘', 'display_name' => 'Admin', 'name_class' => 'admin'],
+            'teacher' => ['badge_class' => 'teacher', 'badge_text' => 'ðŸ‘¨â€ðŸ« Teacher', 'icon' => 'ðŸ‘¨â€ðŸ«', 'display_name' => 'Teacher', 'name_class' => 'teacher'],
         ];
 
-        return $roleMap[$role] ?? ['badge_class' => 'parent', 'badge_text' => '👤 User', 'icon' => '👤', 'display_name' => 'User', 'name_class' => ''];
+        return $roleMap[$role] ?? ['badge_class' => 'parent', 'badge_text' => 'ðŸ‘¤ User', 'icon' => 'ðŸ‘¤', 'display_name' => 'User', 'name_class' => ''];
     }
 
     // ============================================
@@ -183,7 +182,7 @@ class QRScanController extends Controller
             if (!$child) {
                 return response()->json([
                     'success' => false,
-                    'message' => '❌ QR Code tidak sah!'
+                    'message' => 'âŒ QR Code tidak sah!'
                 ], 404);
             }
 
@@ -198,39 +197,22 @@ class QRScanController extends Controller
             $hasCheckin = $existing && $existing->checkin_time;
             $hasCheckout = $existing && $existing->checkout_time;
 
-            $user = auth()->user();
+            /** @var User|null $user */
+            $user = Auth::user();
 
             if ($user) {
                 $hasAccess = false;
 
                 if ($user->role === 'second_parent' || $user->role === 'parent2') {
-                    $hasAccess = true;
+                    $hasAccess = $user->children->contains('id', $child->id);
                 }
 
-                if (!$hasAccess) {
-                    $parent = ParentModel::where('id', $user->id)->first();
-                    if ($parent && $child->parent_id == $parent->id) {
-                        $hasAccess = true;
-                    }
-                }
-
-                if (!$hasAccess) {
-                    $secondParent = SecondParent::where('id', $user->id)->first();
-                    if ($secondParent) {
-                        $childSecondParent = Child::where('id', $child->id)
-                            ->where('second_parent_id', $secondParent->parent_id)
-                            ->first();
-                        if ($childSecondParent) {
-                            $hasAccess = true;
-                        }
-                    }
+                if (!$hasAccess && in_array($user->role, ['parent', 'parent1'])) {
+                    $hasAccess = $user->children->contains('id', $child->id);
                 }
 
                 if (!$hasAccess && $user->role === 'guardian') {
-                    $guardian = Guardian::where('id', $user->id)->first();
-                    if ($guardian && $child->guardian_id == $guardian->id) {
-                        $hasAccess = true;
-                    }
+                    $hasAccess = $user->children->contains('id', $child->id);
                 }
 
                 if (!$hasAccess && in_array($user->role, ['admin', 'teacher'])) {
@@ -240,7 +222,7 @@ class QRScanController extends Controller
                 if (!$hasAccess) {
                     return response()->json([
                         'success' => false,
-                        'message' => '❌ Anda tidak mempunyai akses ke anak ini!'
+                        'message' => 'âŒ Anda tidak mempunyai akses ke anak ini!'
                     ], 403);
                 }
             }
@@ -282,26 +264,16 @@ class QRScanController extends Controller
     {
         try {
             $child = Child::with(['parent', 'classroom'])->findOrFail($childId);
-            $user = auth()->user();
+            /** @var User|null $user */
+            $user = Auth::user();
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
             $now = Carbon::now('Asia/Kuala_Lumpur');
 
             // Cari parent ID
-            $parentId = null;
-            if ($user) {
-                $parent = ParentModel::where('id', $user->id)->first();
-                if ($parent) {
-                    $parentId = $parent->id;
-                } else {
-                    $secondParent = SecondParent::where('id', $user->id)->first();
-                    if ($secondParent) {
-                        $parentId = $secondParent->id;
-                    }
-                }
-            }
+            $parentId = $user ? $user->id : null;
 
             if (!$parentId) {
-                $firstParent = ParentModel::first();
+                $firstParent = \App\Models\User::where('role', 'parent1')->first();
                 $parentId = $firstParent ? $firstParent->id : 1;
             }
 
@@ -318,7 +290,7 @@ class QRScanController extends Controller
                     $existing->update([
                         'checkin_time' => $now->format('H:i:s'),
                         'status' => 'present',
-                        'status_note' => '✅ Check-in via Confirm Child',
+                        'status_note' => 'âœ… Check-in via Confirm Child',
                         'drop_off_by' => 'Kiosk',
                         'is_verified' => true
                     ]);
@@ -329,14 +301,14 @@ class QRScanController extends Controller
                         'date' => $today,
                         'checkin_time' => $now->format('H:i:s'),
                         'status' => 'present',
-                        'status_note' => '✅ Check-in via Confirm Child',
+                        'status_note' => 'âœ… Check-in via Confirm Child',
                         'drop_off_by' => 'Kiosk',
                         'is_verified' => true
                     ]);
                 }
             }
 
-            // 🔥 REDIRECT KE AddAnotherChildController
+            // ðŸ”¥ REDIRECT KE AddAnotherChildController
             return redirect()->route('kiosk.add.another', $childId);
 
         } catch (\Exception $e) {
@@ -352,11 +324,12 @@ class QRScanController extends Controller
     public function showCheckinPage($childId)
     {
         $child = Child::with(['parent', 'classroom'])->findOrFail($childId);
-        $user = auth()->user();
-        $parent = ParentModel::where('id', $user->id)->first();
+        /** @var User|null $user */
+        $user = Auth::user();
+        $parent = $user;
 
         if (!$parent) {
-            $parent = ParentModel::first();
+            $parent = \App\Models\User::where('role', 'parent1')->first();
         }
 
         $now = Carbon::now('Asia/Kuala_Lumpur');
@@ -394,32 +367,22 @@ class QRScanController extends Controller
         $isGuardian = false;
 
         if ($user) {
-            $parentCheck = ParentModel::where('id', $user->id)->first();
-            if ($parentCheck) {
-                $parentName = $parentCheck->name ?? 'Parent';
-                if ($child->parent_id == $parentCheck->id) {
-                    $userRole = 'main_parent';
-                    $isMainParent = true;
-                }
+            if (in_array($user->role, ['parent', 'parent1'])) {
+                $parentName = $user->name ?? 'Parent';
+                $userRole = 'main_parent';
+                $isMainParent = true;
             }
 
             if ($user->role === 'second_parent' || $user->role === 'parent2') {
                 $userRole = 'second_parent';
                 $isSecondParent = true;
                 $parentName = $user->name ?? 'Second Parent';
-                $secondParent = SecondParent::where('id', $user->id)->first();
-                if ($secondParent) {
-                    $parentName = $secondParent->name ?? 'Second Parent';
-                }
             }
 
             if ($user->role === 'guardian') {
-                $guardian = Guardian::where('id', $user->id)->first();
-                if ($guardian && $child->guardian_id == $guardian->id) {
-                    $isGuardian = true;
-                    $userRole = 'guardian';
-                    $parentName = $guardian->name;
-                }
+                $isGuardian = true;
+                $userRole = 'guardian';
+                $parentName = $user->name;
             }
 
             if (in_array($user->role, ['admin', 'teacher'])) {
@@ -433,32 +396,7 @@ class QRScanController extends Controller
         $checkedInData = [];
 
         if ($user) {
-            $parent = ParentModel::where('id', $user->id)->first();
-            if ($parent) {
-                $allChildren = Child::where(function($query) use ($parent) {
-                    $query->where('parent_id', $parent->id)
-                          ->orWhere('second_parent_id', $parent->id);
-                })->where('is_active', true)->get();
-            } else {
-                $secondParent = SecondParent::where('id', $user->id)->first();
-                if ($secondParent) {
-                    $mainParent = ParentModel::find($secondParent->parent_id);
-                    if ($mainParent) {
-                        $allChildren = Child::where(function($query) use ($mainParent) {
-                            $query->where('parent_id', $mainParent->id)
-                                  ->orWhere('second_parent_id', $mainParent->id);
-                        })->where('is_active', true)->get();
-                    }
-                }
-
-                if ($user->role === 'guardian') {
-                    $guardian = Guardian::where('id', $user->id)->first();
-                    if ($guardian) {
-                        $allChildren = Child::where('guardian_id', $guardian->id)
-                            ->where('is_active', true)->get();
-                    }
-                }
-            }
+            $allChildren = $user->children()->where('is_active', true)->get();
 
             if (!$allChildren->contains('id', $child->id)) {
                 $allChildren->push($child);
@@ -502,7 +440,7 @@ class QRScanController extends Controller
         try {
             $request->validate([
                 'child_id' => 'required|exists:children,id',
-                'parent_id' => 'required|exists:parents,id',
+                'parent_id' => 'required|exists:users,id',
                 'action' => 'required|in:checkin,checkout'
             ]);
 
@@ -542,14 +480,14 @@ class QRScanController extends Controller
                 }
 
                 $status = 'present';
-                $statusNote = '✅ Check-in berjaya';
+                $statusNote = 'âœ… Check-in berjaya';
 
                 if ($isLate && $withinGrace) {
                     $status = 'late';
-                    $statusNote = '⏰ Late check-in (within grace period)';
+                    $statusNote = 'â° Late check-in (within grace period)';
                 } else if ($isLate && !$withinGrace) {
                     $status = 'late';
-                    $statusNote = '⏰ Late check-in (past grace period)';
+                    $statusNote = 'â° Late check-in (past grace period)';
                 }
 
                 if ($existing) {
@@ -579,7 +517,7 @@ class QRScanController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => $isLate ? '⏰ Check-in berjaya! (Late)' : '✅ Check-in berjaya! (On Time)',
+                    'message' => $isLate ? 'â° Check-in berjaya! (Late)' : 'âœ… Check-in berjaya! (On Time)',
                     'child_name' => $child->name,
                     'child_classroom' => $child->classroom->name ?? 'Tiada kelas',
                     'checkin_time' => $now->format('h:i A'),
@@ -611,7 +549,7 @@ class QRScanController extends Controller
 
                 $timer = $this->getTimerForToday();
                 $isLateCheckout = false;
-                $lateCheckoutMessage = '✅ Check-out berjaya (On Time)';
+                $lateCheckoutMessage = 'âœ… Check-out berjaya (On Time)';
 
                 if ($timer) {
                     $currentTimeInt = (int) $now->format('Hi');
@@ -620,16 +558,16 @@ class QRScanController extends Controller
 
                     if (!($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt)) {
                         $isLateCheckout = true;
-                        $lateCheckoutMessage = '⏰ Check-out berjaya (Late Checkout)';
+                        $lateCheckoutMessage = 'â° Check-out berjaya (Late Checkout)';
                     }
                 }
 
                 $status = 'checkout';
-                $statusNote = '✅ Check-out berjaya';
+                $statusNote = 'âœ… Check-out berjaya';
 
                 if ($isLateCheckout) {
                     $status = 'late_checkout';
-                    $statusNote = '⏰ Late Checkout';
+                    $statusNote = 'â° Late Checkout';
                 }
 
                 $attendance->update([
@@ -643,7 +581,7 @@ class QRScanController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => $isLateCheckout ? '⏰ Check-out berjaya! (Late)' : '✅ Check-out berjaya! (On Time)',
+                    'message' => $isLateCheckout ? 'â° Check-out berjaya! (Late)' : 'âœ… Check-out berjaya! (On Time)',
                     'child_name' => $child->name,
                     'child_classroom' => $child->classroom->name ?? 'Tiada kelas',
                     'checkout_time' => $now->format('h:i A'),
@@ -668,8 +606,8 @@ class QRScanController extends Controller
     // ============================================
     private function sendTelegramNotification($child, $parentId, $action, $isLate = false, $lateReason = null)
     {
-        $parent = ParentModel::find($parentId);
-        if (!$parent || !$parent->telegram_notification || !$parent->telegram_id) {
+        $parent = \App\Models\User::find($parentId);
+        if (!$parent || !$parent->telegram_chat_id) {
             return;
         }
 
@@ -678,32 +616,32 @@ class QRScanController extends Controller
         $slotLabel = $slot ? $slot['label'] : 'Unknown';
         $timerInfo = $this->getTimerSlotInfo();
 
-        $message = "🧸 KidsTrack Alert\n\n";
-        $message .= "👶 Child: {$child->name}\n";
-        $message .= "🏫 Class: " . ($child->classroom->name ?? 'No class') . "\n";
+        $message = "ðŸ§¸ KidsTrack Alert\n\n";
+        $message .= "ðŸ‘¶ Child: {$child->name}\n";
+        $message .= "ðŸ« Class: " . ($child->classroom->name ?? 'No class') . "\n";
 
         if ($action == 'checkin') {
-            $message .= "✅ Checked-in at: " . $now->format('h:i A') . "\n";
-            $message .= "📊 Status: " . ($isLate ? '⏰ Late' : '✅ On Time') . "\n";
-            $message .= "⏱️ Slot: " . $slotLabel;
+            $message .= "âœ… Checked-in at: " . $now->format('h:i A') . "\n";
+            $message .= "ðŸ“Š Status: " . ($isLate ? 'â° Late' : 'âœ… On Time') . "\n";
+            $message .= "â±ï¸ Slot: " . $slotLabel;
             if ($isLate && $lateReason) {
-                $message .= "\n📝 Reason: " . $lateReason;
+                $message .= "\nðŸ“ Reason: " . $lateReason;
             }
         } else {
-            $message .= "👋 Checked-out at: " . $now->format('h:i A') . "\n";
-            $message .= "📊 Status: " . ($isLate ? '⏰ Late Checkout' : '✅ On Time') . "\n";
-            $message .= "⏱️ Slot: " . $slotLabel;
+            $message .= "ðŸ‘‹ Checked-out at: " . $now->format('h:i A') . "\n";
+            $message .= "ðŸ“Š Status: " . ($isLate ? 'â° Late Checkout' : 'âœ… On Time') . "\n";
+            $message .= "â±ï¸ Slot: " . $slotLabel;
         }
 
         if ($timerInfo) {
-            $message .= "\n⏰ Operating Hours:";
+            $message .= "\nâ° Operating Hours:";
             $message .= "\n   Morning: " . $timerInfo['morning'];
             $message .= "\n   Evening: " . $timerInfo['evening'];
         }
 
-        $message .= "\n📅 Date: " . $now->format('d M Y');
+        $message .= "\nðŸ“… Date: " . $now->format('d M Y');
 
-        $this->telegram->sendMessage($parent->telegram_id, $message);
+        $this->telegram->sendMessage($parent->telegram_chat_id, $message);
     }
 
     // ============================================
@@ -791,7 +729,7 @@ class QRScanController extends Controller
             if ($saved > 0) {
                 return response()->json([
                     'success' => true,
-                    'message' => "✅ Timer settings saved for {$saved} days!"
+                    'message' => "âœ… Timer settings saved for {$saved} days!"
                 ]);
             }
 
@@ -816,7 +754,7 @@ class QRScanController extends Controller
 
                 return response()->json([
                     'success' => true,
-                    'message' => "✅ Timer saved for {$data['day_name']}!"
+                    'message' => "âœ… Timer saved for {$data['day_name']}!"
                 ]);
             }
 
@@ -856,7 +794,7 @@ class QRScanController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => '✅ All timers reset to default!'
+                'message' => 'âœ… All timers reset to default!'
             ]);
 
         } catch (\Exception $e) {
@@ -969,7 +907,7 @@ class QRScanController extends Controller
     {
         $request->validate([
             'child_id' => 'required|exists:children,id',
-            'parent_id' => 'required|exists:parents,id'
+            'parent_id' => 'required|exists:users,id'
         ]);
 
         $child = Child::find($request->child_id);
@@ -1005,7 +943,7 @@ class QRScanController extends Controller
     {
         $request->validate([
             'child_id' => 'required|exists:children,id',
-            'parent_id' => 'required|exists:parents,id'
+            'parent_id' => 'required|exists:users,id'
         ]);
 
         $child = Child::find($request->child_id);
@@ -1054,8 +992,9 @@ class QRScanController extends Controller
         ]);
 
         $child = Child::find($request->child_id);
-        $user = auth()->user();
-        $parent = ParentModel::where('id', $user->id)->first();
+        /** @var User|null $user */
+        $user = Auth::user();
+        $parent = $user;
 
         if (!$parent) {
             return response()->json([
@@ -1107,12 +1046,12 @@ class QRScanController extends Controller
             if ($qrData) {
                 $child = Child::where('qr_code', $qrData)->first();
                 if ($child) {
-                    $parentId = $child->parent_id;
+                    $parentId = $child->parent?->id;
                 }
             }
 
             if (!$parentId) {
-                $firstParent = ParentModel::first();
+                $firstParent = \App\Models\User::where('role', 'parent1')->first();
                 if ($firstParent) {
                     $parentId = $firstParent->id;
                 }
@@ -1181,14 +1120,14 @@ class QRScanController extends Controller
                 }
             }
 
-            $parent = ParentModel::find($parentId);
-            if ($parent && $parent->telegram_notification && $parent->telegram_id) {
+            $parent = \App\Models\User::find($parentId);
+            if ($parent && $parent->telegram_chat_id) {
                 $childNames = Child::whereIn('id', $childIds)->pluck('name')->join(', ');
                 $message = $action === 'checkin'
-                    ? "🧸 KidsTrack Check-in Alert\n\n👶 Children: {$childNames}\n✅ Checked-in at: " . Carbon::now('Asia/Kuala_Lumpur')->format('h:i A') . "\n📅 Date: " . Carbon::now('Asia/Kuala_Lumpur')->format('d M Y')
-                    : "🧸 KidsTrack Check-out Alert\n\n👶 Children: {$childNames}\n✅ Checked-out at: " . Carbon::now('Asia/Kuala_Lumpur')->format('h:i A') . "\n📅 Date: " . Carbon::now('Asia/Kuala_Lumpur')->format('d M Y');
+                    ? "ðŸ§¸ KidsTrack Check-in Alert\n\nðŸ‘¶ Children: {$childNames}\nâœ… Checked-in at: " . Carbon::now('Asia/Kuala_Lumpur')->format('h:i A') . "\nðŸ“… Date: " . Carbon::now('Asia/Kuala_Lumpur')->format('d M Y')
+                    : "ðŸ§¸ KidsTrack Check-out Alert\n\nðŸ‘¶ Children: {$childNames}\nâœ… Checked-out at: " . Carbon::now('Asia/Kuala_Lumpur')->format('h:i A') . "\nðŸ“… Date: " . Carbon::now('Asia/Kuala_Lumpur')->format('d M Y');
 
-                $this->telegram->sendMessage($parent->telegram_id, $message);
+                $this->telegram->sendMessage($parent->telegram_chat_id, $message);
             }
 
             return response()->json([

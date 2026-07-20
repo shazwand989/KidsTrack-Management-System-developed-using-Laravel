@@ -108,14 +108,14 @@
 
                     $dropOff = $attendance->drop_off_by;
                     if ($dropOff && is_numeric($dropOff)) {
-                        $dropOff = optional(\App\Models\ParentModel::find($dropOff))->name
+                        $dropOff = optional(\App\Models\User::find($dropOff))->name
                             ?? optional(\App\Models\User::find($dropOff))->name
                             ?? $dropOff;
                     }
 
                     $pickup = $attendance->pickup_by;
                     if ($pickup && is_numeric($pickup)) {
-                        $pickup = optional(\App\Models\ParentModel::find($pickup))->name
+                        $pickup = optional(\App\Models\User::find($pickup))->name
                             ?? optional(\App\Models\User::find($pickup))->name
                             ?? $pickup;
                     }
