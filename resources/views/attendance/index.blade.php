@@ -405,10 +405,63 @@
         font-weight: 700;
     }
 
-    .pagination {
+    .pagination-wrap {
         display: flex;
-        justify-content: center;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 14px;
         margin-top: 20px;
+        background: white;
+        border-radius: 16px;
+        padding: 14px 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        border: 1px solid #f1f5f9;
+    }
+    .pagination-info {
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 600;
+    }
+    .pagination-links {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+    .pagination-links .page-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #475569;
+        text-decoration: none;
+        background: white;
+        border: 1px solid #e2e8f0;
+        transition: all .15s;
+    }
+    .pagination-links .page-link:hover {
+        background: #FFF5F2;
+        border-color: #FFD4C8;
+        color: #FF6B6B;
+    }
+    .pagination-links .active .page-link {
+        background: linear-gradient(135deg, #FF6B6B, #FF9E7D);
+        color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 12px rgba(255,107,107,0.25);
+    }
+    .pagination-links .disabled .page-link {
+        color: #cbd5e1;
+        pointer-events: none;
+        background: #f8fafc;
     }
 
     /* 🔥 PRINT STYLES */
@@ -702,10 +755,31 @@
 </div>
 
 {{-- Pagination --}}
-@if(method_exists($attendances, 'links'))
-    <div class="pagination no-print">
-        {{ $attendances->links() }}
+@if(method_exists($attendances, 'links') && $attendances->hasPages())
+<div class="pagination-wrap no-print">
+    <div class="pagination-info">
+        Showing {{ $attendances->firstItem() }} to {{ $attendances->lastItem() }} of {{ $attendances->total() }} results
     </div>
+    <ul class="pagination-links">
+        @if($attendances->onFirstPage())
+            <li class="disabled"><span class="page-link">« Prev</span></li>
+        @else
+            <li><a class="page-link" href="{{ $attendances->previousPageUrl() }}">« Prev</a></li>
+        @endif
+
+        @foreach($attendances->getUrlRange(1, $attendances->lastPage()) as $page => $url)
+            <li class="{{ $page == $attendances->currentPage() ? 'active' : '' }}">
+                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
+            </li>
+        @endforeach
+
+        @if($attendances->hasMorePages())
+            <li><a class="page-link" href="{{ $attendances->nextPageUrl() }}">Next »</a></li>
+        @else
+            <li class="disabled"><span class="page-link">Next »</span></li>
+        @endif
+    </ul>
+</div>
 @endif
 
 <script>
