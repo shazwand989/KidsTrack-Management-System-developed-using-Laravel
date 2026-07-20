@@ -342,7 +342,7 @@
         </div>
     </div>
     @else
-    <div class="rg-card" style="border-left:4px solid #e2e8f0;opacity:0.7;">
+    <div class="rg-card" style="border-left:4px solid #e2e8f0;" id="member-{{ $m['role'] }}">
         <div class="rg-section-title">
             <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">{{ $m['icon'] }}</i></span>
             {{ $m['label'] }}
@@ -352,8 +352,32 @@
             <div style="width:60px;height:60px;border-radius:14px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:22px;">—</div>
             <div>
                 <div style="color:#94a3b8;font-size:13px;">No {{ strtolower($m['label']) }} linked to this family.</div>
-                <a href="{{ route('parents.create') }}" style="font-size:12px;color:#3b82f6;font-weight:600;">+ Register {{ $m['label'] }}</a>
+                <button type="button" onclick="toggleRegisterMember('{{ $m['role'] }}')"
+                    style="font-size:12px;color:white;background:linear-gradient(135deg,{{ $m['color'] }});border:none;padding:7px 16px;border-radius:10px;font-weight:700;cursor:pointer;">
+                    + Register {{ $m['label'] }}
+                </button>
             </div>
+        </div>
+
+        {{-- Inline register form --}}
+        <div id="register-member-{{ $m['role'] }}" style="display:none;margin-top:14px;padding:14px;background:#FFFAF9;border:1px solid #FFE4D6;border-radius:12px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Name <span style="color:#dc2626;">*</span></label>
+                    <input type="text" id="reg-name-{{ $m['role'] }}" placeholder="Full name" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:7px 10px;font-size:12px;outline:none;"></div>
+                <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Email <span style="color:#dc2626;">*</span></label>
+                    <input type="email" id="reg-email-{{ $m['role'] }}" placeholder="email@example.com" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:7px 10px;font-size:12px;outline:none;"></div>
+                <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Phone <span style="color:#dc2626;">*</span></label>
+                    <input type="text" id="reg-phone-{{ $m['role'] }}" placeholder="012-XXXXXXX" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:7px 10px;font-size:12px;outline:none;"></div>
+                <div><label style="font-size:10px;font-weight:700;color:#94a3b8;">Age</label>
+                    <input type="text" id="reg-age-{{ $m['role'] }}" placeholder="e.g. 35" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:7px 10px;font-size:12px;outline:none;"></div>
+                <div style="grid-column:1/-1;"><label style="font-size:10px;font-weight:700;color:#94a3b8;">Address</label>
+                    <input type="text" id="reg-address-{{ $m['role'] }}" placeholder="Home address" style="width:100%;border:1.5px solid #FFE4D6;border-radius:8px;padding:7px 10px;font-size:12px;outline:none;"></div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+                <button type="button" onclick="toggleRegisterMember('{{ $m['role'] }}')" style="background:#f1f5f9;color:#475569;border:none;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">Cancel</button>
+                <button type="button" onclick="registerMember('{{ $m['role'] }}', '{{ $m['label'] }}', [{{ implode(',', $allFamilyChildIds) }}])" style="background:linear-gradient(135deg,{{ $m['color'] }});color:white;border:none;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">💾 Register & Link</button>
+            </div>
+            <div id="reg-msg-{{ $m['role'] }}" style="font-size:11px;margin-top:6px;display:none;"></div>
         </div>
     </div>
     @endif
@@ -478,6 +502,44 @@
             setTimeout(() => { document.getElementById('edit-member-' + role).style.display = 'none'; msg.style.display = 'none'; }, 800);
         } catch(e) {
             msg.style.color = '#dc2626'; msg.textContent = '❌ Error.';
+        }
+    }
+
+    // Toggle register member form
+    function toggleRegisterMember(role) {
+        const form = document.getElementById('register-member-' + role);
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Register new member + link to family children
+    async function registerMember(role, label, childIds) {
+        const name = document.getElementById('reg-name-' + role).value.trim();
+        const email = document.getElementById('reg-email-' + role).value.trim();
+        const phone = document.getElementById('reg-phone-' + role).value.trim();
+        const age = document.getElementById('reg-age-' + role).value.trim();
+        const address = document.getElementById('reg-address-' + role).value.trim();
+        const msg = document.getElementById('reg-msg-' + role);
+
+        if (!name || !email || !phone) { msg.style.display='block'; msg.style.color='#dc2626'; msg.textContent='Name, email, and phone are required.'; return; }
+
+        msg.style.display = 'block'; msg.style.color = '#3b82f6'; msg.textContent = 'Registering...';
+
+        try {
+            const roleMap = { parent1: 'parent1', parent2: 'parent2', guardian: 'guardian' };
+            const res = await fetch('{{ route('parents.store') }}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: JSON.stringify({ name, email, phone, age, address, password: 'password123', role: roleMap[role], verified: true, child_ids: childIds })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                msg.style.color = '#16a34a'; msg.textContent = '✅ ' + label + ' registered & linked! Reloading...';
+                setTimeout(() => location.reload(), 800);
+            } else {
+                msg.style.color = '#dc2626'; msg.textContent = '❌ ' + (data.message || 'Failed.');
+            }
+        } catch(e) {
+            msg.style.color = '#dc2626'; msg.textContent = '❌ Network error.';
         }
     }
 

@@ -86,65 +86,87 @@ class ParentController extends Controller
     // STORE
     public function store(Request $request)
     {
-        $request->validate([
-            // Main Parent
+        $isJson = $request->expectsJson();
+
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
+            'password' => ($isJson ? 'nullable' : 'required') . '|string|min:8',
             'phone' => 'required|string|max:20',
-            'address' => 'required|string',
+            'address' => $isJson ? 'nullable|string' : 'required|string',
             'age' => 'nullable|string',
             'photo' => 'nullable|image|max:2048',
-
-            // Second Parent
-            'second_name' => 'nullable|string|max:255',
-            'second_email' => 'nullable|email|unique:users,email',
-            'second_password' => 'nullable|string|min:8',
-            'second_phone' => 'nullable|string|max:20',
-            'second_address' => 'nullable|string',
-            'second_age' => 'nullable|string',
-            'second_photo' => 'nullable|image|max:2048',
-
-            // Guardian
-            'guardian_name' => 'nullable|string|max:255',
-            'guardian_email' => 'nullable|email|unique:users,email',
-            'guardian_password' => 'nullable|string|min:8',
-            'guardian_phone' => 'nullable|string|max:20',
-            'guardian_address' => 'nullable|string',
-            'guardian_age' => 'nullable|string',
-            'guardian_photo' => 'nullable|image|max:2048',
-
-            // Settings
+            'role' => 'nullable|in:parent1,parent2,guardian',
             'verified' => 'nullable|boolean',
-        ]);
+            'child_ids' => 'nullable|array',
+            'child_ids.*' => 'exists:children,id',
+        ];
 
-        // ============================================
-        // 1. CREATE MAIN PARENT USER (now directly in users table)
-        // ============================================
+        // Add second parent & guardian rules for full form
+        if (!$isJson) {
+            $rules = array_merge($rules, [
+                'second_name' => 'nullable|string|max:255',
+                'second_email' => 'nullable|email|unique:users,email',
+                'second_password' => 'nullable|string|min:8',
+                'second_phone' => 'nullable|string|max:20',
+                'second_address' => 'nullable|string',
+                'second_age' => 'nullable|string',
+                'second_photo' => 'nullable|image|max:2048',
+                'guardian_name' => 'nullable|string|max:255',
+                'guardian_email' => 'nullable|email|unique:users,email',
+                'guardian_password' => 'nullable|string|min:8',
+                'guardian_phone' => 'nullable|string|max:20',
+                'guardian_address' => 'nullable|string',
+                'guardian_age' => 'nullable|string',
+                'guardian_photo' => 'nullable|image|max:2048',
+            ]);
+        }
+
+        $request->validate($rules);
+
+        $role = $request->input('role', 'parent1');
+
         $user = \App\Models\User::create([
             'name' => $request->name,
             'age' => $request->age,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make($request->password ?: 'password123'),
             'phone_number' => $request->phone,
             'address' => $request->address,
-            'role' => 'parent1',
-            'verified' => $request->has('verified'),
+            'role' => $role,
+            'verified' => $request->has('verified') || $isJson,
         ]);
 
         // Save photo
-        $photoPath = null;
         if ($request->hasFile('photo')) {
-            $photoPath = $request->file('photo')->store('parents', 'public');
-            $user->update(['photo' => $photoPath]);
+            $user->update(['photo' => $request->file('photo')->store('parents', 'public')]);
         }
 
-        // ============================================
-        // 3. CREATE SECOND PARENT (optional) — create User directly
-        // ============================================
-        if ($request->filled('second_name')) {
-            $secondUser = null;
-            if ($request->filled('second_email')) {
+        // Link children if provided (for inline registration)
+        $childIds = $request->input('child_ids', []);
+        if (!empty($childIds)) {
+            $relationship = match($role) {
+                'parent2' => 'second_parent',
+                'guardian' => 'guardian',
+                default => 'main_parent',
+            };
+            foreach ($childIds as $childId) {
+                \App\Models\Guardianship::where('child_id', $childId)
+                    ->where('relationship', $relationship)
+                    ->where('user_id', '!=', $user->id)
+                    ->delete();
+                \App\Models\Guardianship::create([
+                    'user_id' => $user->id,
+                    'child_id' => $childId,
+                    'relationship' => $relationship,
+                    'is_emergency_contact' => $role === 'parent1',
+                ]);
+            }
+        }
+
+        // Handle second parent & guardian for full form (non-JSON)
+        if (!$isJson) {
+            if ($request->filled('second_name') && $request->filled('second_email')) {
                 $secondUser = \App\Models\User::firstOrCreate(
                     ['email' => $request->second_email],
                     [
@@ -160,14 +182,8 @@ class ParentController extends Controller
                     $secondUser->update(['photo' => $request->file('second_photo')->store('parents', 'public')]);
                 }
             }
-        }
 
-        // ============================================
-        // 4. CREATE GUARDIAN (optional) — create User directly
-        // ============================================
-        if ($request->filled('guardian_name')) {
-            $guardianUser = null;
-            if ($request->filled('guardian_email')) {
+            if ($request->filled('guardian_name') && $request->filled('guardian_email')) {
                 $guardianUser = \App\Models\User::firstOrCreate(
                     ['email' => $request->guardian_email],
                     [
@@ -183,6 +199,10 @@ class ParentController extends Controller
                     $guardianUser->update(['photo' => $request->file('guardian_photo')->store('parents', 'public')]);
                 }
             }
+        }
+
+        if ($isJson) {
+            return response()->json(['success' => true, 'user_id' => $user->id, 'message' => 'Registered & linked.']);
         }
 
         return redirect()->route('parents.index')
