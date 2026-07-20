@@ -458,29 +458,29 @@
         .info-grid {
             grid-template-columns: 1fr;
         }
-        
+
         .full-width {
             grid-column: span 1;
         }
-        
+
         .profile-header-content {
             flex-direction: column;
             text-align: center;
         }
-        
+
         .profile-header-actions {
             margin-left: 0;
             width: 100%;
             justify-content: center;
             flex-wrap: wrap;
         }
-        
+
         .info-row {
             flex-direction: column;
             align-items: flex-start;
             gap: 5px;
         }
-        
+
         .info-value {
             text-align: left;
         }
@@ -505,18 +505,18 @@
                         <span>{{ strtoupper(substr($child->name, 0, 1)) }}</span>
                     @endif
                 </div>
-                
+
                 <div class="profile-info">
                     <h1>{{ $child->name }}</h1>
                     <p><span>🆔</span> IC: {{ $child->ic_number }}</p>
-                    <p><span>📅</span> 
+                    <p><span>📅</span>
                         @if($child->dob)
                             {{ \Carbon\Carbon::parse($child->dob)->format('d M Y') }} ({{ $child->age }} years old)
                         @else
                             {{ $child->age }} years old
                         @endif
                     </p>
-                    
+
                     <div class="profile-badges">
                         <span class="badge-nursery">
                             <span>🏫</span> {{ $child->classroom->name ?? 'No Classroom' }}
@@ -526,7 +526,7 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="profile-header-actions">
                     <a href="{{ route('children.edit', $child->id) }}" class="btn-edit">
                         <i class="fas fa-edit"></i> Edit Profile
@@ -540,10 +540,10 @@
 
         {{-- Content Body --}}
         <div class="content-section">
-            
+
             {{-- Main Information Grid --}}
             <div class="info-grid">
-                
+
                 {{-- Personal Information --}}
                 <div class="info-card">
                     <div class="info-card-header">
@@ -569,7 +569,7 @@
                     </div>
                     @endif
                 </div>
-                
+
                 {{-- Address Information --}}
                 <div class="info-card">
                     <div class="info-card-header">
@@ -581,7 +581,7 @@
                         <div class="info-value">{{ $child->address ?? '-' }}</div>
                     </div>
                 </div>
-                
+
                 {{-- Classroom Information --}}
                 <div class="info-card">
                     <div class="info-card-header">
@@ -603,7 +603,7 @@
                     </div>
                     @endif
                 </div>
-                
+
                 {{-- Enrollment Details --}}
                 <div class="info-card">
                     <div class="info-card-header">
@@ -628,14 +628,14 @@
                     </div>
                 </div>
             </div>
-            
+
             {{-- Parents & Guardians Section --}}
             <div class="info-card" style="margin-bottom: 20px;">
                 <div class="info-card-header">
                     <span>👨‍👩‍👧‍👦</span>
                     <h3>Parents & Guardians</h3>
                 </div>
-                
+
                 {{-- Main Parent --}}
                 <div class="parent-card">
                     <div class="parent-avatar">
@@ -655,7 +655,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 {{-- SECOND PARENT --}}
                 @if($child->secondParent)
                 <div class="parent-card">
@@ -687,7 +687,7 @@
                     </div>
                 </div>
                 @endif
-                
+
                 {{-- Guardian --}}
                 @if($child->guardian)
                 <div class="parent-card">
@@ -727,11 +727,11 @@
                     <span>📱</span>
                     <h3>QR Code</h3>
                 </div>
-                
+
                 <div class="qr-code-container">
                     <div class="qr-code-box">
                         @if($child->qr_code)
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode($child->qr_code) }}" 
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ urlencode($child->qr_code) }}"
                                  alt="QR Code">
                             <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
                                 Scan for check-in/out
@@ -746,7 +746,7 @@
                             </div>
                         @endif
                     </div>
-                    
+
                     @if($child->qr_code)
                     <div class="qr-details">
                         <div style="margin-bottom: 8px;">
@@ -779,13 +779,13 @@
                     @endif
                 </div>
             </div>
-            
+
             @if($child->medical_notes || $child->dietary)
             <div class="additional-section">
                 <div class="additional-title">
                     <span>📝</span> Additional Information
                 </div>
-                
+
                 @if($child->medical_notes)
                 <div style="margin-bottom: 15px;">
                     <div style="font-size: 12px; font-weight: 700; color: #FF6B6B; margin-bottom: 5px;">
@@ -794,7 +794,7 @@
                     <div class="additional-text">{{ $child->medical_notes }}</div>
                 </div>
                 @endif
-                
+
                 @if($child->dietary)
                 <div>
                     <div style="font-size: 12px; font-weight: 700; color: #FF6B6B; margin-bottom: 5px;">
@@ -805,10 +805,10 @@
                 @endif
             </div>
             @endif
-            
+
         </div>
     </div>
-    
+
 </div>
 
 <script>

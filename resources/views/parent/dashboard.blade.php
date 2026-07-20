@@ -25,15 +25,15 @@
     .stat-icon.blue { background: #e3f2fd; color: #1565c0; }
     .stat-num { font-size: 24px; font-weight: 800; color: #1e293b; line-height: 1; }
     .stat-lbl { font-size: 11px; color: #94a3b8; font-weight: 600; margin-top: 2px; }
-    
+
     .card-table { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
     .card-table h4 { font-size: 15px; font-weight: 800; color: #1e293b; margin: 0 0 16px; }
-    
+
     .child-table { width: 100%; border-collapse: collapse; }
     .child-table th { text-align: left; padding: 10px 14px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
     .child-table td { padding: 12px 14px; font-size: 13px; color: #475569; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
     .child-table tr:last-child td { border-bottom: none; }
-    
+
     .child-avatar {
         width: 36px; height: 36px; border-radius: 10px;
         background: linear-gradient(135deg, #6d28d9, #9333ea);
@@ -44,7 +44,7 @@
     .status-dot.green { background: #e8f5e9; color: #2e7d32; }
     .status-dot.yellow { background: #fff3e0; color: #e65100; }
     .status-dot.red { background: #fce4ec; color: #c62828; }
-    
+
     .qr-btn {
         display: inline-flex; align-items: center; gap: 8px;
         padding: 10px 20px; background: linear-gradient(135deg, #f59e0b, #fb8c00);
@@ -53,7 +53,7 @@
         transition: .2s;
     }
     .qr-btn:hover { color: white; transform: translateY(-1px); }
-    
+
     @media (max-width: 768px) { .stat-row { grid-template-columns: repeat(2,1fr); } }
     @media (max-width: 480px) { .stat-row { grid-template-columns: 1fr; } }
 </style>
