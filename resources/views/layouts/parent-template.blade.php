@@ -662,6 +662,44 @@
     </div>
   </main>
 
+  {{-- Logout Modal --}}
+  <div class="custom-logout-overlay" id="logoutOverlay">
+    <div class="custom-logout-box">
+      <button type="button" class="logout-close-btn" onclick="closeLogoutModal()">&times;</button>
+      <div class="logout-profile">
+        <div class="logout-avatar"><i class="material-symbols-rounded">account_circle</i></div>
+        <h4>{{ Auth::user()->name }}</h4>
+        <p>{{ Auth::user()->email }}</p>
+      </div>
+      <div class="logout-content">
+        <h5>Logout?</h5>
+        <p>Are you sure you want to sign out?</p>
+      </div>
+      <div class="logout-actions">
+        <button type="button" class="btn-cancel-logout" onclick="closeLogoutModal()">Cancel</button>
+        <form method="POST" action="{{ route('logout') }}">
+          @csrf
+          <button type="submit" class="btn-confirm-logout">Yes, Logout</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('openLogoutBtn').addEventListener('click', function() {
+      document.getElementById('logoutOverlay').classList.add('show');
+    });
+    function closeLogoutModal() {
+      document.getElementById('logoutOverlay').classList.remove('show');
+    }
+    document.getElementById('logoutOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeLogoutModal();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeLogoutModal();
+    });
+  </script>
+
 </body>
 
 </html>

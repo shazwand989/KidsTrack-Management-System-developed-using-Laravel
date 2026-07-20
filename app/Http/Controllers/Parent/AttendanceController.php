@@ -105,9 +105,18 @@ class AttendanceController extends Controller
                     'allDay' => true,
                     'backgroundColor' => $color,
                     'textColor' => '#ffffff',
-                    'child_id' => $attendance->child_id,
-                    'status' => $status,
-                    'is_late' => in_array($attendance->status, ['late', 'late_checkout']),
+                    'extendedProps' => [
+                        'child_name' => $attendance->child->name ?? 'Child',
+                        'status' => $status,
+                        'checkin_time' => $attendance->checkin_time 
+                            ? Carbon::parse($attendance->checkin_time)->format('h:i A') 
+                            : null,
+                        'checkout_time' => $attendance->checkout_time 
+                            ? Carbon::parse($attendance->checkout_time)->format('h:i A') 
+                            : null,
+                        'is_late' => in_array($attendance->status, ['late', 'late_checkout']),
+                        'color' => $color,
+                    ],
                 ];
             });
 

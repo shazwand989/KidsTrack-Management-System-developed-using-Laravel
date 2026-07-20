@@ -80,6 +80,8 @@
     .calendar-grid .day-cell .child-count { font-size: 9px; color: #94a3b8; margin-top: 4px; font-weight: 600; }
     .calendar-grid .day-cell .holiday-label { font-size: 9px; color: #dc2626; font-weight: 700; background: #fee2e2; padding: 2px 8px; border-radius: 4px; margin-top: 4px; display: inline-block; }
     .calendar-grid .day-cell .weekend-label { font-size: 9px; color: #d97706; font-weight: 700; background: #fef3c7; padding: 2px 8px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+    .calendar-grid .day-cell .child-item { cursor: pointer; transition: .15s; }
+    .calendar-grid .day-cell .child-item:hover { transform: scale(1.03); box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
 
     .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e2e8f0; }
     .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; color: #475569; cursor: pointer; transition: all 0.2s; padding: 4px 10px; border-radius: 8px; }
@@ -91,6 +93,26 @@
     .legend-color.absent { background: #fef3c7; border: 1px solid #fcd34d; }
     .legend-color.holiday { background: #fef2f2; border: 1px solid #fca5a5; }
     .legend-color.weekend { background: #fffbeb; border: 1px solid #fcd34d; }
+
+    /* Attendance Detail Modal */
+    .att-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.2s;}
+    .att-modal-overlay.show{opacity:1;visibility:visible;}
+    .att-modal-box{background:white;border-radius:20px;padding:28px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;transform:translateY(20px);transition:.3s;}
+    .att-modal-overlay.show .att-modal-box{transform:translateY(0);}
+    .att-modal-close{position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;padding:4px 8px;border-radius:8px;}
+    .att-modal-close:hover{background:#f1f5f9;color:#1e293b;}
+    .att-modal-header{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+    .att-modal-avatar{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:20px;flex-shrink:0;}
+    .att-modal-header h3{font-size:18px;font-weight:800;color:#1e293b;margin:0;}
+    .att-modal-date{font-size:12px;color:#94a3b8;font-weight:600;margin-bottom:16px;}
+    .att-modal-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f5f9;}
+    .att-modal-row:last-child{border-bottom:none;}
+    .att-modal-row .lbl{font-size:12px;color:#94a3b8;font-weight:600;}
+    .att-modal-row .val{font-size:14px;font-weight:700;color:#1e293b;}
+    .att-modal-row .val.time{font-family:monospace;font-size:15px;}
+    .att-modal-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:10px;font-size:12px;font-weight:700;}
+    .att-modal-badge.present{background:#e8f5e9;color:#2e7d32;}.att-modal-badge.checkout{background:#e3f2fd;color:#1565c0;}
+    .att-modal-badge.late{background:#fce4ec;color:#c62828;}.att-modal-badge.absent{background:#fff3e0;color:#e65100;}
 
     .calendar-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 15px; margin-bottom: 15px; }
     .stat-mini { background: #f8fafc; padding: 10px 12px; border-radius: 10px; text-align: center; border: 1px solid #e2e8f0; cursor: pointer; transition: all 0.3s; }
@@ -290,6 +312,30 @@
         <div class="popup-message" id="popupMessage">Timer settings saved successfully.</div>
     </div>
     <button class="popup-close" onclick="closePopup()">✕</button>
+</div>
+
+{{-- Attendance Detail Modal --}}
+<div class="att-modal-overlay" id="attDetailModal" onclick="if(event.target===this)closeAttModal()">
+    <div class="att-modal-box">
+        <button class="att-modal-close" onclick="closeAttModal()"><i class="material-symbols-rounded" style="font-size:20px;">close</i></button>
+        <div class="att-modal-header">
+            <div class="att-modal-avatar" id="attModalAvatar" style="background:#6d28d9;">?</div>
+            <h3 id="attModalChildName">Child Name</h3>
+        </div>
+        <div class="att-modal-date" id="attModalDate">Date</div>
+        <div class="att-modal-row">
+            <span class="lbl">Status</span>
+            <span class="att-modal-badge present" id="attModalStatus">Present</span>
+        </div>
+        <div class="att-modal-row">
+            <span class="lbl">Check-in Time</span>
+            <span class="val time" id="attModalCheckin">--</span>
+        </div>
+        <div class="att-modal-row">
+            <span class="lbl">Check-out Time</span>
+            <span class="val time" id="attModalCheckout">--</span>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -536,7 +582,7 @@
     }
 
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') { closePopup(); }
+        if (e.key === 'Escape') { closePopup(); closeAttModal(); }
     });
 
     // ============================================
@@ -635,12 +681,15 @@
             }
 
             let childItemsHtml = '';
-            dayAttendances.forEach(a => {
+            dayAttendances.forEach((a, idx) => {
                 let statusClass = 'absent', statusText = '❌';
                 if (a.status === 'present' || a.status === 'checkin') { statusClass = 'present'; statusText = '✅'; }
                 else if (a.status === 'late') { statusClass = 'late'; statusText = '⏰'; }
                 else if (a.status === 'checkout') { statusClass = 'checkout'; statusText = '👋'; }
-                childItemsHtml += `<div class="child-item ${statusClass}">${statusText} ${a.child ? a.child.name : 'Unknown'}</div>`;
+                const statusLabel = {'present':'Present / Checked In','checkin':'Checked In','checkout':'Checked Out','late':'Late Check-in','late_checkout':'Late Check-out','absent':'Absent'};
+                const ci = a.checkin_time || '';
+                const co = a.checkout_time || '';
+                childItemsHtml += `<div class="child-item ${statusClass}" onclick="event.stopPropagation();showAttModal('${a.child?.name||'Child'}','${a.date}','${a.status}','${ci}','${co}','${statusLabel[a.status]||a.status}')">${statusText} ${a.child ? a.child.name : 'Unknown'}</div>`;
             });
 
             if (childItemsHtml.split('</div>').length - 1 > 3) {
@@ -774,6 +823,24 @@
                 content.style.display = 'block';
             });
     }
+
+    // ============================================
+    // ATTENDANCE DETAIL MODAL
+    // ============================================
+    function showAttModal(childName, date, status, checkin, checkout, statusLabel) {
+        const colorMap = {present:'#43a047',checkin:'#43a047',checkout:'#1e88e5',late:'#e53935',late_checkout:'#e53935',absent:'#fb8c00'};
+        const col = colorMap[status] || '#6d28d9';
+        document.getElementById('attModalAvatar').style.background = col;
+        document.getElementById('attModalAvatar').textContent = (childName||'?').charAt(0).toUpperCase();
+        document.getElementById('attModalChildName').textContent = childName;
+        document.getElementById('attModalDate').textContent = date;
+        document.getElementById('attModalStatus').textContent = statusLabel || status;
+        document.getElementById('attModalStatus').className = 'att-modal-badge ' + (status === 'late_checkout' ? 'late' : status);
+        document.getElementById('attModalCheckin').textContent = checkin || '--';
+        document.getElementById('attModalCheckout').textContent = checkout || '--';
+        document.getElementById('attDetailModal').classList.add('show');
+    }
+    function closeAttModal() { document.getElementById('attDetailModal').classList.remove('show'); }
 
     // ============================================
     // INIT

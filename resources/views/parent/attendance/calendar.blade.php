@@ -26,6 +26,28 @@
     .fc .fc-daygrid-event{font-size:10px;padding:2px 4px;border-radius:4px;font-weight:600;}
     .fc .fc-day-today{background:#ede9fe!important;}
     .today-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .legend-bar{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid #f1f5f9;}
+    .legend-item{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#475569;padding:4px 10px;border-radius:8px;background:#f8fafc;}
+    .legend-dot{width:12px;height:12px;border-radius:4px;flex-shrink:0;}
+    .legend-dot.present{background:#43a047;}.legend-dot.checkout{background:#1e88e5;}
+    .legend-dot.late{background:#e53935;}.legend-dot.absent{background:#fb8c00;}
+    /* Modal */
+    .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.2s;}
+    .modal-overlay.show{opacity:1;visibility:visible;}
+    .modal-box{background:white;border-radius:20px;padding:28px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;transform:translateY(20px);transition:.3s;}
+    .modal-overlay.show .modal-box{transform:translateY(0);}
+    .modal-close{position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;padding:4px 8px;border-radius:8px;}
+    .modal-close:hover{background:#f1f5f9;color:#1e293b;}
+    .modal-title{font-size:18px;font-weight:800;color:#1e293b;margin:0 0 20px;display:flex;align-items:center;gap:10px;}
+    .modal-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:18px;}
+    .modal-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f1f5f9;}
+    .modal-row:last-child{border-bottom:none;}
+    .modal-row .lbl{font-size:12px;color:#94a3b8;font-weight:600;}
+    .modal-row .val{font-size:14px;font-weight:700;color:#1e293b;}
+    .modal-row .val.time{font-family:monospace;font-size:15px;}
+    .modal-status{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:10px;font-size:12px;font-weight:700;}
+    .modal-status.present{background:#e8f5e9;color:#2e7d32;}.modal-status.checkout{background:#e3f2fd;color:#1565c0;}
+    .modal-status.late{background:#fce4ec;color:#c62828;}.modal-status.absent{background:#fff3e0;color:#e65100;}
     @media(max-width:768px){.cal-wrapper{grid-template-columns:1fr;}}
 </style>
 <div class="cal-wrapper">
@@ -48,7 +70,15 @@
             @endforeach
         </div>
     </div>
-    <div class="cal-card"><div id="calendar"></div></div>
+    <div class="cal-card">
+        <div id="calendar"></div>
+        <div class="legend-bar">
+            <div class="legend-item"><div class="legend-dot present"></div> Present</div>
+            <div class="legend-item"><div class="legend-dot checkout"></div> Checked Out</div>
+            <div class="legend-item"><div class="legend-dot late"></div> Late</div>
+            <div class="legend-item"><div class="legend-dot absent"></div> Absent</div>
+        </div>
+    </div>
 </div>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
@@ -58,9 +88,51 @@ document.addEventListener('DOMContentLoaded',function(){
         height:'auto',
         events:'/parent/attendance/calendar-data',
         eventDisplay:'block',
-        eventTimeFormat:{hour:'2-digit',minute:'2-digit',hour12:true}
+        eventTimeFormat:{hour:'2-digit',minute:'2-digit',hour12:true},
+        eventClick:function(info){
+            var p=info.event.extendedProps;
+            var statusLabel={'present':'Present / Checked In','checkin':'Checked In','checkout':'Checked Out','late':'Late Check-in','late_checkout':'Late Check-out','absent':'Absent'};
+            var s=p.status||'present';
+            document.getElementById('modalChildName').textContent=p.child_name||'Child';
+            document.getElementById('modalStatus').textContent=statusLabel[s]||s;
+            document.getElementById('modalStatus').className='modal-status '+s;
+            document.getElementById('modalCheckin').textContent=p.checkin_time||'--';
+            document.getElementById('modalCheckout').textContent=p.checkout_time||'--';
+            document.getElementById('modalDate').textContent=info.event.startStr;
+            document.getElementById('modalAvatar').style.background=p.color||'#6d28d9';
+            document.getElementById('modalAvatar').textContent=(p.child_name||'?').charAt(0).toUpperCase();
+            document.getElementById('attendanceModal').classList.add('show');
+        }
     });
     cal.render();
 });
+function closeModal(){document.getElementById('attendanceModal').classList.remove('show');}
 </script>
+
+{{-- Modal --}}
+<div class="modal-overlay" id="attendanceModal" onclick="if(event.target===this)closeModal()">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal()"><i class="material-symbols-rounded" style="font-size:20px;">close</i></button>
+        <div class="modal-title">
+            <div class="modal-avatar" id="modalAvatar" style="background:#6d28d9;">?</div>
+            <span id="modalChildName">Child Name</span>
+        </div>
+        <div class="modal-row">
+            <span class="lbl">Date</span>
+            <span class="val" id="modalDate">--</span>
+        </div>
+        <div class="modal-row">
+            <span class="lbl">Status</span>
+            <span class="modal-status present" id="modalStatus">Present</span>
+        </div>
+        <div class="modal-row">
+            <span class="lbl">Check-in Time</span>
+            <span class="val time" id="modalCheckin">--</span>
+        </div>
+        <div class="modal-row">
+            <span class="lbl">Check-out Time</span>
+            <span class="val time" id="modalCheckout">--</span>
+        </div>
+    </div>
+</div>
 @endsection

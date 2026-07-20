@@ -871,58 +871,67 @@ class QRScanController extends Controller
     public function getCalendarData(Request $request)
     {
         try {
-            $month = $request->input('month', Carbon::now()->month);
-            $year = $request->input('year', Carbon::now()->year);
-            
-            $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
-            $endDate = Carbon::createFromDate($year, $month, 1)->endOfMonth();
-            
-            $attendances = Attendance::with(['child', 'child.classroom'])
-                ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
-                ->get()
-                ->map(function($attendance) {
-                    $status = $attendance->status;
-                    if ($attendance->checkout_time && $attendance->checkin_time) {
-                        $status = 'checkout';
-                    } elseif ($attendance->checkin_time && !$attendance->checkout_time) {
-                        $status = $attendance->status ?? 'present';
-                    }
-                    
-                    return [
-                        'id' => $attendance->id,
-                        'child_id' => $attendance->child_id,
-                        'child' => $attendance->child ? [
-                            'id' => $attendance->child->id,
-                            'name' => $attendance->child->name,
-                            'classroom_id' => $attendance->child->classroom_id,
-                            'classroom' => $attendance->child->classroom ? [
-                                'id' => $attendance->child->classroom->id,
-                                'name' => $attendance->child->classroom->name
-                            ] : null
-                        ] : null,
-                        'date' => $attendance->date,
-                        'checkin_time' => $attendance->checkin_time,
-                        'checkout_time' => $attendance->checkout_time,
+            // Support both FullCalendar's start/end params and legacy month/year
+            $start = $request->input('start');
+            $end = $request->input('end');
+
+            if ($start && $end) {
+                $startDate = Carbon::parse($start)->startOfDay();
+                $endDate = Carbon::parse($end)->endOfDay();
+            } else {
+                $month = $request->input('month', Carbon::now()->month);
+                $year = $request->input('year', Carbon::now()->year);
+                $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth();
+                $endDate = Carbon::createFromDate($year, $month, 1)->endOfMonth();
+            }
+
+            $query = Attendance::with(['child', 'child.classroom'])
+                ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()]);
+
+            // Filter by classroom if provided
+            if ($classroomId = $request->input('classroom_id')) {
+                $query->whereHas('child', fn($q) => $q->where('classroom_id', $classroomId));
+            }
+
+            $attendances = $query->get()->map(function ($attendance) {
+                $status = $attendance->status;
+                if ($attendance->checkout_time && $attendance->checkin_time) {
+                    $status = 'checkout';
+                } elseif ($attendance->checkin_time && !$attendance->checkout_time) {
+                    $status = $attendance->status ?? 'present';
+                }
+
+                $color = '#43a047'; // green
+                if (in_array($status, ['late', 'late_checkout'])) $color = '#e53935';
+                elseif ($status === 'checkout') $color = '#1e88e5';
+                elseif ($status === 'absent') $color = '#fb8c00';
+
+                $ci = $attendance->checkin_time ? Carbon::parse($attendance->checkin_time)->format('h:i A') : null;
+                $co = $attendance->checkout_time ? Carbon::parse($attendance->checkout_time)->format('h:i A') : null;
+
+                return [
+                    'id' => $attendance->id,
+                    'title' => $attendance->child->name ?? 'Child',
+                    'start' => Carbon::parse($attendance->date)->format('Y-m-d'),
+                    'allDay' => true,
+                    'backgroundColor' => $color,
+                    'textColor' => '#ffffff',
+                    'extendedProps' => [
+                        'child_name' => $attendance->child->name ?? 'Child',
+                        'classroom' => $attendance->child->classroom->name ?? null,
                         'status' => $status,
-                        'status_note' => $attendance->status_note,
+                        'checkin_time' => $ci,
+                        'checkout_time' => $co,
                         'is_late' => in_array($attendance->status, ['late', 'late_checkout']),
-                        'late_reason' => $attendance->late_reason,
-                    ];
-                });
-            
-            return response()->json([
-                'success' => true,
-                'data' => $attendances,
-                'month' => $month,
-                'year' => $year
-            ]);
-            
+                        'color' => $color,
+                    ],
+                ];
+            });
+
+            return response()->json($attendances->values());
         } catch (\Exception $e) {
             Log::error('getCalendarData Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
