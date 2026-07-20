@@ -17,7 +17,6 @@ use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\ClassroomController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\HolidayController;
-use App\Http\Controllers\ParentDashboardController;
 use App\Http\Controllers\QRScanController;
 use App\Http\Controllers\SimulationClockController;
 use App\Http\Controllers\AddAnotherChildController;
@@ -403,26 +402,28 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('student-timetables', StudentTimetableController::class);
 
     Route::prefix('parent')->name('parent.')->group(function () {
-        Route::get('/dashboard', [ParentDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/children', [ParentDashboardController::class, 'children'])->name('children');
-        Route::get('/children/{child}', [ParentDashboardController::class, 'childDetail'])->name('children.detail');
-        Route::get('/attendance', [ParentDashboardController::class, 'attendance'])->name('attendance');
-        Route::get('/attendance/calendar', [ParentDashboardController::class, 'attendanceCalendar'])->name('attendance.calendar');
-        Route::get('/attendance/{child}', [ParentDashboardController::class, 'childAttendance'])->name('attendance.child');
-        Route::get('/notifications', [ParentDashboardController::class, 'notifications'])->name('notifications');
-        Route::post('/notifications/{notification}/read', [ParentDashboardController::class, 'markNotificationRead'])->name('notifications.read');
-        Route::post('/notifications/read-all', [ParentDashboardController::class, 'markAllNotificationsRead'])->name('notifications.read-all');
-        Route::get('/payment', [ParentDashboardController::class, 'payment'])->name('payment');
-        Route::get('/payment/{invoice}', [ParentDashboardController::class, 'paymentDetail'])->name('payment.detail');
-        Route::post('/payment/{invoice}/pay', [ParentDashboardController::class, 'processPayment'])->name('payment.process');
-        Route::get('/fine', [ParentDashboardController::class, 'fine'])->name('fine');
-        Route::get('/fine/{fine}', [ParentDashboardController::class, 'fineDetail'])->name('fine.detail');
-        Route::post('/fine/{fine}/pay', [ParentDashboardController::class, 'payFine'])->name('fine.pay');
-        Route::get('/profile', [ParentDashboardController::class, 'profile'])->name('profile');
-        Route::put('/profile', [ParentDashboardController::class, 'updateProfile'])->name('profile.update');
-        Route::put('/profile/password', [ParentDashboardController::class, 'updatePassword'])->name('profile.password');
-        Route::get('/settings', [ParentDashboardController::class, 'settings'])->name('settings');
-        Route::put('/settings', [ParentDashboardController::class, 'updateSettings'])->name('settings.update');
+        // Dashboard
+        Route::get('/dashboard', [\App\Http\Controllers\Parent\DashboardController::class, 'index'])->name('dashboard');
+        
+        // Children
+        Route::get('/children', [\App\Http\Controllers\Parent\ChildrenController::class, 'index'])->name('children.index');
+        Route::get('/children/{child}', [\App\Http\Controllers\Parent\ChildrenController::class, 'show'])->name('children.show');
+        
+        // Attendance
+        Route::get('/attendance', [\App\Http\Controllers\Parent\AttendanceController::class, 'index'])->name('attendance.index');
+        Route::get('/attendance/calendar', [\App\Http\Controllers\Parent\AttendanceController::class, 'calendar'])->name('attendance.calendar');
+        Route::get('/attendance/{child}', [\App\Http\Controllers\Parent\AttendanceController::class, 'childAttendance'])->name('attendance.child');
+        
+        // Profile
+        Route::get('/profile', [\App\Http\Controllers\Parent\ProfileController::class, 'index'])->name('profile.index');
+        Route::put('/profile', [\App\Http\Controllers\Parent\ProfileController::class, 'update'])->name('profile.update');
+        Route::put('/profile/password', [\App\Http\Controllers\Parent\ProfileController::class, 'updatePassword'])->name('profile.password');
+        Route::get('/settings', [\App\Http\Controllers\Parent\ProfileController::class, 'settings'])->name('settings');
+        
+        // Notifications, Payment, Fine
+        Route::get('/notifications', [\App\Http\Controllers\Parent\DashboardController::class, 'notifications'])->name('notifications');
+        Route::get('/payment', [\App\Http\Controllers\Parent\DashboardController::class, 'payment'])->name('payment');
+        Route::get('/fine', [\App\Http\Controllers\Parent\DashboardController::class, 'fine'])->name('fine');
     });
 
     Route::resource('parents', ParentController::class);

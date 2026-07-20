@@ -1,473 +1,134 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Parent Dashboard</title>
+@extends('layouts.parent-template')
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-        }
+@section('content')
+<style>
+    .welcome-card {
+        background: linear-gradient(135deg, #6d28d9, #9333ea);
+        border-radius: 24px; padding: 24px 28px; color: white;
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 16px; margin-bottom: 24px;
+    }
+    .welcome-card h2 { font-size: 22px; font-weight: 800; margin: 0; }
+    .welcome-card p { opacity: 0.85; margin: 4px 0 0; font-size: 13px; }
+    .stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card {
+        background: white; border-radius: 18px; padding: 20px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
+        display: flex; align-items: center; gap: 14px;
+    }
+    .stat-icon {
+        width: 48px; height: 48px; border-radius: 14px; display: flex;
+        align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0;
+    }
+    .stat-icon.purple { background: #ede9fe; color: #6d28d9; }
+    .stat-icon.green { background: #e8f5e9; color: #2e7d32; }
+    .stat-icon.blue { background: #e3f2fd; color: #1565c0; }
+    .stat-num { font-size: 24px; font-weight: 800; color: #1e293b; line-height: 1; }
+    .stat-lbl { font-size: 11px; color: #94a3b8; font-weight: 600; margin-top: 2px; }
+    
+    .card-table { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
+    .card-table h4 { font-size: 15px; font-weight: 800; color: #1e293b; margin: 0 0 16px; }
+    
+    .child-table { width: 100%; border-collapse: collapse; }
+    .child-table th { text-align: left; padding: 10px 14px; font-size: 10px; font-weight: 800; text-transform: uppercase; color: #94a3b8; background: #f8fafc; border-bottom: 1px solid #f1f5f9; }
+    .child-table td { padding: 12px 14px; font-size: 13px; color: #475569; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+    .child-table tr:last-child td { border-bottom: none; }
+    
+    .child-avatar {
+        width: 36px; height: 36px; border-radius: 10px;
+        background: linear-gradient(135deg, #6d28d9, #9333ea);
+        color: white; display: flex; align-items: center; justify-content: center;
+        font-weight: 800; font-size: 14px; flex-shrink: 0;
+    }
+    .status-dot { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+    .status-dot.green { background: #e8f5e9; color: #2e7d32; }
+    .status-dot.yellow { background: #fff3e0; color: #e65100; }
+    .status-dot.red { background: #fce4ec; color: #c62828; }
+    
+    .qr-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 20px; background: linear-gradient(135deg, #f59e0b, #fb8c00);
+        color: white; border-radius: 14px; font-weight: 700; font-size: 13px;
+        text-decoration: none; box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+        transition: .2s;
+    }
+    .qr-btn:hover { color: white; transform: translateY(-1px); }
+    
+    @media (max-width: 768px) { .stat-row { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 480px) { .stat-row { grid-template-columns: 1fr; } }
+</style>
 
-        body {
-            background: #f4f6f9;
-        }
-
-        .sidebar {
-            position: fixed;
-            width: 250px;
-            height: 100vh;
-            background: #F28C28;
-            color: white;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .sidebar h2 {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .sidebar a {
-            display: block;
-            color: white;
-            text-decoration: none;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            transition: background 0.3s;
-        }
-
-        .sidebar a:hover {
-            background: rgba(255,255,255,0.2);
-        }
-
-        .sidebar a.active {
-            background: rgba(255,255,255,0.3);
-            font-weight: bold;
-        }
-
-        .content {
-            margin-left: 270px;
-            padding: 30px;
-        }
-
-        .header {
-            background: white;
-            padding: 25px 30px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.1);
-        }
-
-        .header h2 {
-            color: #2d3748;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            color: #718096;
-        }
-
-        .badge-verified {
-            display: inline-block;
-            background: #48bb78;
-            color: white;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-
-        .badge-emergency {
-            display: inline-block;
-            background: #fc8181;
-            color: white;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-
-        .badge-second {
-            display: inline-block;
-            background: #4299e1;
-            color: white;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-
-        .badge-guardian {
-            display: inline-block;
-            background: #9f7aea;
-            color: white;
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin-left: 10px;
-        }
-
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.1);
-            transition: transform 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 4px 12px rgba(0,0,0,.15);
-        }
-
-        .card h3 {
-            color: #4a5568;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-
-        .card h2 {
-            color: #2d3748;
-            font-size: 28px;
-        }
-
-        .scan-btn {
-            display: inline-block;
-            background: linear-gradient(135deg, #F28C28, #f59e0b);
-            color: white;
-            padding: 14px 30px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 16px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(242, 140, 40, 0.3);
-        }
-
-        .scan-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(242, 140, 40, 0.4);
-        }
-
-        .scan-btn .icon {
-            font-size: 20px;
-            margin-right: 8px;
-        }
-
-        .section {
-            background: white;
-            margin-top: 20px;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,.1);
-        }
-
-        .section h3 {
-            color: #2d3748;
-            margin-bottom: 15px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        table th,
-        table td {
-            border-bottom: 1px solid #eee;
-            padding: 12px;
-            text-align: left;
-        }
-
-        table th {
-            color: #4a5568;
-            font-weight: 600;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #a0aec0;
-        }
-
-        .empty-state .icon {
-            font-size: 48px;
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        .child-avatar {
-            display: inline-block;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            background: #F28C28;
-            color: white;
-            text-align: center;
-            line-height: 35px;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-
-        /* ============================================
-           🔥 STATUS BADGE - LENGKAP
-           ============================================ */
-        .status-badge {
-            display: inline-block;
-            padding: 4px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .status-present {
-            background: #c6f6d5;
-            color: #276749;
-        }
-
-        .status-checkedin {
-            background: #c6f6d5;
-            color: #276749;
-        }
-
-        .status-checkout {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .status-checkedout {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .status-late_checkout {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .status-late {
-            background: #feebc8;
-            color: #9c6b1e;
-        }
-
-        .status-absent {
-            background: #fed7d7;
-            color: #9b2c2c;
-        }
-
-        .status-pending {
-            background: #e2e8f0;
-            color: #4a5568;
-        }
-
-        .btn-container {
-            text-align: center;
-            margin: 15px 0;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-            }
-            .content {
-                margin-left: 0;
-                padding: 15px;
-            }
-            .cards {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .cards {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-
-</head>
-<body>
-
-<div class="sidebar">
-    <h2>🧸 KidsTrack</h2>
-    <a href="{{ route('parent.dashboard') }}" class="active">🏠 Dashboard</a>
-    <a href="{{ route('parent.children') }}">👶 My Children</a>
-    <a href="{{ route('parent.attendance') }}">📅 Attendance</a>
-    <a href="{{ route('kiosk.index') }}">📱 Kiosk</a>
-    <a href="{{ route('parent.notifications') }}">🔔 Notifications</a>
-    <a href="{{ route('parent.payment') }}">💳 Payment</a>
-    <a href="{{ route('parent.fine') }}">⚠️ Fine</a>
-    <a href="{{ route('parent.profile') }}">👤 Profile</a>
-    <a href="{{ route('logout') }}"
-       onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-       🚪 Logout
+{{-- Welcome --}}
+<div class="welcome-card">
+    <div>
+        <h2>Welcome back, {{ $parent->name ?? Auth::user()->name }}!</h2>
+        <p>{{ date('l, d F Y') }} · {{ $parent->phone ?? '' }}</p>
+    </div>
+    <a href="{{ route('kiosk.index') }}" class="qr-btn" target="_blank">
+        <i class="material-symbols-rounded" style="font-size:20px;">qr_code_scanner</i> Scan QR Code
     </a>
-    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display:none;">
-        @csrf
-    </form>
 </div>
 
-<div class="content">
-
-    {{-- HEADER / WELCOME --}}
-    <div class="header">
-        {{-- PARENT --}}
-        @if($parent)
-            <h2>
-                👋 Welcome, {{ $parent->name }}
-                @if($parent->verified)
-                    <span class="badge-verified">✅ Verified</span>
-                @endif
-                @if($parent->emergency)
-                    <span class="badge-emergency">🚨 Emergency</span>
-                @endif
-            </h2>
-            <p>📞 {{ $parent->phone }}</p>
-            <p style="font-size:14px; color:#a0aec0; margin-top:5px;">
-                🆔 Parent ID: #{{ str_pad($parent->id, 4, '0', STR_PAD_LEFT) }}
-            </p>
-
-        {{-- SECOND PARENT --}}
-        @elseif($secondParent)
-            <h2>
-                👋 Welcome, {{ $secondParent->name }}
-                <span class="badge-second">👫 Second Parent</span>
-            </h2>
-            <p>📞 {{ $secondParent->phone }}</p>
-            <p style="font-size:14px; color:#a0aec0; margin-top:5px;">
-                🆔 Second Parent ID: #{{ str_pad($secondParent->id, 4, '0', STR_PAD_LEFT) }}
-            </p>
-
-        {{-- GUARDIAN --}}
-        @elseif($guardian)
-            <h2>
-                👋 Welcome, {{ $guardian->name }}
-                <span class="badge-guardian">🛡️ Guardian</span>
-            </h2>
-            <p>📞 {{ $guardian->phone }}</p>
-            <p style="font-size:14px; color:#a0aec0; margin-top:5px;">
-                🆔 Guardian ID: #{{ str_pad($guardian->id, 4, '0', STR_PAD_LEFT) }}
-            </p>
-
-        @else
-            <h2>👋 Welcome, Parent</h2>
-            <p>Please complete your profile.</p>
-        @endif
+{{-- Stats --}}
+<div class="stat-row">
+    <div class="stat-card">
+        <div class="stat-icon purple"><i class="material-symbols-rounded">child_care</i></div>
+        <div><div class="stat-num">{{ $totalChildren }}</div><div class="stat-lbl">Children</div></div>
     </div>
-
-    {{-- STATS CARDS --}}
-    <div class="cards">
-        <div class="card">
-            <h3>👶 Children</h3>
-            <h2>{{ $children->count() ?? 0 }}</h2>
-        </div>
-        <div class="card">
-            <h3>📅 Attendance Today</h3>
-            <h2>{{ $attendanceToday ?? 0 }}</h2>
-        </div>
-        <div class="card">
-            <h3>💳 Invoice</h3>
-            <h2>RM0.00</h2>
-        </div>
-        <div class="card">
-            <h3>🔔 Notification</h3>
-            <h2>0</h2>
-        </div>
+    <div class="stat-card">
+        <div class="stat-icon green"><i class="material-symbols-rounded">check_circle</i></div>
+        <div><div class="stat-num">{{ $attendanceToday }}</div><div class="stat-lbl">Checked In Today</div></div>
     </div>
-
-    {{-- SCAN QR CODE BUTTON --}}
-    <div class="btn-container">
-        <a href="{{ route('kiosk.index') }}" class="scan-btn">
-            <span class="icon">📷</span> Scan QR Code
-        </a>
+    <div class="stat-card">
+        <div class="stat-icon blue"><i class="material-symbols-rounded">receipt_long</i></div>
+        <div><div class="stat-num">RM0.00</div><div class="stat-lbl">Invoice</div></div>
     </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="background:#fff3e0;color:#e65100;"><i class="material-symbols-rounded">notifications</i></div>
+        <div><div class="stat-num">0</div><div class="stat-lbl">Notifications</div></div>
+    </div>
+</div>
 
-    {{-- MY CHILDREN SECTION --}}
-    <div class="section">
-        <h3>👶 My Children</h3>
-        <br>
-
-        @if($children && $children->count() > 0)
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Name</th>
-                        <th>Class</th>
-                        <th>Status Today</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($children as $index => $child)
+{{-- Children Table --}}
+<div class="card-table">
+    <h4><i class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">child_care</i> My Children</h4>
+    @if($children->count() > 0)
+    <div style="overflow-x:auto;">
+        <table class="child-table">
+            <thead>
+                <tr><th>#</th><th>Name</th><th>Age</th><th>Class</th><th>Status Today</th></tr>
+            </thead>
+            <tbody>
+                @foreach($children as $i => $child)
+                <tr>
+                    <td style="color:#94a3b8;font-weight:700;">{{ $i + 1 }}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="child-avatar">{{ strtoupper(substr($child->name, 0, 1)) }}</div>
+                            <span style="font-weight:700;color:#1e293b;">{{ $child->name }}</span>
+                        </div>
+                    </td>
+                    <td>{{ $child->age }}</td>
+                    <td>{{ $child->classroom->name ?? 'N/A' }}</td>
+                    <td>
                         @php
-                            // 🔥🔥🔥 STATUS LOGIC - BETUL 🔥🔥🔥
-                            $today = \Carbon\Carbon::now('Asia/Kuala_Lumpur')->toDateString();
-                            $attendance = \App\Models\Attendance::where('child_id', $child->id)
-                                ->whereDate('date', $today)
-                                ->first();
-                            
-                            if ($attendance) {
-                                if ($attendance->checkout_time || $attendance->status === 'checkout' || $attendance->status === 'late_checkout') {
-                                    $statusText = 'Checked Out';
-                                    $statusClass = 'status-checkedout';
-                                } elseif ($attendance->checkin_time || $attendance->status === 'present' || $attendance->status === 'late') {
-                                    $statusText = 'Checked In';
-                                    $statusClass = 'status-checkedin';
-                                } else {
-                                    $statusText = 'Pending';
-                                    $statusClass = 'status-pending';
-                                }
-                            } else {
-                                $statusText = 'Pending';
-                                $statusClass = 'status-pending';
-                            }
+                            $cls = $child->status_class ?? 'pending';
+                            $txt = $child->status_today ?? 'Pending';
                         @endphp
-                        <tr>
-                            <td>{{ $index + 1 }}</td>
-                            <td>
-                                <span class="child-avatar">{{ strtoupper(substr($child->name, 0, 1)) }}</span>
-                                {{ $child->name }}
-                            </td>
-                            <td>{{ $child->classroom->name ?? 'Not assigned' }}</td>
-                            <td>
-                                <span class="status-badge {{ $statusClass }}">
-                                    {{ $statusText }}
-                                </span>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @else
-            <div class="empty-state">
-                <span class="icon">👶</span>
-                <p>No Child Registered Yet</p>
-                <p style="font-size:14px; color:#cbd5e0;">Add your child to get started.</p>
-            </div>
-        @endif
-
+                        <span class="status-dot {{ $cls == 'checkin' ? 'green' : ($cls == 'checkout' ? 'red' : 'yellow') }}">
+                            {{ $txt }}
+                        </span>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
-
+    @else
+    <div style="text-align:center;padding:40px;color:#94a3b8;">
+        <i class="material-symbols-rounded" style="font-size:48px;display:block;margin-bottom:8px;">child_care</i>
+        No children registered yet.
+    </div>
+    @endif
 </div>
-
-</body>
-</html>
+@endsection

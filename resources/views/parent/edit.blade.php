@@ -253,7 +253,7 @@
 
     {{-- Breadcrumb --}}
     <div class="rg-breadcrumb">
-        <a href="{{ route('parents.index') }}">👨‍👩‍👧‍👦 Loving Guardians</a>
+        <a href="{{ route('parents.index') }}"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">family_restroom</i> Loving Guardians</a>
         <span class="sep">›</span>
         <a href="{{ route('parents.show', $parent->id) }}">{{ $parent->name }}</a>
         <span class="sep">›</span>
@@ -269,13 +269,13 @@
 
     @if(session('error'))
     <div class="alert-error">
-        <span>⚠️</span> {{ session('error') }}
+        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i></span> {{ session('error') }}
     </div>
     @endif
 
     @if($errors->any())
     <div class="alert-error">
-        <strong>⚠️ Please fix the following errors:</strong>
+        <strong><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i> Please fix the following errors:</strong>
         <ul>
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -293,7 +293,7 @@
     {{-- ============================================ --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>👤</span> Main Parent
+            <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">person</i></span> Main Parent
         </div>
 
         <div class="card-inner">
@@ -303,7 +303,7 @@
                     @if($parent->photo)
                         <img src="{{ Storage::url($parent->photo) }}">
                     @else
-                        <span>👤</span>
+                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">person</i></span>
                     @endif
                 </div>
                 <div class="upload-zone"
@@ -374,7 +374,7 @@
     {{-- ============================================ --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>👫</span> Second Parent (Optional)
+            <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">group</i></span> Second Parent (Optional)
         </div>
 
         <div class="card-inner">
@@ -384,7 +384,7 @@
                     @if($parent->secondParent && $parent->secondParent->photo)
                         <img src="{{ Storage::url($parent->secondParent->photo) }}">
                     @else
-                        <span>👤</span>
+                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">person</i></span>
                     @endif
                 </div>
                 <div class="upload-zone"
@@ -458,7 +458,7 @@
     {{-- ============================================ --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>🛡️</span> Guardian (Optional)
+            <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">shield</i></span> Guardian (Optional)
         </div>
 
         <div class="card-inner">
@@ -468,7 +468,7 @@
                     @if($parent->guardian && $parent->guardian->photo)
                         <img src="{{ Storage::url($parent->guardian->photo) }}">
                     @else
-                        <span>🛡️</span>
+                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">shield</i></span>
                     @endif
                 </div>
                 <div class="upload-zone"
@@ -551,7 +551,7 @@ full coding {{-- ============================================ --}}
             <input type="checkbox" name="verified" value="1" 
                 {{ old('verified', $parent->verified) ? 'checked' : '' }}>
             <div class="check-row-text">
-                <p>✅ Verified</p>
+                <p><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified</p>
                 <small>Identity has been confirmed</small>
             </div>
         </label>
@@ -561,7 +561,7 @@ full coding {{-- ============================================ --}}
             <input type="checkbox" name="emergency" value="1" 
                 {{ old('emergency', $parent->emergency) ? 'checked' : '' }}>
             <div class="check-row-text">
-                <p>⚠️ Emergency Contact</p>
+                <p><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i> Emergency Contact</p>
                 <small>Contact in case of emergency</small>
             </div>
         </label>

@@ -370,7 +370,7 @@
 {{-- Header --}}
 <div class="pg-header">
     <div class="pg-header-left">
-        <h2><span>👨‍👩‍👧‍👦</span> Loving Guardians</h2>
+        <h2><span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">family_restroom</i></span> Loving Guardians</h2>
         <p>View, update, and manage parent and guardian records.</p>
     </div>
     <div class="pg-header-right">
@@ -431,7 +431,7 @@
     </div>
     <select class="filter-select" id="filterStatus">
         <option value="">All Status</option>
-        <option value="verified">✅ Verified</option>
+        <option value="verified"><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified</option>
         <option value="pending">⏳ Pending</option>
         <option value="emergency">🚨 Emergency</option>
     </select>
@@ -446,8 +446,8 @@
                 <th>#</th>
                 <th>👨‍👩‍👧 Family</th>
                 <th>Status</th>
-                <th>🛡️ Guardian</th>
-                <th>👶 Children</th>
+                <th><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">shield</i> Guardian</th>
+                <th><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i> Children</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -472,8 +472,8 @@
                             @endif
                         </div>
                         <div>
-                            <p class="parent-name">{{ $parent->name }} <span class="relation-badge main" style="font-size:10px;">👨‍👩‍👦 Parent</span></p>
-                            <p class="parent-sub">📱 {{ $parent->phone ?? '-' }} · ✉️ {{ $parent->user->email ?? '-' }}</p>
+                            <p class="parent-name">{{ $parent->name }} <span class="relation-badge main" style="font-size:10px;"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">family_restroom</i> Parent</span></p>
+                            <p class="parent-sub"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">smartphone</i> {{ $parent->phone ?? '-' }} · <i class="fas fa-envelope" style="font-size:10px;"></i> {{ $parent->user->email ?? '-' }}</p>
                         </div>
                     </div>
                     {{-- Second Parent --}}
@@ -483,8 +483,8 @@
                             {{ strtoupper(substr($second->name, 0, 1)) }}
                         </div>
                         <div>
-                            <p class="parent-name" style="font-size:13px;">{{ $second->name }} <span class="relation-badge second" style="font-size:10px;">👫 Second</span></p>
-                            <p class="parent-sub">📱 {{ $second->phone ?? '-' }}</p>
+                            <p class="parent-name" style="font-size:13px;">{{ $second->name }} <span class="relation-badge second" style="font-size:10px;"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">group</i> Second</span></p>
+                            <p class="parent-sub"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">smartphone</i> {{ $second->phone ?? '-' }}</p>
                         </div>
                     </div>
                     @endif
@@ -493,7 +493,7 @@
                 {{-- Status --}}
                 <td>
                     @if($parent->verified)
-                        <span class="status-badge verified">✅ Verified</span>
+                        <span class="status-badge verified"><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified</span>
                     @else
                         <span class="status-badge pending">⏳ Pending</span>
                     @endif
@@ -507,8 +507,8 @@
                                 {{ strtoupper(substr($guardian->name, 0, 1)) }}
                             </div>
                             <div>
-                                <p class="parent-name" style="font-size:13px;">🛡️ {{ $guardian->name }}</p>
-                                <p class="parent-sub">📱 {{ $guardian->phone ?? '-' }} · 👶 {{ $guardian->age ?? 'N/A' }} yrs</p>
+                                <p class="parent-name" style="font-size:13px;"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">shield</i> {{ $guardian->name }}</p>
+                                <p class="parent-sub"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">smartphone</i> {{ $guardian->phone ?? '-' }} · <i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i> {{ $guardian->age ?? 'N/A' }} yrs</p>
                             </div>
                         </div>
                     @else
@@ -522,7 +522,7 @@
                     @if($kids->count() > 0)
                         @foreach($kids as $kid)
                             <span style="display:inline-block;background:#f1f5f9;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600;margin:2px;">
-                                👶 {{ $kid->name }}
+                                <i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i> {{ $kid->name }}
                             </span>
                         @endforeach
                     @else
@@ -557,10 +557,10 @@
             <tr>
                 <td colspan="7">
                     <div class="empty-state">
-                        <div class="empty-icon">👨‍👩‍👧‍👦</div>
+                        <div class="empty-icon"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">family_restroom</i></div>
                         <h5>No parents registered yet</h5>
                         <p>Start by registering your first parent to the nursery.</p>
-                        <a href="{{ route('parents.create') }}">➕ Register New Parent</a>
+                        <a href="{{ route('parents.create') }}"><i class="fas fa-plus"></i> Register New Parent</a>
                     </div>
                 </td>
             </tr>

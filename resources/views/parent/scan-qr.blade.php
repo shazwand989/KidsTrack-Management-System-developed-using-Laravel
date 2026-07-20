@@ -121,8 +121,8 @@ class QRScanController extends Controller
             if ($parent && $parent->telegram_notification && $parent->telegram_id) {
                 $childNames = Child::whereIn('id', $childIds)->pluck('name')->join(', ');
                 $message = $action === 'checkin' 
-                    ? "🧸 KidsTrack Check-in Alert\n\n👶 Children: {$childNames}\n✅ Checked-in at: " . now()->format('h:i A') . "\n📅 Date: " . now()->format('d M Y')
-                    : "🧸 KidsTrack Check-out Alert\n\n👶 Children: {$childNames}\n✅ Checked-out at: " . now()->format('h:i A') . "\n📅 Date: " . now()->format('d M Y');
+                    ? "🧸 KidsTrack Check-in Alert\n\n<i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i> Children: {$childNames}\n<i class="fas fa-check-circle" style="font-size:10px;"></i> Checked-in at: " . now()->format('h:i A') . "\n<i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">calendar_month</i> Date: " . now()->format('d M Y')
+                    : "🧸 KidsTrack Check-out Alert\n\n<i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i> Children: {$childNames}\n<i class="fas fa-check-circle" style="font-size:10px;"></i> Checked-out at: " . now()->format('h:i A') . "\n<i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">calendar_month</i> Date: " . now()->format('d M Y');
                 
                 $this->telegram->sendMessage($parent->telegram_id, $message);
             }

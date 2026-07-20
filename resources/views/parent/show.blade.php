@@ -399,11 +399,11 @@
             <div class="profile-info">
                 <h1>{{ $parent->name }}</h1>
                 <p><span>📞</span> {{ $parent->phone ?? '-' }}</p>
-                <p><span>✉️</span> {{ $parent->user->email ?? 'No email' }}</p>
+                <p><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> {{ $parent->user->email ?? 'No email' }}</p>
                 
                 <div class="profile-badges">
                     <span class="badge-status">
-                        <span>👨‍👩‍👧‍👦</span> 
+                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">family_restroom</i></span> 
                         @if($parent->user)
                             {{ $parent->user->role == 'parent1' ? 'Main Parent' : 'Parent' }}
                         @else
@@ -411,10 +411,10 @@
                         @endif
                     </span>
                     @if($parent->verified)
-                        <span class="badge-status">✅ Verified</span>
+                        <span class="badge-status"><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified</span>
                     @endif
                     @if($parent->emergency)
-                        <span class="badge-status">⚠️ Emergency</span>
+                        <span class="badge-status"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i> Emergency</span>
                     @endif
                 </div>
             </div>
@@ -441,7 +441,7 @@
                 {{-- MAIN PARENT INFO CARD --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>👤</span>
+                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">person</i></span>
                         <h3>Main Parent Information</h3>
                     </div>
                     <div class="info-row">
@@ -449,7 +449,7 @@
                         <div class="info-value">{{ $parent->name }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>✉️</span> Email</div>
+                        <div class="info-label"><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> Email</div>
                         <div class="info-value">{{ $parent->user->email ?? '-' }}</div>
                     </div>
                     <div class="info-row">
@@ -469,7 +469,7 @@
                 {{-- SECOND PARENT INFO CARD --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>👫</span>
+                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">group</i></span>
                         <h3>Second Parent Information</h3>
                     </div>
                     @if($parent->secondParent)
@@ -478,7 +478,7 @@
                             <div class="info-value">{{ $parent->secondParent->name ?? '-' }}</div>
                         </div>
                         <div class="info-row">
-                            <div class="info-label"><span>✉️</span> Email</div>
+                            <div class="info-label"><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> Email</div>
                             <div class="info-value">{{ $parent->secondParent->user->email ?? '-' }}</div>
                         </div>
                         <div class="info-row">
@@ -503,7 +503,7 @@
                 {{-- GUARDIAN INFO CARD --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>🛡️</span>
+                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">shield</i></span>
                         <h3>Guardian Information</h3>
                     </div>
                     @if($parent->guardian)
@@ -512,7 +512,7 @@
                             <div class="info-value">{{ $parent->guardian->name ?? '-' }}</div>
                         </div>
                         <div class="info-row">
-                            <div class="info-label"><span>✉️</span> Email</div>
+                            <div class="info-label"><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> Email</div>
                             <div class="info-value">{{ $parent->guardian->user->email ?? '-' }}</div>
                         </div>
                         <div class="info-row">
@@ -537,7 +537,7 @@
                 {{-- CHILDREN CARD --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>👶</span>
+                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i></span>
                         <h3>Children</h3>
                     </div>
                     <div class="info-row">
@@ -602,7 +602,7 @@
                 {{-- QR CODE CARD --}}
                 <div class="right-card">
                     <div class="right-card-header">
-                        <span>📱</span>
+                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">smartphone</i></span>
                         <h3>QR Check-in</h3>
                     </div>
                     <div class="qr-box">
@@ -623,15 +623,15 @@
                         <h3>Settings</h3>
                     </div>
                     <div class="settings-row">
-                        <span class="settings-label">✅ Verified Status:</span>
+                        <span class="settings-label"><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified Status:</span>
                         <span class="status-badge {{ $parent->verified ? 'verified' : 'unverified' }}">
-                            {{ $parent->verified ? '✅ Verified' : '❌ Unverified' }}
+                            {{ $parent->verified ? '<i class="fas fa-check-circle" style="font-size:10px;"></i> Verified' : '❌ Unverified' }}
                         </span>
                     </div>
                     <div class="settings-row">
-                        <span class="settings-label">⚠️ Emergency Contact:</span>
+                        <span class="settings-label"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i> Emergency Contact:</span>
                         <span class="status-badge {{ $parent->emergency ? 'emergency' : 'unverified' }}">
-                            {{ $parent->emergency ? '⚠️ Yes' : '❌ No' }}
+                            {{ $parent->emergency ? '<i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i> Yes' : '❌ No' }}
                         </span>
                     </div>
                     <div class="settings-row">
@@ -653,7 +653,7 @@
                         <span class="settings-label">#{{ str_pad($parent->id, 4, '0', STR_PAD_LEFT) }}</span>
                     </div>
                     <div class="settings-row">
-                        <span class="settings-label">📅 Registered:</span>
+                        <span class="settings-label"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">calendar_month</i> Registered:</span>
                         <span class="settings-label">{{ $parent->created_at->format('d M Y') }}</span>
                     </div>
                     <div class="settings-row">

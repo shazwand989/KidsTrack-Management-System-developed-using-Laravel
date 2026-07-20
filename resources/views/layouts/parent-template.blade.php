@@ -527,7 +527,7 @@
 
         <!-- Dashboard -->
         <li class="nav-item">
-          <a class="nav-link text-dark active" href="{{ route('parent.dashboard') }}">
+          <a class="nav-link text-dark @if(request()->routeIs('parent.dashboard')) active @endif" href="{{ route('parent.dashboard') }}">
             <i class="material-symbols-rounded opacity-5">dashboard</i>
             <span class="nav-link-text ms-1">Dashboard</span>
           </a>
@@ -535,7 +535,7 @@
 
         <!-- My Children -->
         <li class="nav-item">
-          <a class="nav-link text-dark" href="{{ route('parent.children') }}">
+          <a class="nav-link text-dark @if(request()->routeIs('parent.children*')) active @endif" href="{{ route('parent.children.index') }}">
             <i class="material-symbols-rounded opacity-5">child_care</i>
             <span class="nav-link-text ms-1">My Children</span>
           </a>
@@ -548,7 +548,7 @@
 
         <!-- Attendance -->
         <li class="nav-item">
-          <a class="nav-link text-dark" href="{{ route('parent.attendance') }}">
+          <a class="nav-link text-dark @if(request()->routeIs('parent.attendance') && !request()->routeIs('parent.attendance.calendar*')) active @endif" href="{{ route('parent.attendance.index') }}">
             <i class="material-symbols-rounded opacity-5">event_note</i>
             <span class="nav-link-text ms-1">Attendance</span>
           </a>
@@ -556,7 +556,7 @@
 
         <!-- Attendance Calendar -->
         <li class="nav-item">
-          <a class="nav-link text-dark" href="{{ route('parent.attendance.calendar') }}">
+          <a class="nav-link text-dark @if(request()->routeIs('parent.attendance.calendar*')) active @endif" href="{{ route('parent.attendance.calendar') }}">
             <i class="material-symbols-rounded opacity-5">calendar_month</i>
             <span class="nav-link-text ms-1">Calendar</span>
           </a>
@@ -576,7 +576,7 @@
 
         <!-- Notifications -->
         <li class="nav-item">
-          <a class="nav-link text-dark" href="{{ route('parent.notifications') }}">
+          <a class="nav-link text-dark @if(request()->routeIs('parent.notifications*')) active @endif" href="{{ route('parent.notifications') }}">
             <i class="material-symbols-rounded opacity-5">notifications</i>
             <span class="nav-link-text ms-1">Notifications</span>
           </a>
@@ -584,7 +584,7 @@
 
         <!-- Payment -->
         <li class="nav-item">
-          <a class="nav-link text-dark" href="{{ route('parent.payment') }}">
+          <a class="nav-link text-dark @if(request()->routeIs('parent.payment*')) active @endif" href="{{ route('parent.payment') }}">
             <i class="material-symbols-rounded opacity-5">payments</i>
             <span class="nav-link-text ms-1">Payment</span>
           </a>
@@ -592,7 +592,7 @@
 
         <!-- Fine -->
         <li class="nav-item">
-          <a class="nav-link text-dark" href="{{ route('parent.fine') }}">
+          <a class="nav-link text-dark @if(request()->routeIs('parent.fine*')) active @endif" href="{{ route('parent.fine') }}">
             <i class="material-symbols-rounded opacity-5">warning</i>
             <span class="nav-link-text ms-1">Fine</span>
           </a>
@@ -600,7 +600,7 @@
 
         <!-- Profile -->
         <li class="nav-item">
-          <a class="nav-link text-dark" href="{{ route('parent.profile') }}">
+          <a class="nav-link text-dark @if(request()->routeIs('parent.profile*')) active @endif" href="{{ route('parent.profile.index') }}">
             <i class="material-symbols-rounded opacity-5">account_circle</i>
             <span class="nav-link-text ms-1">Profile</span>
           </a>
@@ -608,7 +608,7 @@
 
         <!-- Settings -->
         <li class="nav-item">
-          <a class="nav-link text-dark" href="{{ route('parent.settings') }}">
+          <a class="nav-link text-dark @if(request()->routeIs('parent.settings*')) active @endif" href="{{ route('parent.settings') }}">
             <i class="material-symbols-rounded opacity-5">settings</i>
             <span class="nav-link-text ms-1">Settings</span>
           </a>
@@ -658,245 +658,9 @@
 
     <!-- Page Content -->
     <div class="container-fluid py-4">
-
-      <!-- Welcome Section -->
-      <div class="row mb-4">
-        <div class="col-12">
-          <div class="card p-4">
-            <div class="d-flex align-items-center">
-              @if($parent->photo)
-                <img src="{{ Storage::url($parent->photo) }}" class="parent-photo me-3" alt="{{ $parent->name }}">
-              @else
-                <div class="parent-photo-placeholder me-3">
-                  {{ $parent->initial }}
-                </div>
-              @endif
-              <div>
-                <h3 class="mb-0 fw-bold" style="color: #2e1065;">
-                  Welcome back, {{ $parent->name }}! 🎉
-                  @if($parent->verified)
-                    <span class="verified-badge">✅ Verified</span>
-                  @else
-                    <span class="unverified-badge">⏳ Pending Verification</span>
-                  @endif
-                </h3>
-                <p class="mb-0 text-muted">
-                  📞 {{ $parent->phone }}
-                  @if($parent->emergency)
-                    <span class="badge bg-danger ms-2">🚨 Emergency Contact</span>
-                  @endif
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Stats Cards -->
-      <div class="row mb-4">
-
-        <!-- Children -->
-        <div class="col-xl-3 col-md-6 mb-3">
-          <div class="card p-3">
-            <div class="card-icon purple">
-              <i class="material-symbols-rounded">child_care</i>
-            </div>
-            <div class="card-number">{{ $totalChildren }}</div>
-            <div class="card-label">👶 Children</div>
-          </div>
-        </div>
-
-        <!-- Attendance Today -->
-        <div class="col-xl-3 col-md-6 mb-3">
-          <div class="card p-3">
-            <div class="card-icon blue">
-              <i class="material-symbols-rounded">event_note</i>
-            </div>
-            <div class="card-number">{{ $todayAttendance->where('status', 'present')->count() }}</div>
-            <div class="card-label"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">calendar_month</i> Present Today</div>
-          </div>
-        </div>
-
-        <!-- Invoice -->
-        <div class="col-xl-3 col-md-6 mb-3">
-          <div class="card p-3">
-            <div class="card-icon green">
-              <i class="material-symbols-rounded">payments</i>
-            </div>
-            <div class="card-number">RM{{ number_format($totalInvoices, 2) }}</div>
-            <div class="card-label">💳 Total Due</div>
-          </div>
-        </div>
-
-        <!-- Notification -->
-        <div class="col-xl-3 col-md-6 mb-3">
-          <div class="card p-3">
-            <div class="card-icon orange">
-              <i class="material-symbols-rounded">notifications</i>
-            </div>
-            <div class="card-number">{{ $unreadNotifications }}</div>
-            <div class="card-label">🔔 Unread</div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- My Children Section -->
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-header bg-white border-0 pt-4 pb-0 px-4 d-flex justify-content-between align-items-center">
-              <h5 class="mb-0 fw-bold" style="color: #2e1065;">
-                <i class="material-symbols-rounded me-2" style="font-size: 24px; vertical-align: middle;">child_care</i>
-                My Children
-              </h5>
-              <a href="{{ route('parent.children') }}" class="btn btn-sm" style="background: linear-gradient(135deg, #6d28d9, #9333ea); color: white; border: none; border-radius: 10px; padding: 6px 16px; font-weight: 600;">
-                View All
-              </a>
-            </div>
-            <div class="card-body p-4">
-
-              @if($children->count() > 0)
-
-                @foreach($children as $child)
-                  <div class="d-flex align-items-center py-3 border-bottom border-light">
-                    <div class="child-avatar me-3">
-                      {{ strtoupper(substr($child->name, 0, 1)) }}
-                    </div>
-                    <div class="flex-grow-1">
-                      <h6 class="mb-0 fw-bold" style="color: #2e1065;">{{ $child->name }}</h6>
-                      <small class="text-muted">
-                        @if($child->classroom)
-                          Class: {{ $child->classroom->name }}
-                        @else
-                          No class assigned
-                        @endif
-                      </small>
-                    </div>
-                    <div>
-                      @php
-                        $todayStatus = $todayAttendance->where('child_id', $child->id)->first();
-                      @endphp
-                      @if($todayStatus)
-                        <span class="status-badge {{ $todayStatus->status }}">
-                          {{ ucfirst($todayStatus->status) }}
-                        </span>
-                      @else
-                        <span class="status-badge pending">Pending</span>
-                      @endif
-                    </div>
-                  </div>
-                @endforeach
-
-              @else
-                <div class="empty-state">
-                  <div class="empty-icon">👶</div>
-                  <h5>No Children Registered</h5>
-                  <p class="text-muted">You haven't added any children to your account yet.</p>
-                  <a href="#" class="btn mt-2" style="background: linear-gradient(135deg, #6d28d9, #9333ea); border: none; border-radius: 12px; padding: 10px 24px; font-weight: 700; color: white;">
-                    <i class="material-symbols-rounded me-1" style="font-size: 18px; vertical-align: middle;">add</i>
-                    Add Child
-                  </a>
-                </div>
-              @endif
-
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer -->
-      <footer class="footer py-4 mt-4">
-        <div class="container-fluid">
-          <div class="row align-items-center justify-content-lg-between">
-            <div class="col-lg-12 mb-lg-0 mb-4">
-              <div class="copyright text-center text-sm text-muted">
-                © {{ date('Y') }} 🧸 KidsTrack. All rights reserved.
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
-
+      @yield('content')
     </div>
-
   </main>
-
-  <!-- ============================================ -->
-  <!-- SCRIPTS -->
-  <!-- ============================================ -->
-
-  <!-- Core JS Files -->
-  <script src="{{ asset('material/assets/js/core/popper.min.js') }}"></script>
-  <script src="{{ asset('material/assets/js/core/bootstrap.min.js') }}"></script>
-  <script src="{{ asset('material/assets/js/plugins/perfect-scrollbar.min.js') }}"></script>
-  <script src="{{ asset('material/assets/js/plugins/smooth-scrollbar.min.js') }}"></script>
-  <script src="{{ asset('material/assets/js/plugins/chartjs.min.js') }}"></script>
-
-  <script>
-    var win = navigator.platform.indexOf('Win') > -1;
-    if (win && document.querySelector('#sidenav-scrollbar')) {
-      var options = { damping: '0.5' };
-      Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-    }
-  </script>
-
-  <!-- Control Center for Material Dashboard -->
-  <script src="{{ asset('material/assets/js/material-dashboard.min.js?v=3.2.0') }}"></script>
-
-  <!-- Logout Modal -->
-  @auth
-  <div id="customLogoutModal" class="custom-logout-overlay">
-    <div class="custom-logout-box">
-      <button type="button" class="logout-close-btn" id="closeLogoutBtn">&times;</button>
-
-      <div class="logout-profile">
-        <div class="logout-avatar">
-          <i class="material-symbols-rounded">account_circle</i>
-        </div>
-        <h4>{{ Auth::user()->name }}</h4>
-        <p>{{ Auth::user()->email }}</p>
-      </div>
-
-      <div class="logout-content">
-        <h5>Logout Confirmation</h5>
-        <p>Are you sure you want to logout from the system?</p>
-      </div>
-
-      <div class="logout-actions">
-        <button type="button" class="btn-cancel-logout" id="cancelLogoutBtn">Cancel</button>
-        <form method="POST" action="{{ route('logout') }}">
-          @csrf
-          <button type="submit" class="btn-confirm-logout">Yes, Logout</button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const openBtn = document.getElementById('openLogoutBtn');
-      const modal = document.getElementById('customLogoutModal');
-      const closeBtn = document.getElementById('closeLogoutBtn');
-      const cancelBtn = document.getElementById('cancelLogoutBtn');
-
-      if (openBtn && modal) {
-        openBtn.addEventListener('click', function () { modal.style.display = 'flex'; });
-      }
-      if (closeBtn && modal) {
-        closeBtn.addEventListener('click', function () { modal.style.display = 'none'; });
-      }
-      if (cancelBtn && modal) {
-        cancelBtn.addEventListener('click', function () { modal.style.display = 'none'; });
-      }
-      if (modal) {
-        modal.addEventListener('click', function (event) {
-          if (event.target === modal) modal.style.display = 'none';
-        });
-      }
-    });
-  </script>
-  @endauth
 
 </body>
 

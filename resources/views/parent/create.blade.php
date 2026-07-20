@@ -509,7 +509,7 @@
                 <input type="hidden" name="verified" value="0">
                 <input type="checkbox" name="verified" value="1" {{ old('verified') ? 'checked' : '' }}>
                 <div class="check-row-text">
-                    <p>✅ Verified</p>
+                    <p><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified</p>
                     <small>Identity has been confirmed</small>
                 </div>
             </label>
@@ -519,7 +519,7 @@
                 <input type="hidden" name="emergency" value="0">
                 <input type="checkbox" name="emergency" value="1" {{ old('emergency') ? 'checked' : '' }}>
                 <div class="check-row-text">
-                    <p>⚠️ Emergency Contact</p>
+                    <p><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i> Emergency Contact</p>
                     <small>Contact in case of emergency</small>
                 </div>
             </label>
