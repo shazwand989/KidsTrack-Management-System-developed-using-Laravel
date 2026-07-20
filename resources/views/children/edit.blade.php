@@ -414,21 +414,11 @@
 <div class="rg-wrap">
 
     {{-- DEBUG BOX --}}
-    <div class="debug-box">
-        <strong>🔍 DEBUG DATA:</strong><br>
-        Parents: <span class="count">{{ $parents->count() }}</span> |
-        Second Parents: <span class="count">{{ $secondParents->count() }}</span> |
-        Guardians: <span class="count">{{ $guardians->count() }}</span>
-        <hr style="margin: 8px 0; border-color: #dbeafe;">
-        <strong>Second Parents List:</strong><br>
-        @foreach($secondParents as $sp)
-            • {{ $sp->name }} (ID: {{ $sp->id }}, Parent ID: {{ $sp->parent_id }})<br>
-        @endforeach
-        <hr style="margin: 8px 0; border-color: #dbeafe;">
-        <strong>Current Child Data:</strong><br>
-        • Parent ID: {{ $child->parent?->id }}<br>
-        • Second Parent ID: {{ $child->secondParent?->id ?? 'NULL' }}<br>
-        • Guardian ID: {{ $child->guardian?->id ?? 'NULL' }}
+    <div class="debug-box" style="display:none;">
+        <strong>🔍 Family Links:</strong><br>
+        Main Parent: {{ $child->parent?->name ?? 'None' }} (ID: {{ $child->parent?->id ?? 'N/A' }})<br>
+        Second Parent: {{ $child->secondParent?->name ?? 'None' }} (ID: {{ $child->secondParent?->id ?? 'N/A' }})<br>
+        Guardian: {{ $child->guardian?->name ?? 'None' }} (ID: {{ $child->guardian?->id ?? 'N/A' }})
     </div>
 
     {{-- Breadcrumb --}}

@@ -170,7 +170,7 @@ class QRScanController extends Controller
         } else {
             Attendance::create([
                 'child_id' => $childId,
-                'parent_id' => $parentId,
+                'user_id' => $parentId,
                 'date' => today(),
                 'status' => 'checkin',
                 'checkin_time' => now()->format('H:i:s'),
