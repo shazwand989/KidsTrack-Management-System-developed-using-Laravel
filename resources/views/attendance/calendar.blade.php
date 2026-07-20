@@ -299,7 +299,7 @@
                     </div>
                 </div>
 
-                <form action="{{ route('save.timer.settings') }}" method="POST" id="timerForm">
+                <form action="{{ route('kiosk.save.timer.settings') }}" method="POST" id="timerForm">
                     @csrf
                     @foreach(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'] as $day)
                         <input type="hidden" name="{{ $day }}[morning][start]" id="ms_{{ $day }}" value="07:00">

@@ -132,10 +132,7 @@ class CheckinController extends Controller
             return redirect()->route('kiosk.index')->with('error', 'No linked parent found.');
         }
 
-        $children = Child::where(function($q) use ($parentId) {
-                $q->where('parent_id', $parentId)
-                  ->orWhere('second_parent_id', $parentId);
-            })
+        $children = Child::whereHas('guardianships', fn($sq) => $sq->where('user_id', $parentId))
             ->where('is_active', true)
             ->with('classroom')
             ->get();
@@ -200,28 +197,18 @@ class CheckinController extends Controller
             $isLate = $slot && $slot['slot'] === 'morning' ? $this->isLateForCheckin() : false;
 
             // 🔥🔥🔥 CHECKOUT LOGIC - LENGKAP 🔥🔥🔥
-            $canCheckout = false;
-            $checkoutMessage = '⏰ Checkout Belum Tersedia';
-            $checkoutInfoClass = '';
+            // Can checkout anytime after checkin
+            $canCheckout = $hasCheckin && !$hasCheckout;
+            $checkoutMessage = '✅ Sedia untuk checkout';
+            $checkoutInfoClass = 'active';
             $isLateCheckout = false;
 
-            if ($timerSetting) {
+            if ($timerSetting && $hasCheckin) {
                 $currentTimeInt = (int) $now->format('Hi');
                 $eveningStartInt = (int) str_replace(':', '', $timerSetting->evening_start);
                 $eveningEndInt = (int) str_replace(':', '', $timerSetting->evening_end);
-                $checkoutStartTime = date('H:i', strtotime($timerSetting->evening_start));
-                $checkoutEndTime = date('H:i', strtotime($timerSetting->evening_end));
 
-                if ($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt) {
-                    $canCheckout = true;
-                    $checkoutMessage = '✅ Waktu checkout: ' . $checkoutStartTime . ' - ' . $checkoutEndTime;
-                    $checkoutInfoClass = 'active';
-                } else if ($currentTimeInt < $eveningStartInt) {
-                    $canCheckout = false;
-                    $checkoutMessage = '🕐 Checkout bermula pada ' . $checkoutStartTime;
-                    $checkoutInfoClass = '';
-                } else {
-                    $canCheckout = true;
+                if ($currentTimeInt > $eveningEndInt) {
                     $isLateCheckout = true;
                     $checkoutMessage = '⏰ Late Checkout (Melebihi waktu operasi)';
                     $checkoutInfoClass = 'active late';
@@ -399,7 +386,7 @@ class CheckinController extends Controller
         } else {
             Attendance::create([
                 'child_id' => $child->id,
-                'parent_id' => $parentId,
+                'user_id' => $parentId,
                 'date' => $today,
                 'checkin_time' => $now->format('H:i:s'),
                 'status' => $status,
@@ -540,7 +527,7 @@ class CheckinController extends Controller
                 } else {
                     Attendance::create([
                         'child_id' => $childId,
-                        'parent_id' => $request->parent_id,
+                        'user_id' => $request->parent_id,
                         'date' => $today,
                         'checkin_time' => $now->format('H:i:s'),
                         'status' => $isLate ? 'late' : 'present',

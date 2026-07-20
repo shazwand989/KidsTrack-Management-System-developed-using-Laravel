@@ -297,7 +297,7 @@ class QRScanController extends Controller
                 } else {
                     Attendance::create([
                         'child_id' => $child->id,
-                        'parent_id' => $parentId,
+                        'user_id' => $parentId,
                         'date' => $today,
                         'checkin_time' => $now->format('H:i:s'),
                         'status' => 'present',
@@ -349,16 +349,8 @@ class QRScanController extends Controller
         $slot = $this->getCurrentSlot();
         $isLate = $slot && $slot['slot'] === 'morning' ? $this->isLateForCheckin() : false;
 
-        $canCheckout = false;
-        if ($timerSetting) {
-            $currentTimeInt = (int) $now->format('Hi');
-            $eveningStartInt = (int) str_replace(':', '', $timerSetting->evening_start);
-            $eveningEndInt = (int) str_replace(':', '', $timerSetting->evening_end);
-
-            if ($currentTimeInt >= $eveningStartInt) {
-                $canCheckout = true;
-            }
-        }
+        // Can checkout anytime after checkin, not just during evening slot
+        $canCheckout = $hasCheckin && !$hasCheckout;
 
         $userRole = 'unknown';
         $parentName = 'Parent';
@@ -502,7 +494,7 @@ class QRScanController extends Controller
                 } else {
                     Attendance::create([
                         'child_id' => $child->id,
-                        'parent_id' => $request->parent_id,
+                        'user_id' => $request->parent_id,
                         'date' => $today,
                         'checkin_time' => $now->format('H:i:s'),
                         'status' => $status,
@@ -920,7 +912,7 @@ class QRScanController extends Controller
         if (!$attendance) {
             Attendance::create([
                 'child_id' => $child->id,
-                'parent_id' => $request->parent_id,
+                'user_id' => $request->parent_id,
                 'date' => $today,
                 'checkin_time' => Carbon::now('Asia/Kuala_Lumpur')->format('H:i:s'),
                 'status' => 'present',
@@ -1012,7 +1004,7 @@ class QRScanController extends Controller
             if (!$attendance) {
                 Attendance::create([
                     'child_id' => $child->id,
-                    'parent_id' => $parent->id,
+                    'user_id' => $parent->id,
                     'date' => $today,
                     'checkin_time' => Carbon::now('Asia/Kuala_Lumpur')->format('H:i:s'),
                     'status' => 'present',
@@ -1065,7 +1057,7 @@ class QRScanController extends Controller
                 ]);
             }
 
-            $children = Child::where('parent_id', $parentId)->get();
+            $children = Child::whereHas('guardianships', fn($q) => $q->where('user_id', $parentId))->get();
 
             if ($children->isEmpty()) {
                 return response()->json([
@@ -1191,7 +1183,7 @@ class QRScanController extends Controller
         } else {
             Attendance::create([
                 'child_id' => $childId,
-                'parent_id' => $parentId,
+                'user_id' => $parentId,
                 'date' => Carbon::now('Asia/Kuala_Lumpur')->toDateString(),
                 'status' => 'checkin',
                 'checkin_time' => Carbon::now('Asia/Kuala_Lumpur')->format('H:i:s'),

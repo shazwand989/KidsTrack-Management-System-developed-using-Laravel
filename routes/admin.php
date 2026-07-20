@@ -90,11 +90,11 @@ Route::middleware(['auth'])->group(function () {
     // ============================================
     // ATTENDANCE MANAGEMENT
     // ============================================
-    Route::resource('attendance', AttendanceController::class);
     Route::get('/attendance/calendar', [AttendanceController::class, 'calendar'])->name('attendance.calendar');
     Route::get('/attendance/data', [AttendanceController::class, 'getData'])->name('attendance.data');
     Route::post('/attendance/checkin', [AttendanceController::class, 'checkin'])->name('attendance.checkin');
     Route::post('/attendance/checkout', [AttendanceController::class, 'checkout'])->name('attendance.checkout');
+    Route::resource('attendance', AttendanceController::class);
 
     // ============================================
     // QR CODE
