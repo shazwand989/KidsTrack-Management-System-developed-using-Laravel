@@ -97,7 +97,7 @@ class ParentController extends Controller
         // ============================================
         if ($request->filled('second_name')) {
             $secondUser = null;
-            
+
             // If email provided, create user
             if ($request->filled('second_email')) {
                 $secondUser = User::create([
@@ -129,7 +129,7 @@ class ParentController extends Controller
         // ============================================
         if ($request->filled('guardian_name')) {
             $guardianUser = null;
-            
+
             // If email provided, create user
             if ($request->filled('guardian_email')) {
                 $guardianUser = User::create([
@@ -158,6 +158,22 @@ class ParentController extends Controller
 
         return redirect()->route('parents.index')
             ->with('success', 'Parent registered successfully!');
+    }
+
+    // AJAX CHECK EMAIL
+    public function checkEmail(Request $request)
+    {
+        $email = $request->input('email');
+        if (!$email) {
+            return response()->json(['available' => false, 'message' => 'Email is required']);
+        }
+
+        $exists = User::where('email', $email)->exists();
+
+        return response()->json([
+            'available' => !$exists,
+            'message' => $exists ? 'Email already taken' : 'Email available'
+        ]);
     }
 
     // SHOW
@@ -257,7 +273,7 @@ class ParentController extends Controller
         if ($request->filled('second_name')) {
             $secondParent = SecondParent::where('parent_id', $parent->id)->first();
             $secondUser = null;
-            
+
             // Update or create user for second parent
             if ($request->filled('second_email')) {
                 if ($secondParent && $secondParent->user_id) {
@@ -328,7 +344,7 @@ class ParentController extends Controller
         if ($request->filled('guardian_name')) {
             $guardian = Guardian::where('parent_id', $parent->id)->first();
             $guardianUser = null;
-            
+
             // Update or create user for guardian
             if ($request->filled('guardian_email')) {
                 if ($guardian && $guardian->user_id) {

@@ -138,22 +138,22 @@ Route::get('/scan-qr/result/{qr_data}', function ($qrData) {
     if (!auth()->check()) {
         return redirect()->route('login')->with('redirect_after_login', url('/scan-qr/result/' . $qrData));
     }
-    
+
     $child = Child::where('qr_code', $qrData)->with(['parent', 'classroom', 'attendances'])->first();
-    
+
     if (!$child) {
         return redirect()->route('kiosk.index')->with('error', 'QR Code tidak sah! Sila cuba lagi.');
     }
-    
+
     $user = auth()->user();
     $parent = ParentModel::where('user_id', $user->id)->first();
-    
+
     if ($parent && $child->parent_id != $parent->id && $child->second_parent_id != $parent->id) {
         if (!in_array($user->role, ['admin', 'teacher'])) {
             return redirect()->route('kiosk.index')->with('error', 'Anda tidak mempunyai akses ke anak ini!');
         }
     }
-    
+
     return view('parent.scan-profile', compact('child', 'qrData'));
 })->name('scan.qr.result');
 
@@ -170,55 +170,55 @@ Route::get('/get-timer-settings', [QRScanController::class, 'getTimerSettings'])
 // ============================================
 
 Route::prefix('kiosk')->group(function () {
-    
+
     // KIOSK INDEX
     Route::get('/', [QRScanController::class, 'kiosk'])->name('kiosk.index');
-    
+
     // GPS CHECK
     Route::post('/check-gps', [QRScanController::class, 'checkGPS'])->name('kiosk.check.gps');
-    
+
     // CONFIRM CHILD
     Route::get('/confirm-child/{child}', [QRScanController::class, 'confirmChild'])->name('kiosk.confirm.child');
-    
+
     // ============================================
     // 🔥 ADD ANOTHER CHILD - GUNA AddAnotherChildController
     // ============================================
     Route::get('/add-another/{child}', [AddAnotherChildController::class, 'showAddAnother'])
         ->name('kiosk.add.another');
-    
+
     // ============================================
     // 🔥🔥🔥 BULK CHECK-IN - GUNA AddAnotherChildController 🔥🔥🔥
     // ============================================
     Route::post('/bulk-checkin', [AddAnotherChildController::class, 'bulkCheckin'])
         ->name('kiosk.bulk.checkin');
-    
+
     // ============================================
     // 🔥 CHECKIN PAGE - GUNA CHECKIN CONTROLLER
     // ============================================
     Route::get('/checkin-page/{child}', [CheckinController::class, 'showCheckinPage'])
         ->name('kiosk.checkin.page');
-    
+
     // ============================================
     // 🔥 SUBMIT ATTENDANCE - CHECK IN / CHECK OUT
     // ============================================
     Route::post('/submit-attendance', [CheckinController::class, 'submitAttendance'])
         ->name('kiosk.submit.attendance');
-    
+
     // ============================================
     // 🔥 CHECKIN ALL / CHECKOUT ALL
     // ============================================
     Route::post('/checkin-all', [CheckinController::class, 'checkinAll'])
         ->name('kiosk.checkin.all');
-    
+
     Route::post('/checkout-all', [CheckinController::class, 'checkoutAll'])
         ->name('kiosk.checkout.all');
-    
+
     // ============================================
     // 🔥 CHECKOUT PAGE
     // ============================================
     Route::get('/checkout', [CheckinController::class, 'checkout'])
         ->name('kiosk.checkout');
-    
+
     // ============================================
     // KIOSK - QRScanController ROUTES
     // ============================================
@@ -238,7 +238,7 @@ Route::prefix('kiosk')->group(function () {
     Route::post('/confirm-checkin', [QRScanController::class, 'confirmCheckin'])->name('kiosk.confirm.checkin');
     Route::post('/confirm-checkout', [QRScanController::class, 'confirmCheckout'])->name('kiosk.confirm.checkout');
     Route::get('/child-profile/{child}', [QRScanController::class, 'showChildProfile'])->name('kiosk.child.profile');
-    
+
     // ============================================
     // 🔥 TIMER SETTINGS
     // ============================================
@@ -269,7 +269,7 @@ Route::get('/attendance-calendar-data', [QRScanController::class, 'getCalendarDa
 Route::get('/api/holidays/{year}/{month}', function ($year, $month) {
     try {
         $apiUrl = "https://date.nager.at/api/v3/PublicHolidays/{$year}/MY";
-        
+
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $apiUrl);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -277,14 +277,14 @@ Route::get('/api/holidays/{year}/{month}', function ($year, $month) {
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
-        
+
         if ($httpCode === 200 && $response) {
             $data = json_decode($response, true);
             $monthHolidays = array_filter($data, function($h) use ($month) {
                 $date = new DateTime($h['date']);
                 return (int)$date->format('m') == $month;
             });
-            
+
             return response()->json([
                 'success' => true,
                 'data' => array_values($monthHolidays)
@@ -321,7 +321,7 @@ function getLocalHolidays($year, $month) {
         '11-04' => 'Deepavali',
         '12-25' => 'Krismas',
     ];
-    
+
     if ($year == 2024) {
         $allHolidays['04-10'] = 'Hari Raya Puasa';
         $allHolidays['04-11'] = 'Hari Raya Puasa (Hari 2)';
@@ -330,7 +330,7 @@ function getLocalHolidays($year, $month) {
         $allHolidays['03-31'] = 'Hari Raya Puasa';
         $allHolidays['04-01'] = 'Hari Raya Puasa (Hari 2)';
     }
-    
+
     foreach ($allHolidays as $date => $name) {
         $dateObj = DateTime::createFromFormat('m-d', $date);
         if ($dateObj && (int)$dateObj->format('m') == $month) {
@@ -341,7 +341,7 @@ function getLocalHolidays($year, $month) {
             ];
         }
     }
-    
+
     return $holidays;
 }
 
@@ -351,21 +351,21 @@ function getLocalHolidays($year, $month) {
 Route::post('/api/check-child-access', function(Request $request) {
     $qrData = $request->qr_code;
     $child = Child::where('qr_code', $qrData)->first();
-    
+
     if (!$child) return response()->json(['has_access' => false]);
-    
+
     $user = auth()->user();
     if (!$user) return response()->json(['has_access' => false]);
-    
+
     if (in_array($user->role, ['admin', 'teacher'])) {
         return response()->json(['has_access' => true]);
     }
-    
+
     $parent = ParentModel::where('user_id', $user->id)->first();
     if ($parent && ($child->parent_id == $parent->id || $child->second_parent_id == $parent->id)) {
         return response()->json(['has_access' => true]);
     }
-    
+
     return response()->json(['has_access' => false]);
 })->middleware('auth');
 
@@ -404,23 +404,23 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('parent')->name('parent.')->group(function () {
         // Dashboard
         Route::get('/dashboard', [\App\Http\Controllers\Parent\DashboardController::class, 'index'])->name('dashboard');
-        
+
         // Children
         Route::get('/children', [\App\Http\Controllers\Parent\ChildrenController::class, 'index'])->name('children.index');
         Route::get('/children/{child}', [\App\Http\Controllers\Parent\ChildrenController::class, 'show'])->name('children.show');
-        
+
         // Attendance
         Route::get('/attendance', [\App\Http\Controllers\Parent\AttendanceController::class, 'index'])->name('attendance.index');
         Route::get('/attendance/calendar', [\App\Http\Controllers\Parent\AttendanceController::class, 'calendar'])->name('attendance.calendar');
         Route::get('/attendance/calendar-data', [\App\Http\Controllers\Parent\AttendanceController::class, 'calendarData'])->name('attendance.calendar-data');
         Route::get('/attendance/{child}', [\App\Http\Controllers\Parent\AttendanceController::class, 'childAttendance'])->name('attendance.child');
-        
+
         // Profile
         Route::get('/profile', [\App\Http\Controllers\Parent\ProfileController::class, 'index'])->name('profile.index');
         Route::put('/profile', [\App\Http\Controllers\Parent\ProfileController::class, 'update'])->name('profile.update');
         Route::put('/profile/password', [\App\Http\Controllers\Parent\ProfileController::class, 'updatePassword'])->name('profile.password');
         Route::get('/settings', [\App\Http\Controllers\Parent\ProfileController::class, 'settings'])->name('settings');
-        
+
         // Notifications, Payment, Fine
         Route::get('/notifications', [\App\Http\Controllers\Parent\DashboardController::class, 'notifications'])->name('notifications');
         Route::get('/payment', [\App\Http\Controllers\Parent\DashboardController::class, 'payment'])->name('payment');
@@ -428,6 +428,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::resource('parents', ParentController::class);
+    Route::post('/parents/check-email', [ParentController::class, 'checkEmail'])->name('parents.check-email');
     Route::resource('children', ChildController::class);
     Route::resource('teachers', TeacherController::class);
     Route::resource('classrooms', ClassroomController::class);

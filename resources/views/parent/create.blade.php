@@ -248,6 +248,31 @@
     }
 
     .btn-cancel:hover { background: #e2e8f0 !important; color: #334155 !important; }
+
+    /* Email AJAX check feedback */
+    .email-input-wrap { position: relative; }
+    .email-input-wrap input { padding-right: 36px !important; }
+    .email-feedback {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 16px;
+        display: none;
+        pointer-events: none;
+    }
+    .email-feedback.checking { display: block; color: #94a3b8; animation: spin 0.8s linear infinite; }
+    .email-feedback.available { display: block; color: #16a34a; }
+    .email-feedback.taken { display: block; color: #dc2626; }
+    .email-feedback-msg {
+        font-size: 11px;
+        font-weight: 700;
+        margin-top: 4px;
+        display: none;
+    }
+    .email-feedback-msg.available { display: block; color: #16a34a; }
+    .email-feedback-msg.taken { display: block; color: #dc2626; }
+    @keyframes spin { from { transform: translateY(-50%) rotate(0deg); } to { transform: translateY(-50%) rotate(360deg); } }
 </style>
 
 <div class="rg-wrap">
@@ -320,15 +345,19 @@
                 {{-- EMAIL MAIN PARENT --}}
                 <div class="rg-group">
                     <label class="rg-label">Email Address <span class="req">*</span></label>
-                    <input type="email" name="email" value="{{ old('email') }}"
-                        placeholder="sarah@example.com">
+                    <div class="email-input-wrap">
+                        <input type="email" name="email" id="email_main" value="{{ old('email') }}"
+                            placeholder="sarah@example.com" data-email-check="true">
+                        <span class="email-feedback" id="email_main_fb"></span>
+                    </div>
+                    <span class="email-feedback-msg" id="email_main_msg"></span>
                     @error('email')<span class="invalid-msg">{{ $message }}</span>@enderror
                 </div>
 
                 {{-- PASSWORD MAIN PARENT --}}
                 <div class="rg-group">
                     <label class="rg-label">Password <span class="req">*</span></label>
-                    <input type="password" name="password" 
+                    <input type="password" name="password"
                         placeholder="Min 8 characters">
                     @error('password')<span class="invalid-msg">{{ $message }}</span>@enderror
                 </div>
@@ -384,15 +413,19 @@
                 {{-- EMAIL SECOND PARENT --}}
                 <div class="rg-group">
                     <label class="rg-label">Email Address</label>
-                    <input type="email" name="second_email" value="{{ old('second_email') }}"
-                        placeholder="second@example.com">
+                    <div class="email-input-wrap">
+                        <input type="email" name="second_email" id="email_second" value="{{ old('second_email') }}"
+                            placeholder="second@example.com" data-email-check="true">
+                        <span class="email-feedback" id="email_second_fb"></span>
+                    </div>
+                    <span class="email-feedback-msg" id="email_second_msg"></span>
                     @error('second_email')<span class="invalid-msg">{{ $message }}</span>@enderror
                 </div>
 
                 {{-- PASSWORD SECOND PARENT --}}
                 <div class="rg-group">
                     <label class="rg-label">Password</label>
-                    <input type="password" name="second_password" 
+                    <input type="password" name="second_password"
                         placeholder="Min 8 characters">
                     @error('second_password')<span class="invalid-msg">{{ $message }}</span>@enderror
                 </div>
@@ -453,15 +486,19 @@
                 {{-- EMAIL GUARDIAN --}}
                 <div class="rg-group">
                     <label class="rg-label">Email Address</label>
-                    <input type="email" name="guardian_email" value="{{ old('guardian_email') }}"
-                        placeholder="guardian@example.com">
+                    <div class="email-input-wrap">
+                        <input type="email" name="guardian_email" id="email_guardian" value="{{ old('guardian_email') }}"
+                            placeholder="guardian@example.com" data-email-check="true">
+                        <span class="email-feedback" id="email_guardian_fb"></span>
+                    </div>
+                    <span class="email-feedback-msg" id="email_guardian_msg"></span>
                     @error('guardian_email')<span class="invalid-msg">{{ $message }}</span>@enderror
                 </div>
 
                 {{-- PASSWORD GUARDIAN --}}
                 <div class="rg-group">
                     <label class="rg-label">Password</label>
-                    <input type="password" name="guardian_password" 
+                    <input type="password" name="guardian_password"
                         placeholder="Min 8 characters">
                     @error('guardian_password')<span class="invalid-msg">{{ $message }}</span>@enderror
                 </div>
@@ -543,6 +580,149 @@
 </div>
 
 <script>
+    // 🔥 CLIENT-SIDE VALIDATION BEFORE SUBMIT
+    const form = document.querySelector('form[action*="parents"]');
+    const allInputs = form.querySelectorAll('input:not([type="hidden"]):not([type="file"]):not([type="checkbox"]), textarea');
+
+    // Clear validation styling on input
+    allInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            this.style.borderColor = '';
+            const errEl = this.parentElement.querySelector('.client-err');
+            if (errEl) errEl.remove();
+        });
+    });
+
+    form.addEventListener('submit', function(e) {
+        let hasError = false;
+        const requiredFields = [
+            { name: 'name', label: 'Full Name' },
+            { name: 'email', label: 'Email Address' },
+            { name: 'password', label: 'Password' },
+            { name: 'phone', label: 'Phone Number' },
+            { name: 'address', label: 'Home Address' }
+        ];
+
+        // Clear previous errors
+        form.querySelectorAll('.client-err').forEach(el => el.remove());
+        form.querySelectorAll('input, textarea').forEach(el => el.style.borderColor = '');
+
+        // Check required fields
+        requiredFields.forEach(field => {
+            const input = form.querySelector(`[name="${field.name}"]`);
+            if (!input) return;
+            const val = input.value.trim();
+
+            if (!val) {
+                showError(input, `${field.label} is required`);
+                hasError = true;
+            } else if (field.name === 'password' && val.length < 8) {
+                showError(input, 'Password must be at least 8 characters');
+                hasError = true;
+            } else if (field.name === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+                showError(input, 'Please enter a valid email');
+                hasError = true;
+            }
+        });
+
+        // Check email availability feedback
+        ['email_main', 'email_second', 'email_guardian'].forEach(id => {
+            const fb = document.getElementById(id + '_fb');
+            if (fb && fb.classList.contains('taken')) {
+                const input = document.getElementById(id);
+                showError(input, 'This email is already taken');
+                hasError = true;
+            }
+        });
+
+        // Optional: validate second parent email if filled
+        const secondEmail = form.querySelector('[name="second_email"]');
+        if (secondEmail && secondEmail.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(secondEmail.value.trim())) {
+            showError(secondEmail, 'Please enter a valid email');
+            hasError = true;
+        }
+
+        // Optional: validate guardian email if filled
+        const guardianEmail = form.querySelector('[name="guardian_email"]');
+        if (guardianEmail && guardianEmail.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guardianEmail.value.trim())) {
+            showError(guardianEmail, 'Please enter a valid email');
+            hasError = true;
+        }
+
+        if (hasError) {
+            e.preventDefault();
+            // Scroll to first error
+            const firstErr = form.querySelector('.client-err');
+            if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+
+    function showError(input, message) {
+        input.style.borderColor = '#ef4444';
+        input.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+        const err = document.createElement('span');
+        err.className = 'client-err';
+        err.style.cssText = 'font-size:12px;color:#ef4444;font-weight:700;margin-top:4px;display:block;';
+        err.textContent = message;
+        input.parentElement.appendChild(err);
+    }
+
+    // 🔥 AJAX EMAIL AVAILABILITY CHECK (with debounce)
+    const checkEmailRoute = "{{ route('parents.check-email') }}";
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const debounceTimers = {};
+
+    document.querySelectorAll('input[data-email-check]').forEach(input => {
+        input.addEventListener('input', function() {
+            const email = this.value.trim();
+            const id = this.id;
+            const fb = document.getElementById(id + '_fb');
+            const msg = document.getElementById(id + '_msg');
+
+            if (!email || !email.includes('@')) {
+                fb.className = 'email-feedback';
+                msg.className = 'email-feedback-msg';
+                msg.textContent = '';
+                return;
+            }
+
+            fb.innerHTML = '&#8635;';
+            fb.className = 'email-feedback checking';
+            msg.className = 'email-feedback-msg';
+
+            clearTimeout(debounceTimers[id]);
+            debounceTimers[id] = setTimeout(() => {
+                fetch(checkEmailRoute, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.available) {
+                        fb.innerHTML = '&#10003;';
+                        fb.className = 'email-feedback available';
+                        msg.textContent = '✓ Email available';
+                        msg.className = 'email-feedback-msg available';
+                    } else {
+                        fb.innerHTML = '&#10007;';
+                        fb.className = 'email-feedback taken';
+                        msg.textContent = '✗ ' + data.message;
+                        msg.className = 'email-feedback-msg taken';
+                    }
+                })
+                .catch(() => {
+                    fb.className = 'email-feedback';
+                    msg.className = 'email-feedback-msg';
+                });
+            }, 500);
+        });
+    });
+
     function setupPhotoPreview(inputId, circleId) {
         document.getElementById(inputId).addEventListener('change', function () {
             if (!this.files[0]) return;
