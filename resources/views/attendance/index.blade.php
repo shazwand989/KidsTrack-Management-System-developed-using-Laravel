@@ -83,32 +83,26 @@
 
     .btn-pdf:hover { opacity: .9; transform: translateY(-1px); color: white; }
 
-    .stat-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
     .stat-card {
         background: white;
         border-radius: 18px;
-        padding: 20px;
+        padding: 16px 14px;
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 12px;
         box-shadow: 0 4px 14px rgba(0,0,0,0.05);
         border-left: 5px solid #FF6B6B;
         transition: transform .2s;
+        height: 100%;
     }
 
     .stat-card:hover { transform: translateY(-3px); }
 
     .stat-icon {
-        width: 46px; height: 46px;
-        border-radius: 13px;
+        width: 40px; height: 40px;
+        border-radius: 12px;
         display: flex; align-items: center; justify-content: center;
-        font-size: 20px;
+        font-size: 18px;
         flex-shrink: 0;
     }
 
@@ -117,8 +111,15 @@
     .stat-icon.red { background: #fef2f2; color: #dc2626; }
     .stat-icon.blue { background: #eff6ff; color: #3b82f6; }
 
-    .stat-num { font-size: 26px; font-weight: 800; color: #1e293b; line-height: 1; margin-bottom: 3px; }
-    .stat-label { font-size: 12px; color: #94a3b8; font-weight: 600; }
+    .stat-num { font-size: 22px; font-weight: 800; color: #1e293b; line-height: 1; margin-bottom: 2px; }
+    .stat-label { font-size: 11px; color: #94a3b8; font-weight: 600; white-space: nowrap; }
+
+    @media (min-width: 576px) {
+        .stat-card { padding: 20px; gap: 16px; }
+        .stat-icon { width: 46px; height: 46px; border-radius: 13px; font-size: 20px; }
+        .stat-num { font-size: 26px; margin-bottom: 3px; }
+        .stat-label { font-size: 12px; }
+    }
 
     .filter-bar {
         background: white;
@@ -473,7 +474,6 @@
     }
 
     @media (max-width: 768px) {
-        .stat-row { grid-template-columns: repeat(2, 1fr); }
         .filter-bar { flex-direction: column; }
         .filter-bar .search-wrap { width: 100%; }
         .filter-bar .filter-select,
@@ -518,40 +518,50 @@
     $totalCheckin = $attendances->filter(function($item) {
         return in_array($item->status, ['checkin', 'present']);
     })->count();
-    
-    $totalCheckout = $attendances->where('status', 'checkout')->count();
+
+    $totalCheckout = $attendances->filter(function($item) {
+        return in_array($item->status, ['checkout', 'late_checkout']);
+    })->count();
     $totalLate = $attendances->where('status', 'late')->count();
     $totalAbsent = $attendances->where('status', 'absent')->count();
     $totalRecords = $attendances->total() ?? $attendances->count();
 @endphp
 
-<div class="stat-row">
-    <div class="stat-card">
-        <div class="stat-icon pink"><span>📋</span></div>
-        <div>
-            <div class="stat-num">{{ $totalRecords }}</div>
-            <div class="stat-label">Total Records</div>
+<div class="row g-3 mb-4">
+    <div class="col-3">
+        <div class="stat-card">
+            <div class="stat-icon pink"><span>📋</span></div>
+            <div>
+                <div class="stat-num">{{ $totalRecords }}</div>
+                <div class="stat-label">Total Records</div>
+            </div>
         </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
-        <div>
-            <div class="stat-num">{{ $totalCheckin }}</div>
-            <div class="stat-label">Check-ins</div>
+    <div class="col-3">
+        <div class="stat-card">
+            <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+            <div>
+                <div class="stat-num">{{ $totalCheckin }}</div>
+                <div class="stat-label">Check-ins</div>
+            </div>
         </div>
     </div>
-    <div class="stat-card">
-        <div class="stat-icon blue"><span>📤</span></div>
-        <div>
-            <div class="stat-num">{{ $totalCheckout }}</div>
-            <div class="stat-label">Check-outs</div>
+    <div class="col-3">
+        <div class="stat-card">
+            <div class="stat-icon blue"><span>📤</span></div>
+            <div>
+                <div class="stat-num">{{ $totalCheckout }}</div>
+                <div class="stat-label">Check-outs</div>
+            </div>
         </div>
     </div>
-    <div class="stat-card" style="border-left-color: #d97706;">
-        <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><span>⏰</span></div>
-        <div>
-            <div class="stat-num">{{ $totalLate }}</div>
-            <div class="stat-label">Late</div>
+    <div class="col-3">
+        <div class="stat-card" style="border-left-color: #d97706;">
+            <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><span>⏰</span></div>
+            <div>
+                <div class="stat-num">{{ $totalLate }}</div>
+                <div class="stat-label">Late</div>
+            </div>
         </div>
     </div>
 </div>
@@ -563,7 +573,7 @@
         <input type="text" class="search-input" id="searchInput"
             placeholder="Search by child name..." value="{{ request('search') }}">
     </div>
-    
+
     {{-- FILTER BY CLASSROOM --}}
     <select class="filter-select" id="filterClassroom">
         <option value="">🏫 All Classrooms</option>
@@ -573,7 +583,7 @@
             </option>
         @endforeach
     </select>
-    
+
     <select class="filter-select" id="filterStatus">
         <option value="">All Status</option>
         <option value="checkin" {{ request('status') == 'checkin' ? 'selected' : '' }}>✅ Check-in</option>
@@ -582,7 +592,7 @@
         <option value="late" {{ request('status') == 'late' ? 'selected' : '' }}>⏰ Late</option>
         <option value="absent" {{ request('status') == 'absent' ? 'selected' : '' }}>❌ Absent</option>
     </select>
-    
+
     <input type="date" class="date-input" id="filterDate" value="{{ request('date') }}" placeholder="Filter by date">
     <input type="hidden" id="searchValue" value="{{ request('search') }}">
     <span class="record-count" id="recordCount">{{ $totalRecords }} records</span>
@@ -613,7 +623,7 @@
                 $classroomName = $classroom ? $classroom->name : 'No Class';
                 $classroomColor = $classroom && $classroom->color ? $classroom->color : '#94a3b8';
                 $classroomId = $classroom ? $classroom->id : 0;
-                
+
                 $dropOff = $attendance->drop_off_by;
                 if ($dropOff && is_numeric($dropOff)) {
                     $parent = \App\Models\ParentModel::find($dropOff);
@@ -626,7 +636,7 @@
                         }
                     }
                 }
-                
+
                 $pickup = $attendance->pickup_by;
                 if ($pickup && is_numeric($pickup)) {
                     $parent = \App\Models\ParentModel::find($pickup);
@@ -639,34 +649,43 @@
                         }
                     }
                 }
-                
+
                 $status = $attendance->status;
-                $badgeClass = 'absent';
-                $badgeIcon = '❌';
-                $badgeText = 'Absent';
-                
+
+                // 🔥 CHECK-IN BADGE
+                $checkinBadgeClass = 'absent';
+                $checkinBadgeIcon = '❌';
+                $checkinBadgeText = 'Absent';
+
                 if (in_array($status, ['checkin', 'present'])) {
-                    $badgeClass = 'checkin';
-                    $badgeIcon = '✅';
-                    $badgeText = 'Check-in';
+                    $checkinBadgeClass = 'checkin';
+                    $checkinBadgeIcon = '✅';
+                    $checkinBadgeText = 'Check-in';
                 } elseif ($status == 'checkout') {
-                    $badgeClass = 'checkout';
-                    $badgeIcon = '📤';
-                    $badgeText = 'Check-out';
+                    // If status is checkout, it means they checked in earlier (show present for check-in part)
+                    $checkinBadgeClass = 'checkin';
+                    $checkinBadgeIcon = '✅';
+                    $checkinBadgeText = 'Check-in';
                 } elseif ($status == 'late') {
-                    $badgeClass = 'late';
-                    $badgeIcon = '⏰';
-                    $badgeText = 'Late';
+                    $checkinBadgeClass = 'late';
+                    $checkinBadgeIcon = '⏰';
+                    $checkinBadgeText = 'Late';
                 }
+
+                // 🔥 CHECK-OUT BADGE
+                $hasCheckout = $attendance->checkout_time ? true : false;
+                $checkoutBadgeClass = 'checkout';
+                $checkoutBadgeIcon = '📤';
+                $checkoutBadgeText = 'Check-out';
             @endphp
-            <tr 
+            <tr
                 data-child="{{ strtolower($child->name ?? '') }}"
-                data-status="{{ $status }}"
+                data-status="{{ $status }}{{ $hasCheckout ? ' checkout' : '' }}"
                 data-date="{{ $attendance->date }}"
                 data-classroom="{{ $classroomId }}"
             >
                 <td style="color:#94a3b8; font-weight:700;">{{ $attendances->firstItem() + $i }}</td>
-                
+
                 <td>
                     <div class="child-cell">
                         <div class="child-avatar">
@@ -684,7 +703,7 @@
                         </div>
                     </div>
                 </td>
-                
+
                 {{-- CLASSROOM COLUMN --}}
                 <td>
                     <span class="classroom-badge">
@@ -692,24 +711,33 @@
                         {{ $classroomName }}
                     </span>
                 </td>
-                
+
                 <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d M Y') }}</td>
-                
+
                 <td>
-                    <span class="status-badge {{ $badgeClass }}">
-                        {{ $badgeIcon }} {{ $badgeText }}
-                        @if($status == 'late' && $attendance->late_reason)
-                            <span style="font-size:9px; opacity:0.7;">({{ $attendance->late_reason }})</span>
+                    <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                        {{-- CHECK-IN STATUS BADGE --}}
+                        <span class="status-badge {{ $checkinBadgeClass }}">
+                            {{ $checkinBadgeIcon }} {{ $checkinBadgeText }}
+                            @if($status == 'late' && $attendance->late_reason)
+                                <span style="font-size:9px; opacity:0.7;">({{ $attendance->late_reason }})</span>
+                            @endif
+                        </span>
+                        {{-- CHECK-OUT STATUS BADGE (only if checked out) --}}
+                        @if($hasCheckout)
+                            <span class="status-badge {{ $checkoutBadgeClass }}">
+                                {{ $checkoutBadgeIcon }} {{ $checkoutBadgeText }}
+                            </span>
                         @endif
-                    </span>
+                    </div>
                 </td>
-                
+
                 <td>{{ $attendance->checkin_time ? \Carbon\Carbon::parse($attendance->checkin_time)->format('h:i A') : '-' }}</td>
                 <td>{{ $attendance->checkout_time ? \Carbon\Carbon::parse($attendance->checkout_time)->format('h:i A') : '-' }}</td>
-                
+
                 <td>{{ $dropOff ?? '-' }}</td>
                 <td>{{ $pickup ?? '-' }}</td>
-                
+
                 {{-- 🔥 ACTION BUTTONS - TAMBAH VIEW --}}
                 <td class="no-print">
                     <div class="action-btns">
@@ -825,17 +853,17 @@
 
         rows.forEach(row => {
             if (row.querySelector('.empty-state')) return;
-            
+
             const text = row.innerText.toLowerCase();
             const rowStatus = row.getAttribute('data-status') || '';
             const rowDate = row.getAttribute('data-date') || '';
             const rowClassroom = row.getAttribute('data-classroom') || '0';
-            
+
             let matchSearch = search === '' || text.includes(search);
             let matchStatus = status === '' || rowStatus.includes(status);
             let matchDate = date === '' || rowDate.includes(date);
             let matchClassroom = classroom === '' || rowClassroom === classroom;
-            
+
             if (matchSearch && matchStatus && matchDate && matchClassroom) {
                 row.style.display = '';
                 visible++;
@@ -845,11 +873,11 @@
         });
 
         document.getElementById('recordCount').textContent = visible + ' records';
-        
+
         // Show empty message if no results
         const tbody = document.getElementById('tableBody');
         const existingEmpty = tbody.querySelector('.empty-row-message');
-        
+
         if (visible === 0 && !existingEmpty && rows.length > 0) {
             const emptyRow = document.createElement('tr');
             emptyRow.className = 'empty-row-message';
@@ -873,7 +901,7 @@
         row.addEventListener('click', function(e) {
             if (e.target.closest('.action-btns')) return;
             if (this.querySelector('.empty-state')) return;
-            
+
             // 🔥 REDIRECT TO VIEW PAGE
             const viewLink = this.querySelector('.act-btn.view');
             if (viewLink) {
@@ -886,14 +914,14 @@
     function exportCSV() {
         const rows = document.querySelectorAll('#tableBody tr');
         let csv = 'No,Child,Classroom,Date,Status,Check-in Time,Check-out Time,Drop Off By,Pickup By\n';
-        
+
         rows.forEach(row => {
             if (row.querySelector('.empty-state')) return;
             if (row.style.display === 'none') return;
-            
+
             const cells = row.querySelectorAll('td');
             if (cells.length < 9) return;
-            
+
             const rowData = [
                 cells[0].innerText.trim(),
                 cells[1].innerText.trim().replace(/\s+/g, ' '),
@@ -905,10 +933,10 @@
                 cells[7].innerText.trim(),
                 cells[8].innerText.trim()
             ];
-            
+
             csv += rowData.join(',') + '\n';
         });
-        
+
         // Download CSV
         const blob = new Blob([csv], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);

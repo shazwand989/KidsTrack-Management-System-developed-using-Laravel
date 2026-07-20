@@ -108,28 +108,28 @@ class AttendanceController extends Controller
         try {
             $user = auth()->user();
             $query = Attendance::with(['child', 'child.classroom']);
-            
+
             // Filter by date
             if ($request->has('date') && $request->date) {
                 $query->whereDate('date', $request->date);
             }
-            
+
             // Filter by status
             if ($request->has('status') && $request->status) {
                 $query->where('status', $request->status);
             }
-            
+
             // Filter by child
             if ($request->has('child_id') && $request->child_id) {
                 $query->where('child_id', $request->child_id);
             }
-            
+
             // 🔥 FILTER BY CLASSROOM
             if ($request->has('classroom_id') && $request->classroom_id) {
                 $childIds = Child::where('classroom_id', $request->classroom_id)->pluck('id');
                 $query->whereIn('child_id', $childIds);
             }
-            
+
             // Filter by user role
             if (in_array($user->role, ['parent', 'parent1'])) {
                 $parent = ParentModel::where('user_id', $user->id)->first();
@@ -157,11 +157,11 @@ class AttendanceController extends Controller
                     $query->whereIn('child_id', $childIds);
                 }
             }
-            
+
             $attendances = $query->orderBy('date', 'desc')
                 ->orderBy('checkin_time', 'desc')
                 ->get();
-            
+
             // 🔥 FORMAT DATA UNTUK RESPONSE
             $formatted = $attendances->map(function($attendance) {
                 // 🔥 AMBIL NAMA UNTUK DROP_OFF_BY
@@ -177,7 +177,7 @@ class AttendanceController extends Controller
                         }
                     }
                 }
-                
+
                 // 🔥 AMBIL NAMA UNTUK PICKUP_BY
                 $pickupName = $attendance->pickup_by;
                 if ($pickupName && is_numeric($pickupName)) {
@@ -191,10 +191,10 @@ class AttendanceController extends Controller
                         }
                     }
                 }
-                
+
                 // 🔥 AMBIL CLASSROOM INFO
                 $classroom = $attendance->child ? $attendance->child->classroom : null;
-                
+
                 return [
                     'id' => $attendance->id,
                     'child_id' => $attendance->child_id,
@@ -213,13 +213,13 @@ class AttendanceController extends Controller
                     'late_reason' => $attendance->late_reason ?? '-'
                 ];
             });
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $formatted,
                 'total' => $formatted->count()
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('getData error: ' . $e->getMessage());
             return response()->json([
@@ -242,33 +242,33 @@ class AttendanceController extends Controller
 
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
             $now = Carbon::now('Asia/Kuala_Lumpur');
-            
+
             $existing = Attendance::where('child_id', $request->child_id)
                 ->whereDate('date', $today)
                 ->first();
-                
+
             if ($existing && $existing->checkin_time) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anak ini sudah check-in hari ini!'
                 ]);
             }
-            
+
             // 🔥 AMBIL NAMA PARENT
             $parent = ParentModel::find($request->parent_id);
             $parentName = $parent ? $parent->name : 'Unknown';
-            
+
             // 🔥 CEK SLOT
             $slot = $this->checkTimerSlot();
             $isLate = false;
-            
+
             if ($slot && $slot['type'] === 'checkin') {
                 $isLate = false;
             } else {
                 // 🔥 KALAU LUAR SLOT, TAPI BOLEH CHECKIN DENGAN STATUS LATE
                 $isLate = true;
             }
-            
+
             if ($existing) {
                 $existing->update([
                     'checkin_time' => $now->format('H:i:s'),
@@ -290,7 +290,7 @@ class AttendanceController extends Controller
                     'is_late' => $isLate
                 ]);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Check-in berjaya!',
@@ -298,7 +298,7 @@ class AttendanceController extends Controller
                 'is_late' => $isLate,
                 'drop_off_by' => $parentName
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Checkin error: ' . $e->getMessage());
             return response()->json([
@@ -321,42 +321,42 @@ class AttendanceController extends Controller
 
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
             $now = Carbon::now('Asia/Kuala_Lumpur');
-            
+
             $attendance = Attendance::where('child_id', $request->child_id)
                 ->whereDate('date', $today)
                 ->first();
-                
+
             if (!$attendance || !$attendance->checkin_time) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anak ini belum check-in hari ini!'
                 ]);
             }
-            
+
             if ($attendance->checkout_time) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Anak ini sudah check-out hari ini!'
                 ]);
             }
-            
+
             // 🔥 AMBIL NAMA PARENT
             $parent = ParentModel::find($request->parent_id);
             $parentName = $parent ? $parent->name : 'Unknown';
-            
+
             $attendance->update([
                 'checkout_time' => $now->format('H:i:s'),
                 'status' => 'checkout',
                 'pickup_by' => $parentName,
             ]);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Check-out berjaya!',
                 'data' => $attendance,
                 'pickup_by' => $parentName
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Checkout error: ' . $e->getMessage());
             return response()->json([
@@ -381,26 +381,26 @@ class AttendanceController extends Controller
             $now = Carbon::now('Asia/Kuala_Lumpur');
             $today = $now->toDateString();
             $results = [];
-            
+
             // 🔥 AMBIL NAMA PARENT
             $parent = ParentModel::find($request->parent_id);
             $parentName = $parent ? $parent->name : 'Unknown';
-            
+
             // 🔥 CEK SLOT
             $slot = $this->checkTimerSlot();
             $isLate = false;
-            
+
             if (!$slot || $slot['type'] !== 'checkin') {
                 $isLate = true;
             }
-            
+
             foreach ($request->child_ids as $childId) {
                 $child = Child::find($childId);
-                
+
                 $existing = Attendance::where('child_id', $childId)
                     ->whereDate('date', $today)
                     ->first();
-                    
+
                 if ($existing && $existing->checkin_time) {
                     $results[] = [
                         'name' => $child->name,
@@ -409,7 +409,7 @@ class AttendanceController extends Controller
                     ];
                     continue;
                 }
-                
+
                 if ($existing) {
                     $existing->update([
                         'checkin_time' => $now->format('H:i:s'),
@@ -430,14 +430,14 @@ class AttendanceController extends Controller
                         'is_late' => $isLate
                     ]);
                 }
-                
+
                 $results[] = [
                     'name' => $child->name,
                     'status' => $isLate ? 'late' : 'checked_in',
                     'time' => $now->format('h:i A')
                 ];
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Semua anak berjaya check-in!',
@@ -446,7 +446,7 @@ class AttendanceController extends Controller
                 'late_count' => collect($results)->where('status', 'late')->count(),
                 'already_count' => collect($results)->where('status', 'already_checked')->count()
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('checkinAll error: ' . $e->getMessage());
             return response()->json([
@@ -471,18 +471,18 @@ class AttendanceController extends Controller
             $now = Carbon::now('Asia/Kuala_Lumpur');
             $today = $now->toDateString();
             $results = [];
-            
+
             // 🔥 AMBIL NAMA PARENT
             $parent = ParentModel::find($request->parent_id);
             $parentName = $parent ? $parent->name : 'Unknown';
-            
+
             foreach ($request->child_ids as $childId) {
                 $child = Child::find($childId);
-                
+
                 $attendance = Attendance::where('child_id', $childId)
                     ->whereDate('date', $today)
                     ->first();
-                    
+
                 if (!$attendance || !$attendance->checkin_time) {
                     $results[] = [
                         'name' => $child->name,
@@ -491,7 +491,7 @@ class AttendanceController extends Controller
                     ];
                     continue;
                 }
-                
+
                 if ($attendance->checkout_time) {
                     $results[] = [
                         'name' => $child->name,
@@ -500,20 +500,20 @@ class AttendanceController extends Controller
                     ];
                     continue;
                 }
-                
+
                 $attendance->update([
                     'checkout_time' => $now->format('H:i:s'),
                     'status' => 'checkout',
                     'pickup_by' => $parentName,
                 ]);
-                
+
                 $results[] = [
                     'name' => $child->name,
                     'status' => 'checkout',
                     'time' => $now->format('h:i A')
                 ];
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Semua anak berjaya check-out!',
@@ -521,7 +521,7 @@ class AttendanceController extends Controller
                 'checkout_count' => collect($results)->where('status', 'checkout')->count(),
                 'already_count' => collect($results)->where('status', 'already_checked')->count()
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('checkoutAll error: ' . $e->getMessage());
             return response()->json([
@@ -538,29 +538,29 @@ class AttendanceController extends Controller
     {
         try {
             $clock = SimulationClock::getClock();
-            
+
             if (!$clock) {
                 return null;
             }
-            
+
             $simulationTime = strtotime($clock->simulation_time);
             $hour = date('H', $simulationTime);
             $minute = date('i', $simulationTime);
             $currentTimeInt = (int)($hour . $minute);
-            
+
             $morningStart = (int)str_replace(':', '', $clock->morning_start);
             $morningEnd = (int)str_replace(':', '', $clock->morning_end);
             $eveningStart = (int)str_replace(':', '', $clock->evening_start);
             $eveningEnd = (int)str_replace(':', '', $clock->evening_end);
-            
+
             if ($currentTimeInt >= $morningStart && $currentTimeInt <= $morningEnd) {
                 return ['slot' => 'morning', 'type' => 'checkin', 'label' => 'Morning (Check-in)'];
             }
-            
+
             if ($currentTimeInt >= $eveningStart && $currentTimeInt <= $eveningEnd) {
                 return ['slot' => 'evening', 'type' => 'checkout', 'label' => 'Evening (Check-out)'];
             }
-            
+
             return null;
         } catch (\Exception $e) {
             Log::error('checkTimerSlot error: ' . $e->getMessage());
@@ -577,7 +577,7 @@ class AttendanceController extends Controller
         $children = collect();
         $attendances = collect();
         $classrooms = collect();
-        
+
         if (in_array($user->role, ['admin', 'teacher'])) {
             $classrooms = Classroom::all();
             $children = Child::with('classroom')->get();
@@ -627,7 +627,7 @@ class AttendanceController extends Controller
                     ->get();
             }
         }
-        
+
         return view('attendance.calendar', compact('children', 'attendances', 'classrooms'));
     }
 
@@ -638,10 +638,10 @@ class AttendanceController extends Controller
     {
         $month = $request->month ?? Carbon::now()->month;
         $year = $request->year ?? Carbon::now()->year;
-        
+
         $user = auth()->user();
         $attendances = collect();
-        
+
         if (in_array($user->role, ['admin', 'teacher'])) {
             $attendances = Attendance::with(['child', 'child.classroom'])
                 ->whereMonth('date', $month)
@@ -686,7 +686,7 @@ class AttendanceController extends Controller
                     ->get();
             }
         }
-        
+
         return response()->json([
             'success' => true,
             'data' => $attendances,
@@ -793,7 +793,7 @@ class AttendanceController extends Controller
         $attendances = Attendance::where('child_id', $childId)
             ->orderBy('date', 'desc')
             ->paginate(20);
-        
+
         return view('attendance.child', compact('child', 'attendances'));
     }
 
@@ -805,16 +805,16 @@ public function exportPdf(Request $request)
     try {
         $user = auth()->user();
         $query = Attendance::with(['child', 'child.classroom']);
-        
+
         // Apply filters from request
         if ($request->has('date') && $request->date) {
             $query->whereDate('date', $request->date);
         }
-        
+
         if ($request->has('status') && $request->status) {
             $query->where('status', $request->status);
         }
-        
+
         if ($request->has('classroom_id') && $request->classroom_id) {
             $childIds = Child::where('classroom_id', $request->classroom_id)->pluck('id');
             $query->whereIn('child_id', $childIds);
@@ -826,7 +826,7 @@ public function exportPdf(Request $request)
                 $q->where('name', 'like', '%' . $search . '%');
             });
         }
-        
+
         // Filter by user role
         if (in_array($user->role, ['parent', 'parent1'])) {
             $parent = ParentModel::where('user_id', $user->id)->first();
@@ -854,20 +854,22 @@ public function exportPdf(Request $request)
                 $query->whereIn('child_id', $childIds);
             }
         }
-        
+
         $attendances = $query->orderBy('date', 'desc')
             ->orderBy('checkin_time', 'desc')
             ->get();
-        
+
         // Calculate stats
         $totalCheckin = $attendances->filter(function($item) {
             return in_array($item->status, ['checkin', 'present']);
         })->count();
-        
-        $totalCheckout = $attendances->where('status', 'checkout')->count();
+
+        $totalCheckout = $attendances->filter(function($item) {
+            return in_array($item->status, ['checkout', 'late_checkout']);
+        })->count();
         $totalLate = $attendances->where('status', 'late')->count();
         $totalAbsent = $attendances->where('status', 'absent')->count();
-        
+
         // 🔥 Generate PDF using DomPDF with remote enabled for local assets
         $pdf = \PDF::loadView('attendance.export-pdf', [
             'attendances' => $attendances,
@@ -879,9 +881,9 @@ public function exportPdf(Request $request)
             'generated_at' => Carbon::now()->format('d/m/Y H:i:s'),
             'generated_by' => $user->name,
         ])->setOptions(['isRemoteEnabled' => true]);
-        
+
         return $pdf->download('attendance_report_' . Carbon::now()->format('Y-m-d') . '.pdf');
-        
+
     } catch (\Exception $e) {
         Log::error('Export PDF error: ' . $e->getMessage());
         return back()->with('error', 'Ralat menjana PDF: ' . $e->getMessage());
@@ -895,7 +897,7 @@ public function exportSinglePdf($id)
 {
     try {
         $attendance = Attendance::with(['child', 'child.classroom'])->findOrFail($id);
-        
+
         // Format drop_off_by name
         $dropOff = $attendance->drop_off_by;
         if ($dropOff && is_numeric($dropOff)) {
@@ -909,7 +911,7 @@ public function exportSinglePdf($id)
                 }
             }
         }
-        
+
         $pickup = $attendance->pickup_by;
         if ($pickup && is_numeric($pickup)) {
             $parent = ParentModel::find($pickup);
@@ -922,7 +924,7 @@ public function exportSinglePdf($id)
                 }
             }
         }
-        
+
         $pdf = \PDF::loadView('attendance.export-single-pdf', [
             'attendance' => $attendance,
             'dropOff' => $dropOff ?? '-',
@@ -930,9 +932,9 @@ public function exportSinglePdf($id)
             'generated_at' => Carbon::now()->format('d/m/Y H:i:s'),
             'generated_by' => auth()->user()->name,
         ]);
-        
+
         return $pdf->download('attendance_record_' . $attendance->id . '.pdf');
-        
+
     } catch (\Exception $e) {
         Log::error('Export Single PDF error: ' . $e->getMessage());
         return back()->with('error', 'Ralat menjana PDF: ' . $e->getMessage());
@@ -947,11 +949,11 @@ public function exportSinglePdf($id)
         try {
             $childId = $request->child_id;
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
-            
+
             $attendance = Attendance::where('child_id', $childId)
                 ->whereDate('date', $today)
                 ->first();
-                
+
             return response()->json([
                 'success' => true,
                 'data' => $attendance
@@ -975,7 +977,7 @@ public function exportSinglePdf($id)
                 ->orderBy('date', 'desc')
                 ->limit(30)
                 ->get();
-                
+
             return response()->json([
                 'success' => true,
                 'data' => $attendances
@@ -996,29 +998,29 @@ public function exportSinglePdf($id)
     {
         try {
             $data = $request->all();
-            
+
             if (empty($data)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No data received'
                 ], 400);
             }
-            
+
             $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
             $saved = 0;
-            
+
             Log::info('📥 SAVE TIMER - Data received:', $data);
-            
+
             foreach ($days as $day) {
                 if (isset($data[$day])) {
                     $dayData = $data[$day];
-                    
+
                     if (!isset($dayData['morning']['start']) || !isset($dayData['morning']['end']) ||
                         !isset($dayData['evening']['start']) || !isset($dayData['evening']['end'])) {
                         Log::warning("⚠️ Invalid data for {$day}: " . json_encode($dayData));
                         continue;
                     }
-                    
+
                     TimerSetting::updateOrCreate(
                         ['day_name' => $day],
                         [
@@ -1033,17 +1035,17 @@ public function exportSinglePdf($id)
                     Log::info("✅ Saved timer for {$day}");
                 }
             }
-            
+
             if ($saved > 0) {
                 return response()->json([
                     'success' => true,
                     'message' => "✅ Timer settings saved for {$saved} days!"
                 ]);
             }
-            
+
             if (isset($data['day_name'])) {
                 $timer = TimerSetting::where('day_name', $data['day_name'])->first();
-                
+
                 $timerData = [
                     'morning_start' => ($data['morning_start'] ?? '07:00') . ':00',
                     'morning_end' => ($data['morning_end'] ?? '07:30') . ':00',
@@ -1051,7 +1053,7 @@ public function exportSinglePdf($id)
                     'evening_end' => ($data['evening_end'] ?? '17:30') . ':00',
                     'is_active' => 1
                 ];
-                
+
                 if ($timer) {
                     $timer->update($timerData);
                 } else {
@@ -1059,18 +1061,18 @@ public function exportSinglePdf($id)
                         'day_name' => $data['day_name']
                     ]));
                 }
-                
+
                 return response()->json([
                     'success' => true,
                     'message' => "✅ Timer saved for {$data['day_name']}!"
                 ]);
             }
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'No valid data to save.'
             ], 400);
-            
+
         } catch (\Exception $e) {
             Log::error('❌ saveTimerSettings Error: ' . $e->getMessage());
             return response()->json([
@@ -1085,7 +1087,7 @@ public function exportSinglePdf($id)
         try {
             $settings = TimerSetting::all();
             $result = [];
-            
+
             foreach ($settings as $setting) {
                 $result[$setting->day_name] = [
                     'morning' => [
@@ -1098,12 +1100,12 @@ public function exportSinglePdf($id)
                     ]
                 ];
             }
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $result
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Error getting timers: ' . $e->getMessage());
             return response()->json([
@@ -1117,11 +1119,11 @@ public function exportSinglePdf($id)
     {
         try {
             $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            
+
             foreach ($days as $day) {
                 TimerSetting::where('day_name', $day)->delete();
             }
-            
+
             foreach ($days as $day) {
                 TimerSetting::create([
                     'day_name' => $day,
@@ -1132,12 +1134,12 @@ public function exportSinglePdf($id)
                     'is_active' => 1
                 ]);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'message' => '✅ Semua tetapan masa direset ke default!'
             ]);
-            
+
         } catch (\Exception $e) {
             Log::error('Error resetting timers: ' . $e->getMessage());
             return response()->json([
@@ -1158,11 +1160,11 @@ public function exportSinglePdf($id)
     public function searchResults(Request $request)
     {
         $query = $request->get('q', '');
-        
+
         if (strlen($query) < 2) {
             return response()->json([]);
         }
-        
+
         $children = Child::where('is_active', true)
             ->where('name', 'like', '%' . $query . '%')
             ->select('id', 'name', 'age', 'photo', 'classroom_id')
@@ -1178,17 +1180,17 @@ public function exportSinglePdf($id)
                     'classroom' => $child->classroom->name ?? 'N/A',
                 ];
             });
-        
+
         return response()->json($children);
     }
 
     public function verifyPhone(Request $request, Child $child)
     {
         $phone = $request->input('phone', '');
-        
+
         // Normalize phone number - remove spaces, dashes
         $phone = preg_replace('/[\s\-]/', '', $phone);
-        
+
         // Check against parent's phone
         $parent = ParentModel::find($child->parent_id);
         if ($parent) {
@@ -1198,7 +1200,7 @@ public function exportSinglePdf($id)
                 return response()->json(['success' => true]);
             }
         }
-        
+
         // Check against second parent's phone
         $secondParent = SecondParent::find($child->second_parent_id);
         if ($secondParent) {
@@ -1208,7 +1210,7 @@ public function exportSinglePdf($id)
                 return response()->json(['success' => true]);
             }
         }
-        
+
         // Check against guardian's phone
         $guardian = Guardian::find($child->guardian_id);
         if ($guardian) {
@@ -1218,7 +1220,7 @@ public function exportSinglePdf($id)
                 return response()->json(['success' => true]);
             }
         }
-        
+
         return response()->json([
             'success' => false,
             'message' => '❌ No telefon tidak sepadan dengan rekod. Cuba semula.'
@@ -1228,16 +1230,16 @@ public function exportSinglePdf($id)
     public function childProfile(Child $child)
     {
         $child->load(['parent', 'secondParent', 'guardian', 'classroom']);
-        
+
         // Check if verified via session
         $verified = session('verified_child_' . $child->id, false);
-        
+
         // Get today's attendance
         $today = date('Y-m-d', SimulationClock::getCurrentTime());
         $attendance = Attendance::where('child_id', $child->id)
             ->where('date', $today)
             ->first();
-        
+
         return view('attendance.child-profile', compact('child', 'attendance', 'verified'));
     }
 
@@ -1245,20 +1247,20 @@ public function exportSinglePdf($id)
     {
         $today = date('Y-m-d', SimulationClock::getCurrentTime());
         $now = date('H:i:s', SimulationClock::getCurrentTime());
-        
+
         // Get timer settings for today
         $dayName = date('l', SimulationClock::getCurrentTime());
         $timer = TimerSetting::where('day_name', $dayName)->first();
         $morningEnd = $timer->morning_end ?? '07:30:00';
-        
+
         // Determine if late (after morning end time)
         $isLate = $now > $morningEnd;
         $status = $isLate ? 'late' : 'checkin';
-        
+
         // Get parent name from verified session
         $parent = ParentModel::find($child->parent_id);
         $dropOffName = $parent ? $parent->name : 'Parent';
-        
+
         $attendance = Attendance::firstOrCreate(
             ['child_id' => $child->id, 'date' => $today],
             [
@@ -1268,7 +1270,7 @@ public function exportSinglePdf($id)
                 'is_verified' => true,
             ]
         );
-        
+
         if (!$attendance->wasRecentlyCreated) {
             $attendance->update([
                 'status' => $status,
@@ -1277,16 +1279,16 @@ public function exportSinglePdf($id)
                 'is_verified' => true,
             ]);
         }
-        
-        $message = $isLate 
+
+        $message = $isLate
             ? '⚠️ Check-in lewat! (' . date('h:i A', strtotime($now)) . ')'
             : '✅ Check-in berjaya! (' . date('h:i A', strtotime($now)) . ')';
-        
+
         // Send Telegram notification if late
         if ($isLate) {
             $this->sendLateNotification($child, 'check-in', $now, $morningEnd);
         }
-        
+
         return response()->json(['success' => true, 'message' => $message, 'late' => $isLate]);
     }
 
@@ -1294,43 +1296,43 @@ public function exportSinglePdf($id)
     {
         $today = date('Y-m-d', SimulationClock::getCurrentTime());
         $now = date('H:i:s', SimulationClock::getCurrentTime());
-        
+
         $attendance = Attendance::where('child_id', $child->id)
             ->where('date', $today)
             ->first();
-        
+
         if (!$attendance) {
             return response()->json(['success' => false, 'message' => 'Sila check-in dahulu.']);
         }
-        
+
         // Get timer settings for today
         $dayName = date('l', SimulationClock::getCurrentTime());
         $timer = TimerSetting::where('day_name', $dayName)->first();
         $eveningEnd = $timer->evening_end ?? '17:30:00';
-        
+
         // Determine if late checkout (after evening end time)
         $isLateCheckout = $now > $eveningEnd;
         $status = $isLateCheckout ? 'late_checkout' : 'checkout';
-        
+
         // Get parent name
         $parent = ParentModel::find($child->parent_id);
         $pickupName = $parent ? $parent->name : 'Parent';
-        
+
         $attendance->update([
             'status' => $status,
             'checkout_time' => $now,
             'pickup_by' => $pickupName,
         ]);
-        
-        $message = $isLateCheckout 
+
+        $message = $isLateCheckout
             ? '⚠️ Check-out lewat! (' . date('h:i A', strtotime($now)) . ')'
             : '✅ Check-out berjaya! (' . date('h:i A', strtotime($now)) . ')';
-        
+
         // Send Telegram notification if late checkout
         if ($isLateCheckout) {
             $this->sendLateNotification($child, 'check-out', $now, $eveningEnd);
         }
-        
+
         return response()->json(['success' => true, 'message' => $message, 'late' => $isLateCheckout]);
     }
 
@@ -1343,7 +1345,7 @@ public function exportSinglePdf($id)
             $telegram = new TelegramService();
             $parent = ParentModel::find($child->parent_id);
             $user = $parent ? \App\Models\User::find($parent->user_id) : null;
-            
+
             $icon = $type === 'check-in' ? '⏰' : '📤';
             $message = "{$icon} <b>Late {$type} Notification</b>\n\n"
                 . "👶 <b>Child:</b> {$child->name}\n"
@@ -1352,13 +1354,13 @@ public function exportSinglePdf($id)
                 . "⏳ <b>Deadline:</b> " . date('h:i A', strtotime($deadline)) . "\n"
                 . "👤 <b>Parent:</b> " . ($parent->name ?? 'N/A') . "\n\n"
                 . "<i>Please take note. - KIDSTRACK SAFECARE</i>";
-            
+
             // 1. Send to admin
             $adminChatId = env('TELEGRAM_ADMIN_CHAT_ID');
             if ($adminChatId) {
                 $telegram->sendMessage($adminChatId, $message);
             }
-            
+
             // 2. Send to parent (if they linked their Telegram)
             if ($user && $user->telegram_chat_id) {
                 $telegram->sendMessage($user->telegram_chat_id, $message);
@@ -1374,7 +1376,7 @@ public function exportSinglePdf($id)
         $attendance = Attendance::where('child_id', $child->id)
             ->where('date', $today)
             ->first();
-        
+
         return response()->json([
             'child' => $child->name,
             'status' => $attendance->status ?? 'absent',
@@ -1397,7 +1399,7 @@ public function exportSinglePdf($id)
                     'checkout_time' => $att->checkout_time,
                 ];
             });
-        
+
         return response()->json($attendances);
     }
 }

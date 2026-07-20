@@ -11,16 +11,18 @@
         .header h1 { font-size: 22px; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
         .header p { margin: 2px 0; color: #64748b; font-size: 12px; }
         .stats-row { background: #f8fafc; border-radius: 8px; padding: 14px 20px; margin-bottom: 20px; }
-        .stat-item { display: flex; align-items: center; gap: 8px; }
-        .stat-icon { font-size: 16px; width: 20px; }
+        .stats-row table { width: 100%; }
+        .stats-row td { padding: 6px 14px; text-align: center; white-space: nowrap; }
+        .stat-icon { font-size: 16px; }
         .stat-icon.success { color: #16a34a; } .stat-icon.info { color: #2563eb; }
         .stat-icon.warning { color: #d97706; } .stat-icon.danger { color: #dc2626; }
-        .stat-num { font-size: 20px; font-weight: 800; }
+        .stat-num { font-size: 20px; font-weight: 800; display: inline; }
         .stat-num.success { color: #16a34a; } .stat-num.info { color: #2563eb; }
         .stat-num.warning { color: #d97706; } .stat-num.danger { color: #dc2626; }
-        .stat-lbl { font-size: 13px; font-weight: 700; color: #475569; }
-        .table th { background: #f1f5f9; font-size: 10px; text-transform: uppercase; font-weight: 800; color: #475569; border-bottom: 2px solid #dee2e6; }
-        .table td { font-size: 12px; vertical-align: middle; }
+        .stat-lbl { font-size: 13px; font-weight: 700; color: #475569; display: inline; }
+        .table th { background: #f1f5f9; font-size: 10px; text-transform: uppercase; font-weight: 800; color: #475569; border: 1px solid #cbd5e1; padding: 8px 10px; }
+        .table td { font-size: 12px; vertical-align: middle; border: 1px solid #e2e8f0; padding: 6px 10px; }
+        .table { border-collapse: collapse; }
         .badge-status { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; }
         .badge-checkin { background: #dcfce7; color: #16a34a; }
         .badge-checkout { background: #dbeafe; color: #2563eb; }
@@ -44,36 +46,30 @@
 
     {{-- Stats Row --}}
     <div class="stats-row">
-        <div class="row g-3">
-            <div class="col-3">
-                <div class="stat-item">
+        <table>
+            <tr>
+                <td>
                     <i class="fas fa-check-circle stat-icon success"></i>
-                    <div class="stat-num success">{{ $totalCheckin }}</div>
-                    <div class="stat-lbl">Check-ins</div>
-                </div>
-            </div>
-            <div class="col-3">
-                <div class="stat-item">
+                    &nbsp;<span class="stat-num success">{{ $totalCheckin }}</span>
+                    &nbsp;<span class="stat-lbl">Check-ins</span>
+                </td>
+                <td>
                     <i class="fas fa-sign-out-alt stat-icon info"></i>
-                    <div class="stat-num info">{{ $totalCheckout }}</div>
-                    <div class="stat-lbl">Check-outs</div>
-                </div>
-            </div>
-            <div class="col-3">
-                <div class="stat-item">
+                    &nbsp;<span class="stat-num info">{{ $totalCheckout }}</span>
+                    &nbsp;<span class="stat-lbl">Check-outs</span>
+                </td>
+                <td>
                     <i class="fas fa-exclamation-triangle stat-icon warning"></i>
-                    <div class="stat-num warning">{{ $totalLate }}</div>
-                    <div class="stat-lbl">Late</div>
-                </div>
-            </div>
-            <div class="col-3">
-                <div class="stat-item">
+                    &nbsp;<span class="stat-num warning">{{ $totalLate }}</span>
+                    &nbsp;<span class="stat-lbl">Late</span>
+                </td>
+                <td>
                     <i class="fas fa-times-circle stat-icon danger"></i>
-                    <div class="stat-num danger">{{ $totalAbsent }}</div>
-                    <div class="stat-lbl">Absent</div>
-                </div>
-            </div>
-        </div>
+                    &nbsp;<span class="stat-num danger">{{ $totalAbsent }}</span>
+                    &nbsp;<span class="stat-lbl">Absent</span>
+                </td>
+            </tr>
+        </table>
     </div>
 
     {{-- Table --}}
@@ -99,15 +95,16 @@
                     $classroom = $child ? $child->classroom : null;
                     $status = $attendance->status;
 
+                    // Simple single-badge status
                     $badgeMap = [
-                        'checkin' => ['Check-in', 'badge-checkin'],
-                        'present' => ['Check-in', 'badge-checkin'],
-                        'checkout' => ['Check-out', 'badge-checkout'],
-                        'late' => ['Late', 'badge-late'],
-                        'late_checkout' => ['Late', 'badge-late'],
-                        'absent' => ['Absent', 'badge-absent'],
+                        'checkin'  => ['badge-checkin', 'Checked In'],
+                        'present'  => ['badge-checkin', 'Present'],
+                        'checkout' => ['badge-checkout', 'Checked Out'],
+                        'late'     => ['badge-late', 'Late'],
+                        'late_checkout' => ['badge-late', 'Late Check-out'],
+                        'absent'   => ['badge-absent', 'Absent'],
                     ];
-                    $badge = $badgeMap[$status] ?? ['Unknown', 'badge-absent'];
+                    [$badgeClass, $badgeText] = $badgeMap[$status] ?? ['badge-absent', 'Unknown'];
 
                     $dropOff = $attendance->drop_off_by;
                     if ($dropOff && is_numeric($dropOff)) {
@@ -128,7 +125,7 @@
                     <td class="fw-bold">{{ $child->name ?? 'Unknown' }}</td>
                     <td>{{ $classroom->name ?? 'No Class' }}</td>
                     <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d M Y') }}</td>
-                    <td><span class="badge-status {{ $badge[1] }}">{{ $badge[0] }}</span></td>
+                    <td><span class="badge-status {{ $badgeClass }}">{{ $badgeText }}</span></td>
                     <td>{{ $attendance->checkin_time ? \Carbon\Carbon::parse($attendance->checkin_time)->format('h:i A') : '-' }}</td>
                     <td>{{ $attendance->checkout_time ? \Carbon\Carbon::parse($attendance->checkout_time)->format('h:i A') : '-' }}</td>
                     <td>{{ $dropOff ?? '-' }}</td>
