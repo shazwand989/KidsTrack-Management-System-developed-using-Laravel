@@ -868,7 +868,7 @@ public function exportPdf(Request $request)
         $totalLate = $attendances->where('status', 'late')->count();
         $totalAbsent = $attendances->where('status', 'absent')->count();
         
-        // 🔥 Generate PDF using DomPDF
+        // 🔥 Generate PDF using DomPDF with remote enabled for local assets
         $pdf = \PDF::loadView('attendance.export-pdf', [
             'attendances' => $attendances,
             'total' => $attendances->count(),
@@ -878,7 +878,7 @@ public function exportPdf(Request $request)
             'totalAbsent' => $totalAbsent,
             'generated_at' => Carbon::now()->format('d/m/Y H:i:s'),
             'generated_by' => $user->name,
-        ]);
+        ])->setOptions(['isRemoteEnabled' => true]);
         
         return $pdf->download('attendance_report_' . Carbon::now()->format('Y-m-d') . '.pdf');
         

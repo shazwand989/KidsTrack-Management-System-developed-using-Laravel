@@ -501,7 +501,7 @@
     </div>
     <div class="pg-header-right">
         {{-- 🔥 BUTTON EXPORT PDF --}}
-        <a href="#" class="btn-pdf no-print" id="exportPdfBtn" onclick="exportPDF(event)">
+        <a href="{{ route('attendance.export.pdf') }}" class="btn-pdf no-print" id="exportPdfBtn" target="_blank">
             <span>📄</span> Export PDF Report
         </a>
         <a href="#" class="btn-export no-print" onclick="exportCSV()">
@@ -808,7 +808,11 @@
         var qs = getFilterParams();
         var url = '{{ route('attendance.export.pdf') }}';
         if (qs) url += '?' + qs;
-        window.open(url, '_blank');
+        var iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        setTimeout(function(){ iframe.remove(); }, 10000);
     }
 
     function filterTable() {
