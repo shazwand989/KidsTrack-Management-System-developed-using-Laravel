@@ -9,13 +9,72 @@ use Illuminate\Support\Facades\Storage;
 
 class ParentController extends Controller
 {
-    // LIST - show all parent/guardian users
+    // LIST - show families grouped by shared children
     public function index()
     {
-        $parents = \App\Models\User::whereIn('role', ['parent1', 'parent2', 'guardian'])
+        // Get all main parents with their children
+        $mainParents = \App\Models\User::where('role', 'parent1')
             ->with('children')
-            ->paginate(10);
-        return view('parent.index', compact('parents'));
+            ->get();
+
+        // Build family groups: each main parent + their linked second parent & guardian
+        $families = collect();
+        $seenUserIds = [];
+
+        foreach ($mainParents as $main) {
+            $childIds = $main->children->pluck('id');
+
+            if ($childIds->isEmpty()) {
+                // Main parent with no children — show alone
+                $families->push([
+                    'main' => $main,
+                    'second' => null,
+                    'guardian' => null,
+                    'children' => collect(),
+                    'childCount' => 0,
+                ]);
+                $seenUserIds[] = $main->id;
+                continue;
+            }
+
+            // Find related users sharing same children
+            $related = \App\Models\User::where('id', '!=', $main->id)
+                ->whereHas('guardianships', fn($q) => $q->whereIn('child_id', $childIds))
+                ->get();
+
+            $second = $related->firstWhere('role', 'parent2');
+            $guardian = $related->firstWhere('role', 'guardian');
+
+            $families->push([
+                'main' => $main,
+                'second' => $second,
+                'guardian' => $guardian,
+                'children' => $main->children,
+                'childCount' => $main->children->count(),
+            ]);
+
+            $seenUserIds[] = $main->id;
+            if ($second) $seenUserIds[] = $second->id;
+            if ($guardian) $seenUserIds[] = $guardian->id;
+        }
+
+        // Add orphan parent2/guardian users not linked to any parent1
+        $orphans = \App\Models\User::whereIn('role', ['parent2', 'guardian'])
+            ->whereNotIn('id', $seenUserIds)
+            ->with('children')
+            ->get();
+
+        foreach ($orphans as $orphan) {
+            $families->push([
+                'main' => $orphan,
+                'second' => null,
+                'guardian' => null,
+                'children' => $orphan->children,
+                'childCount' => $orphan->children->count(),
+            ]);
+        }
+
+        return view('parent.index', compact('families'));
     }
 
     // CREATE FORM

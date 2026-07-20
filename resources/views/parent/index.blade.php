@@ -385,17 +385,18 @@
 
 {{-- Stat Cards --}}
 @php
-    $total = $parents->total();
-    $verified = $parents->where('verified', true)->count();
-    $pending = $parents->where('verified', false)->count();
+    $totalFamilies = $families->count();
+    $totalChildren = $families->sum('childCount');
+    $verified = $families->filter(fn($f) => $f['main']->verified)->count();
+    $guardianCount = $families->filter(fn($f) => $f['guardian'])->count();
 @endphp
 
 <div class="stat-row">
     <div class="stat-card">
         <div class="stat-icon pink"><i class="fas fa-users"></i></div>
         <div>
-            <div class="stat-num">{{ $total }}</div>
-            <div class="stat-label">Total Parents</div>
+            <div class="stat-num">{{ $totalFamilies }}</div>
+            <div class="stat-label">Families</div>
         </div>
     </div>
     <div class="stat-card">
@@ -406,243 +407,211 @@
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+        <div class="stat-icon orange"><i class="fas fa-child"></i></div>
         <div>
-            <div class="stat-num">{{ $pending }}</div>
-            <div class="stat-label">Pending</div>
+            <div class="stat-num">{{ $totalChildren }}</div>
+            <div class="stat-label">Children</div>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon blue"><i class="fas fa-user-shield"></i></div>
         <div>
-            <div class="stat-num">{{ $parents->where('role', 'guardian')->count() }}</div>
-            <div class="stat-label">Guardians</div>
+            <div class="stat-num">{{ $guardianCount }}</div>
+            <div class="stat-label">With Guardian</div>
         </div>
     </div>
 </div>
 
-{{-- Search + Filter --}}
+{{-- Search --}}
 <div class="filter-bar">
     <div class="search-wrap">
         <i class="fas fa-search"></i>
         <input type="text" class="search-input" id="searchInput"
-            placeholder="Search name, phone, email...">
+            placeholder="Search family name, phone, email...">
     </div>
-    <select class="filter-select" id="filterStatus">
-        <option value="">All Status</option>
-        <option value="verified"><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified</option>
-        <option value="pending">⏳ Pending</option>
-    </select>
-    <span class="record-count" id="recordCount">{{ $total }} records</span>
+    <span class="record-count">{{ $totalFamilies }} families</span>
 </div>
 
-{{-- Table --}}
-<div class="table-card">
-    <table class="pg-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th><i class="fas fa-user"></i> User</th>
-                <th>Status</th>
-                <th>Role</th>
-                <th><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i> Children</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            @forelse($parents as $i => $parent)
-            @php
-                $roleLabel = match($parent->role) {
-                    'parent1' => 'Main Parent',
-                    'parent2' => 'Second Parent',
-                    'guardian' => 'Guardian',
-                    default => $parent->role,
-                };
-            @endphp
-            <tr>
-                <td style="color:#94a3b8; font-weight:700;">{{ $parents->firstItem() + $i }}</td>
-
-                {{-- User Info --}}
-                <td>
-                    <div class="parent-cell">
-                        <div class="parent-avatar">
-                            @if($parent->photo)
-                                <img src="{{ Storage::url($parent->photo) }}" alt="">
-                            @else
-                                {{ strtoupper(substr($parent->name, 0, 1)) }}
-                            @endif
-                        </div>
-                        <div>
-                            <p class="parent-name">{{ $parent->name }}</p>
-                            <p class="parent-sub"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">smartphone</i> {{ $parent->phone ?? '-' }} · <i class="fas fa-envelope" style="font-size:10px;"></i> {{ $parent->email ?? '-' }}</p>
-                        </div>
-                    </div>
-                </td>
-
-                {{-- Status --}}
-                <td>
-                    @if($parent->verified)
-                        <span class="status-badge verified"><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified</span>
+{{-- Family Cards --}}
+<div id="familyList">
+    @forelse($families as $i => $family)
+    @php
+        $main = $family['main'];
+        $second = $family['second'];
+        $guardian = $family['guardian'];
+        $children = $family['children'];
+        $isMainOnly = !$second && !$guardian;
+    @endphp
+    <div class="family-card" data-search="{{ strtolower($main->name) }} {{ strtolower($main->email) }} {{ strtolower($main->phone_number) }} {{ $second ? strtolower($second->name) : '' }} {{ $guardian ? strtolower($guardian->name) : '' }}">
+        {{-- Family Header: Main Parent --}}
+        <div class="family-header" onclick="toggleFamily(this)">
+            <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;">
+                <div class="parent-avatar">
+                    @if($main->photo)
+                        <img src="{{ Storage::url($main->photo) }}" alt="">
                     @else
-                        <span class="status-badge pending">⏳ Pending</span>
+                        {{ strtoupper(substr($main->name, 0, 1)) }}
                     @endif
-                </td>
-
-                {{-- Role --}}
-                <td>
-                    <span class="relation-badge {{ $parent->role === 'guardian' ? 'guardian' : 'main' }}" style="font-size:10px;">
-                        {{ $roleLabel }}
-                    </span>
-                </td>
-
-                {{-- Children --}}
-                <td>
-                    @php $kids = $parent->children; @endphp
-                    @if($kids->count() > 0)
-                        @foreach($kids as $kid)
-                            <span style="display:inline-block;background:#f1f5f9;padding:2px 8px;border-radius:8px;font-size:11px;font-weight:600;margin:2px;">
-                                <i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i> {{ $kid->name }}
-                            </span>
-                        @endforeach
-                    @else
-                        <span style="color:#cbd5e1;">—</span>
-                    @endif
-                </td>
-
-                {{-- Actions --}}
-                <td>
-                    <div class="action-btns">
-                        <a href="{{ route('parents.show', $parent->id) }}"
-                            class="act-btn view" title="View">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="{{ route('parents.edit', $parent->id) }}"
-                            class="act-btn edit" title="Edit">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <form action="{{ route('parents.destroy', $parent->id) }}"
-                            method="POST" style="margin:0;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="act-btn delete" title="Delete"
-                                onclick="return confirm('Delete {{ addslashes($parent->name) }}? This action cannot be undone.')">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </form>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span style="font-weight:800;font-size:15px;color:#1e293b;">{{ $main->name }}</span>
+                        <span class="relation-badge main">Main Parent</span>
+                        @if($main->verified)
+                            <span class="status-badge verified" style="font-size:10px;padding:2px 8px;"><i class="fas fa-check-circle" style="font-size:9px;"></i> Verified</span>
+                        @else
+                            <span class="status-badge pending" style="font-size:10px;padding:2px 8px;">⏳ Pending</span>
+                        @endif
                     </div>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="7">
-                    <div class="empty-state">
-                        <div class="empty-icon"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">family_restroom</i></div>
-                        <h5>No parents registered yet</h5>
-                        <p>Start by registering your first parent to the nursery.</p>
-                        <a href="{{ route('parents.create') }}"><i class="fas fa-plus"></i> Register New Parent</a>
+                    <div style="font-size:11px;color:#94a3b8;margin-top:3px;">
+                        📞 {{ $main->phone_number ?? '-' }} · ✉️ {{ $main->email ?? '-' }}
+                        @if($children->count())
+                            · 👶 {{ $children->count() }} child{{ $children->count() > 1 ? 'ren' : '' }}
+                        @endif
                     </div>
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
+                </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+                @if(!$isMainOnly)<span class="family-expand">▼</span>@endif
+                <span style="font-size:11px;color:#cbd5e1;">#{{ str_pad($main->id, 3, '0', STR_PAD_LEFT) }}</span>
+                <div class="action-btns" onclick="event.stopPropagation();">
+                    <a href="{{ route('parents.show', $main->id) }}" class="act-btn view" title="View"><i class="fas fa-eye"></i></a>
+                    <a href="{{ route('parents.edit', $main->id) }}" class="act-btn edit" title="Edit"><i class="fas fa-edit"></i></a>
+                </div>
+            </div>
+        </div>
 
-    @if($total > 0)
-    <div class="table-footer">
-        <span>ℹ️</span>
-        <span>Click any row to view full profile</span>
-        <span>{{ $total }} total parents</span>
-    </div>
-    @endif
-</div>
+        {{-- Family Body: Second Parent + Guardian + Children --}}
+        @if(!$isMainOnly || $children->count())
+        <div class="family-body" style="display:none;">
+            {{-- Second Parent --}}
+            @if($second)
+            <div class="family-member second">
+                <div class="parent-avatar" style="width:36px;height:36px;border-radius:10px;font-size:13px;background:linear-gradient(135deg,#3b82f6,#60a5fa);">
+                    {{ strtoupper(substr($second->name, 0, 1)) }}
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <span style="font-weight:700;font-size:13px;">{{ $second->name }}</span>
+                    <span class="relation-badge second">Second Parent</span>
+                    <div style="font-size:11px;color:#94a3b8;">📞 {{ $second->phone_number ?? '-' }} · ✉️ {{ $second->email ?? '-' }}</div>
+                </div>
+                <div class="action-btns">
+                    <a href="{{ route('parents.show', $second->id) }}" class="act-btn view" title="View"><i class="fas fa-eye"></i></a>
+                    <a href="{{ route('parents.edit', $second->id) }}" class="act-btn edit" title="Edit"><i class="fas fa-edit"></i></a>
+                </div>
+            </div>
+            @endif
 
-{{-- Pagination --}}
-@if($parents->hasPages())
-<div class="pagination-wrap">
-    <div class="pagination-info">
-        Showing {{ $parents->firstItem() }} to {{ $parents->lastItem() }} of {{ $parents->total() }} results
-    </div>
-    <ul class="pagination-links">
-        @if($parents->onFirstPage())
-            <li class="disabled"><span class="page-link">« Prev</span></li>
-        @else
-            <li><a class="page-link" href="{{ $parents->previousPageUrl() }}">« Prev</a></li>
+            {{-- Guardian --}}
+            @if($guardian)
+            <div class="family-member guardian">
+                <div class="parent-avatar" style="width:36px;height:36px;border-radius:10px;font-size:13px;background:linear-gradient(135deg,#f59e0b,#fbbf24);">
+                    {{ strtoupper(substr($guardian->name, 0, 1)) }}
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <span style="font-weight:700;font-size:13px;">{{ $guardian->name }}</span>
+                    <span class="relation-badge guardian">Guardian</span>
+                    <div style="font-size:11px;color:#94a3b8;">📞 {{ $guardian->phone_number ?? '-' }} · ✉️ {{ $guardian->email ?? '-' }}</div>
+                </div>
+                <div class="action-btns">
+                    <a href="{{ route('parents.show', $guardian->id) }}" class="act-btn view" title="View"><i class="fas fa-eye"></i></a>
+                    <a href="{{ route('parents.edit', $guardian->id) }}" class="act-btn edit" title="Edit"><i class="fas fa-edit"></i></a>
+                </div>
+            </div>
+            @endif
+
+            {{-- Children --}}
+            @if($children->count())
+            <div class="family-children">
+                <span style="font-size:11px;font-weight:700;color:#94a3b8;margin-right:6px;">👶 Children:</span>
+                @foreach($children as $child)
+                    <span class="child-tag">{{ $child->name }} · {{ $child->classroom->name ?? 'No class' }}</span>
+                @endforeach
+            </div>
+            @endif
+        </div>
         @endif
-
-        @foreach($parents->getUrlRange(1, $parents->lastPage()) as $page => $url)
-            <li class="{{ $page == $parents->currentPage() ? 'active' : '' }}">
-                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-            </li>
-        @endforeach
-
-        @if($parents->hasMorePages())
-            <li><a class="page-link" href="{{ $parents->nextPageUrl() }}">Next »</a></li>
-        @else
-            <li class="disabled"><span class="page-link">Next »</span></li>
-        @endif
-    </ul>
+    </div>
+    @empty
+    <div class="table-card" style="text-align:center;padding:60px 20px;">
+        <div style="font-size:48px;margin-bottom:12px;">👨‍👩‍👧‍👦</div>
+        <h5 style="color:#1e293b;font-weight:800;">No families registered yet</h5>
+        <p style="color:#94a3b8;">Register a parent to get started.</p>
+        <a href="{{ route('parents.create') }}" class="btn-register" style="display:inline-flex;margin-top:8px;">
+            <i class="fas fa-plus"></i> Register Parent
+        </a>
+    </div>
+    @endforelse
 </div>
-@endif
 
 <script>
-    // Search and Filter functionality
-    document.getElementById('searchInput').addEventListener('input', filterTable);
-    document.getElementById('filterStatus').addEventListener('change', filterTable);
-
-    function filterTable() {
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const status = document.getElementById('filterStatus').value.toLowerCase();
-        const rows = document.querySelectorAll('#tableBody tr');
-        let visible = 0;
-
-        rows.forEach(row => {
-            if (row.querySelector('.empty-state')) return;
-
-            const text = row.innerText.toLowerCase();
-            const matchSearch = search === '' || text.includes(search);
-            const matchStatus = status === '' || text.includes(status);
-
-            if (matchSearch && matchStatus) {
-                row.style.display = '';
-                visible++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        document.getElementById('recordCount').textContent = visible + ' records';
-
-        // Show empty message if no results
-        const tbody = document.getElementById('tableBody');
-        const existingEmpty = tbody.querySelector('.empty-row-message');
-
-        if (visible === 0 && !existingEmpty && rows.length > 0) {
-            const emptyRow = document.createElement('tr');
-            emptyRow.className = 'empty-row-message';
-            emptyRow.innerHTML = `
-                <td colspan="6">
-                    <div class="empty-state" style="padding: 40px;">
-                        <div class="empty-icon">🔍</div>
-                        <h5>No matching records found</h5>
-                        <p>Try adjusting your search or filter criteria</p>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(emptyRow);
-        } else if (visible > 0 && existingEmpty) {
-            existingEmpty.remove();
+    // Toggle family expand
+    function toggleFamily(header) {
+        const body = header.nextElementSibling;
+        if (body && body.classList.contains('family-body')) {
+            body.style.display = body.style.display === 'none' ? 'block' : 'none';
+            const arrow = header.querySelector('.family-expand');
+            if (arrow) arrow.textContent = body.style.display === 'none' ? '▼' : '▲';
         }
     }
 
-    // Row click to view profile
-    document.querySelectorAll('#tableBody tr').forEach(row => {
-        row.addEventListener('click', function(e) {
-            if (e.target.closest('.action-btns')) return;
-            if (this.querySelector('.empty-state')) return;
-            const viewBtn = this.querySelector('.act-btn.view');
-            if (viewBtn) viewBtn.click();
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', function() {
+        const search = this.value.toLowerCase();
+        document.querySelectorAll('.family-card').forEach(card => {
+            card.style.display = search === '' || card.dataset.search.includes(search) ? '' : 'none';
         });
     });
 </script>
+
+<style>
+    .family-card {
+        background: white;
+        border-radius: 18px;
+        margin-bottom: 14px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+        border: 1px solid #FFF0EC;
+        overflow: hidden;
+    }
+    .family-header {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 16px 20px; cursor: pointer; transition: .15s;
+        gap: 12px; flex-wrap: wrap;
+    }
+    .family-header:hover { background: #FFFAF9; }
+
+    .family-expand {
+        font-size: 11px; color: #FF6B6B; transition: .2s;
+        width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+        border-radius: 50%; background: #FFF5F2;
+    }
+
+    .family-body {
+        border-top: 1px solid #FFF0EC;
+        background: #FFFAF9;
+    }
+
+    .family-member {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 20px 12px 60px;
+        border-bottom: 1px solid #FFF0EC;
+    }
+    .family-member.second { border-left: 3px solid #3b82f6; }
+    .family-member.guardian { border-left: 3px solid #f59e0b; }
+
+    .family-children {
+        padding: 12px 20px 12px 60px;
+        display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .child-tag {
+        display: inline-block;
+        background: #f1f5f9;
+        padding: 3px 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #475569;
+    }
+</style>
 
 @endsection
