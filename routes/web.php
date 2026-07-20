@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
 // Controllers
@@ -64,8 +65,8 @@ Route::get('/api/simulation-time', function() {
 // ROOT
 // ============================================
 Route::get('/', function () {
-    if (auth()->check()) {
-        $user = auth()->user();
+    if (Auth::check()) {
+        $user = Auth::user();
         if (in_array($user->role, ['parent', 'parent1', 'parent2', 'guardian'])) {
             return redirect()->route('parent.dashboard');
         }
@@ -78,7 +79,7 @@ Route::get('/', function () {
 // DASHBOARD
 // ============================================
 Route::get('/dashboard', function () {
-    if (auth()->check() && in_array(auth()->user()->role, ['parent', 'parent1', 'parent2', 'guardian'])) {
+    if (Auth::check() && in_array(Auth::user()->role, ['parent', 'parent1', 'parent2', 'guardian'])) {
         return redirect()->route('parent.dashboard');
     }
 
@@ -130,12 +131,12 @@ Route::get('/scan-qr', function () {
 
 Route::get('/scan-qr/check', function () {
     return response()->json([
-        'logged_in' => auth()->check()
+        'logged_in' => Auth::check()
     ]);
 })->name('scan.qr.check');
 
 Route::get('/scan-qr/result/{qr_data}', function ($qrData) {
-    if (!auth()->check()) {
+    if (!Auth::check()) {
         return redirect()->route('login')->with('redirect_after_login', url('/scan-qr/result/' . $qrData));
     }
 
@@ -145,7 +146,7 @@ Route::get('/scan-qr/result/{qr_data}', function ($qrData) {
         return redirect()->route('kiosk.index')->with('error', 'QR Code tidak sah! Sila cuba lagi.');
     }
 
-    $user = auth()->user();
+    $user = Auth::user();
     $parent = ParentModel::where('user_id', $user->id)->first();
 
     if ($parent && $child->parent_id != $parent->id && $child->second_parent_id != $parent->id) {
@@ -354,7 +355,7 @@ Route::post('/api/check-child-access', function(Request $request) {
 
     if (!$child) return response()->json(['has_access' => false]);
 
-    $user = auth()->user();
+    $user = Auth::user();
     if (!$user) return response()->json(['has_access' => false]);
 
     if (in_array($user->role, ['admin', 'teacher'])) {

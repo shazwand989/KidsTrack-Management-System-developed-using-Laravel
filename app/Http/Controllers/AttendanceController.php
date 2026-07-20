@@ -13,7 +13,9 @@ use App\Models\SimulationClock;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AttendanceController extends Controller
 {
@@ -45,7 +47,7 @@ class AttendanceController extends Controller
     // ============================================
     public function index(Request $request)
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $attendances = collect();
         $children = collect();
         $classrooms = collect();
@@ -106,7 +108,7 @@ class AttendanceController extends Controller
     public function getData(Request $request)
     {
         try {
-            $user = auth()->user();
+            $user = Auth::user();
             $query = Attendance::with(['child', 'child.classroom']);
 
             // Filter by date
@@ -573,7 +575,7 @@ class AttendanceController extends Controller
     // ============================================
     public function calendar()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $children = collect();
         $attendances = collect();
         $classrooms = collect();
@@ -639,7 +641,7 @@ class AttendanceController extends Controller
         $month = $request->month ?? Carbon::now()->month;
         $year = $request->year ?? Carbon::now()->year;
 
-        $user = auth()->user();
+        $user = Auth::user();
         $attendances = collect();
 
         if (in_array($user->role, ['admin', 'teacher'])) {
@@ -803,7 +805,7 @@ class AttendanceController extends Controller
 public function exportPdf(Request $request)
 {
     try {
-        $user = auth()->user();
+        $user = Auth::user();
         $query = Attendance::with(['child', 'child.classroom']);
 
         // Apply filters from request
@@ -871,7 +873,7 @@ public function exportPdf(Request $request)
         $totalAbsent = $attendances->where('status', 'absent')->count();
 
         // 🔥 Generate PDF using DomPDF with remote enabled for local assets
-        $pdf = \PDF::loadView('attendance.export-pdf', [
+        $pdf = Pdf::loadView('attendance.export-pdf', [
             'attendances' => $attendances,
             'total' => $attendances->count(),
             'totalCheckin' => $totalCheckin,
@@ -925,12 +927,12 @@ public function exportSinglePdf($id)
             }
         }
 
-        $pdf = \PDF::loadView('attendance.export-single-pdf', [
+        $pdf = Pdf::loadView('attendance.export-single-pdf', [
             'attendance' => $attendance,
             'dropOff' => $dropOff ?? '-',
             'pickup' => $pickup ?? '-',
             'generated_at' => Carbon::now()->format('d/m/Y H:i:s'),
-            'generated_by' => auth()->user()->name,
+            'generated_by' => Auth::user()->name,
         ]);
 
         return $pdf->download('attendance_record_' . $attendance->id . '.pdf');
@@ -1159,7 +1161,7 @@ public function exportSinglePdf($id)
 
     public function searchResults(Request $request)
     {
-        $query = $request->get('q', '');
+        $query = $request->input('q', '');
 
         if (strlen($query) < 2) {
             return response()->json([]);
