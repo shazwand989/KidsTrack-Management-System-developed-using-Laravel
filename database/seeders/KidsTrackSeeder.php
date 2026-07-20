@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class KidsTrackSeeder extends Seeder
 {
@@ -31,14 +32,14 @@ class KidsTrackSeeder extends Seeder
     {
         // Admin staff + Parent accounts
         DB::table('users')->insert([
-            ['id' => 1,  'name' => 'Diana binti Azman',     'age' => null, 'email' => 'diana@taskakids.com',     'password' => '$2y$12$bN5tG.udD8DB3VeQeO1jWOVaWPEEH39wTWaOe.se.DtgdF6GD98VS', 'phone_number' => '013-344 3554', 'address' => 'No. 12, Jalan Kempas 5, Taman Kempas, 81200 Johor Bahru, Johor',          'role' => 'admin',    'remember_token' => null, 'created_at' => '2026-01-15 08:00:00', 'updated_at' => '2026-01-15 08:00:00'],
+            ['id' => 1,  'name' => 'Diana binti Azman',     'age' => null, 'email' => 'diana@taskakids.com',     'password' => Hash::make('password'), 'phone_number' => '013-344 3554', 'address' => 'No. 12, Jalan Kempas 5, Taman Kempas, 81200 Johor Bahru, Johor',          'role' => 'admin',    'remember_token' => null, 'created_at' => '2026-01-15 08:00:00', 'updated_at' => '2026-01-15 08:00:00'],
             ['id' => 2,  'name' => 'Nurul Syuhada binti Rahim', 'age' => null, 'email' => 'syuhada@taskakids.com',  'password' => '$2y$12$svSwla.m9JVgogd1wG7VgOEr.1VzIOrNXSllWcBCiNXbx.esQtLiK', 'phone_number' => '019-887 6543', 'address' => 'No. 45, Jalan Anggerik 2, Taman Anggerik, 43000 Kajang, Selangor',          'role' => 'admin',    'remember_token' => null, 'created_at' => '2026-01-20 09:30:00', 'updated_at' => '2026-01-20 09:30:00'],
             ['id' => 3,  'name' => 'Ahmad Fikri bin Hassan',   'age' => null, 'email' => 'fikri@taskakids.com',     'password' => '$2y$12$PBb2kLPw7g6IqFXW2rOqveOhqJ8xDv90dPFhn.hoDbeIy.HVys3E6', 'phone_number' => '012-556 7890', 'address' => 'No. 8, Lorong Cempaka 3, Taman Cempaka, 68000 Ampang, Selangor',              'role' => 'admin',    'remember_token' => null, 'created_at' => '2026-02-01 07:45:00', 'updated_at' => '2026-02-01 07:45:00'],
             // Parents
-            ['id' => 10, 'name' => 'Norazila binti Mahmud',    'age' => null, 'email' => 'norazila@gmail.com',      'password' => '$2y$12$giygbwLSo/FHtSTBJd1J7eCzXz8YcAZesinu5aX62Y2LKsuc7ICei', 'phone_number' => null, 'address' => null, 'role' => 'parent1',  'remember_token' => null, 'created_at' => '2026-03-10 14:00:00', 'updated_at' => '2026-03-10 14:00:00'],
+            ['id' => 10, 'name' => 'Norazila binti Mahmud',    'age' => null, 'email' => 'norazila@gmail.com',      'password' => Hash::make('password'), 'phone_number' => null, 'address' => null, 'role' => 'parent1',  'remember_token' => null, 'created_at' => '2026-03-10 14:00:00', 'updated_at' => '2026-03-10 14:00:00'],
             ['id' => 11, 'name' => 'Mohd Hafiz bin Ismail',     'age' => null, 'email' => 'hafiz.ismail@gmail.com',   'password' => '$2y$12$p7ufHeyJof5z55NwBJDn8.2b.CSyFXj6f1mpljwg9j2HApz5f3Cwu', 'phone_number' => null, 'address' => null, 'role' => 'parent1',  'remember_token' => null, 'created_at' => '2026-03-15 10:20:00', 'updated_at' => '2026-03-15 10:20:00'],
             ['id' => 12, 'name' => 'Siti Aminah binti Abdullah','age' => null, 'email' => 'aminah.abdullah@gmail.com','password' => '$2y$12$g/jgL.GT8npO27KNXDbAA.x4Ep2EFXbfGOUQ5tcqPFp3PJc7VVIZi', 'phone_number' => null, 'address' => null, 'role' => 'parent2',  'remember_token' => null, 'created_at' => '2026-03-15 10:25:00', 'updated_at' => '2026-03-15 10:25:00'],
-            ['id' => 13, 'name' => 'Zulkifli bin Omar',         'age' => null, 'email' => 'zulkifli.omar@gmail.com',  'password' => '$2y$12$W2YoFuvxfYXdvxa5iQPcmefuoHAGnE2uKyoTxTcaKbjKhxYkEqRWW', 'phone_number' => null, 'address' => null, 'role' => 'guardian', 'remember_token' => null, 'created_at' => '2026-03-15 10:30:00', 'updated_at' => '2026-03-15 10:30:00'],
+            ['id' => 13, 'name' => 'Zulkifli bin Omar',         'age' => null, 'email' => 'zulkifli.omar@gmail.com',  'password' => Hash::make('password'), 'phone_number' => null, 'address' => null, 'role' => 'guardian', 'remember_token' => null, 'created_at' => '2026-03-15 10:30:00', 'updated_at' => '2026-03-15 10:30:00'],
             ['id' => 16, 'name' => 'Rosnani binti Shuib',       'age' => null, 'email' => 'rosnani.shuib@gmail.com',  'password' => '$2y$12$UVXs9Mo6vabuHUaN7I5JquN8NvJK74ZbBZTa5.IKv9ukxNhtIYDzS', 'phone_number' => null, 'address' => null, 'role' => 'parent1',  'remember_token' => null, 'created_at' => '2026-04-05 08:15:00', 'updated_at' => '2026-04-05 08:15:00'],
             ['id' => 17, 'name' => 'Azman bin Hashim',          'age' => null, 'email' => 'azman.hashim@gmail.com',   'password' => '$2y$12$7sqQDt6pEGvLnYr.P.2tmOhT4u849yaeJ51jxTA.sNA0bDDWQv1Ai', 'phone_number' => null, 'address' => null, 'role' => 'parent2',  'remember_token' => null, 'created_at' => '2026-04-05 08:20:00', 'updated_at' => '2026-04-05 08:20:00'],
             ['id' => 18, 'name' => 'Mak Cik Kamsiah',           'age' => null, 'email' => 'kamsiah@gmail.com',        'password' => '$2y$12$V1yQGpL8AlkNhBy9sr0TueMzjyYI9zJUmct0Mt1E7J5buZ5QfwOr6', 'phone_number' => null, 'address' => null, 'role' => 'guardian', 'remember_token' => null, 'created_at' => '2026-04-05 08:25:00', 'updated_at' => '2026-04-05 08:25:00'],
@@ -53,7 +54,7 @@ class KidsTrackSeeder extends Seeder
             ['id' => 27, 'name' => 'Pak Ngah Senawi',            'age' => null, 'email' => 'senawi@gmail.com',         'password' => '$2y$12$1I2nAQ10tqxhcUpmvDh5n.miMtODa/w8suJHE2DdqSD3.L6HmR9JK', 'phone_number' => null, 'address' => null, 'role' => 'guardian', 'remember_token' => null, 'created_at' => '2026-05-25 13:10:00', 'updated_at' => '2026-05-25 13:10:00'],
             ['id' => 28, 'name' => 'MUHAMMAD SHAZWAN DANIAL BIN YOUHARDY', 'age' => 27, 'email' => 'shazwand989@gmail.com', 'password' => '$2y$12$1I2nAQ10tqxhcUpmvDh5n.miMtODa/w8suJHE2DdqSD3.L6HmR9JK', 'phone_number' => '0192548927', 'address' => 'LOT 365 KAMPUNG DESA REBANA 18500 MACHANG KELANTAN', 'role' => 'parent1',  'remember_token' => null, 'created_at' => '2026-06-13 06:34:44', 'updated_at' => '2026-06-13 06:34:44'],
         ]);
-        $this->command->info('  ✓ users: 21');
+        $this->command->info('  ✓ users: 28');
     }
 
     private function seedClassrooms(): void
@@ -88,8 +89,9 @@ class KidsTrackSeeder extends Seeder
             ['id' => 8,  'user_id' => 23, 'name' => 'Rashid bin Ghazali',         'age' => '37', 'phone' => '019-334 5678', 'address' => "No. 3, Jalan Muhibbah,\nKampung Tengah, 85200 Segamat, Johor",'photo' => null, 'type' => 'second', 'verified' => true,  'emergency' => false, 'created_at' => '2026-05-10 09:35:00', 'updated_at' => '2026-05-10 09:35:00'],
             ['id' => 9,  'user_id' => 25, 'name' => 'Kamarul bin Ariffin',        'age' => '40', 'phone' => '017-773 9574', 'address' => "Lot 789, Kampung Paya Lebar,\n85200 Segamat, Johor",            'photo' => null, 'type' => 'main',   'verified' => true,  'emergency' => true,  'created_at' => '2026-05-25 13:00:00', 'updated_at' => '2026-05-25 13:00:00'],
             ['id' => 10, 'user_id' => 26, 'name' => 'Zuraidah binti Mustafa',     'age' => '38', 'phone' => '011-3345 7654', 'address' => "Lot 789, Kampung Paya Lebar,\n85200 Segamat, Johor",            'photo' => null, 'type' => 'second', 'verified' => true,  'emergency' => false, 'created_at' => '2026-05-25 13:05:00', 'updated_at' => '2026-05-25 13:05:00'],
+            ['id' => 11, 'user_id' => 28, 'name' => 'MUHAMMAD SHAZWAN DANIAL BIN YOUHARDY', 'age' => '27', 'phone' => '0192548927', 'address' => "LOT 365 KAMPUNG DESA REBANA 18500 MACHANG KELANTAN", 'photo' => null, 'type' => 'main',   'verified' => true,  'emergency' => true,  'created_at' => '2026-06-13 06:34:44', 'updated_at' => '2026-06-13 06:34:44'],
         ]);
-        $this->command->info('  ✓ parents: 10');
+        $this->command->info('  ✓ parents: 11');
     }
 
     private function seedSecondParents(): void
@@ -134,7 +136,10 @@ class KidsTrackSeeder extends Seeder
             ['id' => 8,  'name' => 'Irfan bin Kamarul',            'age' => 2, 'ic_number' => '200710-01-0789', 'dob' => '2024-10-10', 'address' => 'Kampung Paya Lebar, 85200 Segamat, Johor',          'photo' => null, 'qr_code' => 'KID-0008', 'qr_code_url' => null, 'nursery_type' => 'full_day', 'parent_id' => 9, 'second_parent_id' => 5, 'guardian_id' => 5, 'medical_notes' => null, 'dietary' => null, 'is_active' => true, 'enrollment_date' => '2026-06-01', 'classroom_id' => 1, 'created_at' => '2026-06-01 08:00:00', 'updated_at' => '2026-06-01 08:00:00'],
             ['id' => 9,  'name' => 'Sarah binti Kamarul',          'age' => 3, 'ic_number' => '200605-01-0345', 'dob' => '2023-05-06', 'address' => 'Kampung Paya Lebar, 85200 Segamat, Johor',          'photo' => null, 'qr_code' => 'KID-0009', 'qr_code_url' => null, 'nursery_type' => 'full_day', 'parent_id' => 9, 'second_parent_id' => 5, 'guardian_id' => 5, 'medical_notes' => null, 'dietary' => null, 'is_active' => true, 'enrollment_date' => '2026-01-02', 'classroom_id' => 2, 'created_at' => '2026-01-02 08:00:00', 'updated_at' => '2026-01-02 08:00:00'],
             ['id' => 10, 'name' => 'Iman binti Kamarul',           'age' => 3, 'ic_number' => '200608-01-0678', 'dob' => '2023-08-06', 'address' => 'Kampung Paya Lebar, 85200 Segamat, Johor',          'photo' => null, 'qr_code' => 'KID-0010', 'qr_code_url' => null, 'nursery_type' => 'weekend', 'parent_id' => 9, 'second_parent_id' => 5, 'guardian_id' => 5, 'medical_notes' => null, 'dietary' => null, 'is_active' => true, 'enrollment_date' => '2026-01-02', 'classroom_id' => 2, 'created_at' => '2026-01-02 08:00:00', 'updated_at' => '2026-01-02 08:00:00'],
-        ]);
+        
+            // Family 6: Muhammad Shazwan Danial 
+            ['id' => 11, 'name' => 'Aiman bin Muhammad Shazwan Danial', 'age' => 2, 'ic_number' => '200712-01-0123', 'dob' => '2024-12-07', 'address' => 'Kampung Desa Rebana, 18500 Machang, Kelantan', 'photo' => null, 'qr_code' => 'KID-0011', 'qr_code_url' => null, 'nursery_type' => 'full_day', 'parent_id' => 11, 'second_parent_id' => null, 'guardian_id' => null, 'medical_notes' => null, 'dietary' => null, 'is_active' => true, 'enrollment_date' => '2026-06-15', 'classroom_id' => 1, 'created_at' => '2026-06-15 08:00:00', 'updated_at' => '2026-06-15 08:00:00'],
+            ]);
         $this->command->info('  ✓ children: 10');
     }
 
