@@ -96,11 +96,11 @@
     <div style="overflow-x:auto;">
         <table class="child-table">
             <thead>
-                <tr><th>#</th><th>Name</th><th>Age</th><th>Class</th><th>Status Today</th></tr>
+                <tr><th>#</th><th>Name</th><th>Age</th><th>Class</th><th>Status Today</th><th></th></tr>
             </thead>
             <tbody>
                 @foreach($children as $i => $child)
-                <tr>
+                <tr style="cursor:pointer;" onclick="location.href='{{ route('parent.children.show', $child->id) }}'">
                     <td style="color:#94a3b8;font-weight:700;">{{ $i + 1 }}</td>
                     <td>
                         <div style="display:flex;align-items:center;gap:10px;">
@@ -119,6 +119,7 @@
                             {{ $txt }}
                         </span>
                     </td>
+                    <td><a href="{{ route('parent.children.show', $child->id) }}" onclick="event.stopPropagation();" style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#ede9fe;color:#6d28d9;border-radius:8px;font-size:11px;font-weight:700;text-decoration:none;"><i class="material-symbols-rounded" style="font-size:14px;">visibility</i> View</a></td>
                 </tr>
                 @endforeach
             </tbody>

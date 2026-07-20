@@ -20,10 +20,10 @@
     @if($children->count() > 0)
     <div style="overflow-x:auto;">
         <table class="child-table">
-            <thead><tr><th>#</th><th>Name</th><th>Age</th><th>Class</th><th>Dietary</th></tr></thead>
+            <thead><tr><th>#</th><th>Name</th><th>Age</th><th>Class</th><th>Dietary</th><th></th></tr></thead>
             <tbody>
                 @foreach($children as $i => $child)
-                <tr>
+                <tr onclick="location.href='{{ route('parent.children.show', $child->id) }}'">
                     <td style="color:#94a3b8;font-weight:700;">{{ $i + 1 }}</td>
                     <td>
                         <div style="display:flex;align-items:center;gap:10px;">
@@ -34,6 +34,7 @@
                     <td>{{ $child->age }}</td>
                     <td>{{ $child->classroom->name ?? 'N/A' }}</td>
                     <td>{{ $child->dietary ?? 'None' }}</td>
+                    <td><a href="{{ route('parent.children.show', $child->id) }}" class="btn-view"><i class="material-symbols-rounded" style="font-size:14px;">visibility</i> View</a></td>
                 </tr>
                 @endforeach
             </tbody>
