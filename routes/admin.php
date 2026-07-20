@@ -222,10 +222,3 @@ Route::get('/child/qr/generate/{id}', [ChildController::class, 'generateQR'])->n
 Route::get('/child/qr/{id}', [ChildController::class, 'showQR'])->name('child.qr.show');
 Route::get('/child/qr/download/{id}', [ChildController::class, 'downloadQR'])->name('child.qr.download');
 Route::get('/child/qr/image/{id}', [ChildController::class, 'getQR'])->name('child.qr.image');
-
-// ============================================
-// ATTENDANCE CALENDAR (ADMIN)
-// ============================================
-Route::get('/attendance-calendar', [AttendanceController::class, 'calendar'])
-    ->middleware(['auth'])
-    ->name('attendance.calendar');
