@@ -501,7 +501,7 @@
     </div>
     <div class="pg-header-right">
         {{-- 🔥 BUTTON EXPORT PDF --}}
-        <a href="{{ route('attendance.export.pdf', request()->query()) }}" class="btn-pdf no-print" target="_blank">
+        <a href="#" class="btn-pdf no-print" id="exportPdfBtn" onclick="exportPDF(event)">
             <span>📄</span> Export PDF Report
         </a>
         <a href="#" class="btn-export no-print" onclick="exportCSV()">
@@ -561,14 +561,14 @@
     <div class="search-wrap">
         <i class="fas fa-search"></i>
         <input type="text" class="search-input" id="searchInput"
-            placeholder="Search by child name...">
+            placeholder="Search by child name..." value="{{ request('search') }}">
     </div>
     
     {{-- FILTER BY CLASSROOM --}}
     <select class="filter-select" id="filterClassroom">
         <option value="">🏫 All Classrooms</option>
         @foreach($classrooms ?? [] as $classroom)
-            <option value="{{ $classroom->id }}">
+            <option value="{{ $classroom->id }}" {{ request('classroom_id') == $classroom->id ? 'selected' : '' }}>
                 🏫 {{ $classroom->name }}
             </option>
         @endforeach
@@ -576,14 +576,15 @@
     
     <select class="filter-select" id="filterStatus">
         <option value="">All Status</option>
-        <option value="checkin">✅ Check-in</option>
-        <option value="present">✅ Present</option>
-        <option value="checkout">📤 Check-out</option>
-        <option value="late">⏰ Late</option>
-        <option value="absent">❌ Absent</option>
+        <option value="checkin" {{ request('status') == 'checkin' ? 'selected' : '' }}>✅ Check-in</option>
+        <option value="present" {{ request('status') == 'present' ? 'selected' : '' }}>✅ Present</option>
+        <option value="checkout" {{ request('status') == 'checkout' ? 'selected' : '' }}>📤 Check-out</option>
+        <option value="late" {{ request('status') == 'late' ? 'selected' : '' }}>⏰ Late</option>
+        <option value="absent" {{ request('status') == 'absent' ? 'selected' : '' }}>❌ Absent</option>
     </select>
     
-    <input type="date" class="date-input" id="filterDate" placeholder="Filter by date">
+    <input type="date" class="date-input" id="filterDate" value="{{ request('date') }}" placeholder="Filter by date">
+    <input type="hidden" id="searchValue" value="{{ request('search') }}">
     <span class="record-count" id="recordCount">{{ $totalRecords }} records</span>
 </div>
 
@@ -788,6 +789,27 @@
     document.getElementById('filterStatus').addEventListener('change', filterTable);
     document.getElementById('filterDate').addEventListener('change', filterTable);
     document.getElementById('filterClassroom').addEventListener('change', filterTable);
+
+    function getFilterParams() {
+        var params = new URLSearchParams();
+        var search = document.getElementById('searchInput').value.trim();
+        var status = document.getElementById('filterStatus').value;
+        var date = document.getElementById('filterDate').value;
+        var classroom = document.getElementById('filterClassroom').value;
+        if (search) params.set('search', search);
+        if (status) params.set('status', status);
+        if (date) params.set('date', date);
+        if (classroom) params.set('classroom_id', classroom);
+        return params.toString();
+    }
+
+    function exportPDF(e) {
+        e.preventDefault();
+        var qs = getFilterParams();
+        var url = '{{ route('attendance.export.pdf') }}';
+        if (qs) url += '?' + qs;
+        window.open(url, '_blank');
+    }
 
     function filterTable() {
         const search = document.getElementById('searchInput').value.toLowerCase();

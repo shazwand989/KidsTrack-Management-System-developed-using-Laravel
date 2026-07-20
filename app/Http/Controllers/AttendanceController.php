@@ -18,22 +18,46 @@ use Illuminate\Support\Facades\Log;
 class AttendanceController extends Controller
 {
     // ============================================
+    // APPLY FILTERS TO ATTENDANCE QUERY
+    // ============================================
+    private function applyFilters($query, Request $request)
+    {
+        if ($request->filled('date')) {
+            $query->whereDate('date', $request->date);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->filled('classroom_id')) {
+            $childIds = Child::where('classroom_id', $request->classroom_id)->pluck('id');
+            $query->whereIn('child_id', $childIds);
+        }
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('child', function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%');
+            });
+        }
+    }
+
+    // ============================================
     // INDEX - List all attendance
     // ============================================
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         $attendances = collect();
         $children = collect();
-        $classrooms = collect(); // 🔥 TAMBAH INI
+        $classrooms = collect();
 
         if (in_array($user->role, ['admin', 'teacher'])) {
-            $attendances = Attendance::with(['child', 'child.classroom'])
-                ->orderBy('date', 'desc')
+            $query = Attendance::with(['child', 'child.classroom']);
+            $this->applyFilters($query, $request);
+            $attendances = $query->orderBy('date', 'desc')
                 ->orderBy('checkin_time', 'desc')
-                ->paginate(20);
+                ->paginate(20)->appends($request->query());
             $children = Child::with('classroom')->get();
-            $classrooms = Classroom::all(); // 🔥 TAMBAH INI
+            $classrooms = Classroom::all();
         } elseif (in_array($user->role, ['parent', 'parent1'])) {
             $parent = ParentModel::where('user_id', $user->id)->first();
             if ($parent) {
@@ -672,12 +696,92 @@ class AttendanceController extends Controller
     }
 
     // ============================================
+    // CREATE - Show create form
+    // ============================================
+    public function create()
+    {
+        $children = Child::with('classroom')->where('is_active', true)->get();
+        $classrooms = Classroom::all();
+        return view('attendance.create', compact('children', 'classrooms'));
+    }
+
+    // ============================================
+    // STORE - Save new attendance
+    // ============================================
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'child_id' => 'required|exists:children,id',
+            'date' => 'required|date',
+            'status' => 'required|in:present,absent,late,checkin,checkout',
+            'checkin_time' => 'nullable|date_format:H:i',
+            'checkout_time' => 'nullable|date_format:H:i',
+            'drop_off_by' => 'nullable|string|max:255',
+            'pickup_by' => 'nullable|string|max:255',
+            'late_reason' => 'nullable|string|max:500',
+            'status_note' => 'nullable|string|max:500',
+        ]);
+
+        Attendance::create($validated);
+
+        return redirect()->route('attendance.index')
+            ->with('success', 'Attendance record created successfully.');
+    }
+
+    // ============================================
     // SHOW - Attendance details
     // ============================================
     public function show($id)
     {
         $attendance = Attendance::with(['child', 'child.classroom'])->findOrFail($id);
         return view('attendance.show', compact('attendance'));
+    }
+
+    // ============================================
+    // EDIT - Show edit form
+    // ============================================
+    public function edit($id)
+    {
+        $attendance = Attendance::with(['child', 'child.classroom'])->findOrFail($id);
+        $children = Child::with('classroom')->where('is_active', true)->get();
+        return view('attendance.create', compact('attendance', 'children'));
+    }
+
+    // ============================================
+    // UPDATE - Update attendance record
+    // ============================================
+    public function update(Request $request, $id)
+    {
+        $attendance = Attendance::findOrFail($id);
+
+        $validated = $request->validate([
+            'child_id' => 'required|exists:children,id',
+            'date' => 'required|date',
+            'status' => 'required|in:present,absent,late,checkin,checkout',
+            'checkin_time' => 'nullable|date_format:H:i',
+            'checkout_time' => 'nullable|date_format:H:i',
+            'drop_off_by' => 'nullable|string|max:255',
+            'pickup_by' => 'nullable|string|max:255',
+            'late_reason' => 'nullable|string|max:500',
+            'status_note' => 'nullable|string|max:500',
+        ]);
+
+        $attendance->update($validated);
+
+        return redirect()->route('attendance.index')
+            ->with('success', 'Attendance record updated successfully.');
+    }
+
+    // ============================================
+    // DESTROY - Delete attendance record
+    // ============================================
+    public function destroy($id)
+    {
+        $attendance = Attendance::findOrFail($id);
+        $attendance->delete();
+
+        return redirect()->route('attendance.index')
+            ->with('success', 'Attendance record deleted successfully.');
     }
 
     // ============================================
@@ -714,6 +818,13 @@ public function exportPdf(Request $request)
         if ($request->has('classroom_id') && $request->classroom_id) {
             $childIds = Child::where('classroom_id', $request->classroom_id)->pluck('id');
             $query->whereIn('child_id', $childIds);
+        }
+
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->whereHas('child', function($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%');
+            });
         }
         
         // Filter by user role
