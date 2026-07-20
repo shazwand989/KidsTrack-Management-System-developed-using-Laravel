@@ -48,10 +48,4 @@ class User extends Authenticatable
             ->withPivot('relationship', 'is_emergency_contact')
             ->withTimestamps();
     }
-
-    // Backward-compatible: phone → phone_number
-    public function getPhoneAttribute()
-    {
-        return $this->phone_number;
-    }
 }

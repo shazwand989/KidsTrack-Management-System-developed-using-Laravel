@@ -651,7 +651,7 @@
                             <span class="parent-relation-badge">Main Parent</span>
                         </div>
                         <div class="parent-phone">
-                            <span>📞</span> {{ $child->parent->phone ?? '-' }}
+                            <span>📞</span> {{ $child->parent->phone_number ?? '-' }}
                         </div>
                     </div>
                 </div>
@@ -672,7 +672,7 @@
                             <span class="parent-relation-badge">Second Parent</span>
                         </div>
                         <div class="parent-phone">
-                            <span>📞</span> {{ $child->secondParent->phone ?? '-' }}
+                            <span>📞</span> {{ $child->secondParent->phone_number ?? '-' }}
                         </div>
                     </div>
                 </div>
@@ -704,7 +704,7 @@
                             <span class="parent-relation-badge">Guardian</span>
                         </div>
                         <div class="parent-phone">
-                            <span>📞</span> {{ $child->guardian->phone ?? '-' }}
+                            <span>📞</span> {{ $child->guardian->phone_number ?? '-' }}
                         </div>
                     </div>
                 </div>

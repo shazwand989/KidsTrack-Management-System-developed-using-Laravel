@@ -73,7 +73,7 @@ class AuthenticatedSessionController extends Controller
             return redirect()->route('parent.dashboard');
         }
 
-        // BACKWARD COMPATIBILITY
+        // Admin/teacher → dashboard
         if (in_array($user->role, ['admin', 'teacher'])) {
             return redirect()->intended(route('dashboard'));
         }

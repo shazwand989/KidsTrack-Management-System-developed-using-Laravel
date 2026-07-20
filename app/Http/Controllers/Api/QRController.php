@@ -139,7 +139,7 @@ class QRController extends Controller
                 ],
                 'parent' => [
                     'name' => $child->parent->name ?? 'N/A',
-                    'phone' => $child->parent->phone ?? 'N/A',
+                    'phone' => $child->parent->phone_number ?? 'N/A',
                 ],
                 'location_valid' => $locationValid,
                 'timestamp' => now()->toDateTimeString(),
@@ -314,7 +314,7 @@ public function kiosk()
                 ],
                 'parent' => [
                     'name' => $child->parent->name ?? 'N/A',
-                    'phone' => $child->parent->phone ?? 'N/A',
+                    'phone' => $child->parent->phone_number ?? 'N/A',
                 ],
                 'attendance_today' => Attendance::where('child_id', $child->id)
                     ->whereDate('date', today())

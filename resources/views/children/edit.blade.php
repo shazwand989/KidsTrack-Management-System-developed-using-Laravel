@@ -562,7 +562,7 @@
                         </div>
                         <div class="guardian-detail" id="parentDetail">
                             @if($child->parent)
-                                <span>📞 {{ $child->parent->phone }}</span>
+                                <span>📞 {{ $child->parent->phone_number }}</span>
                                 <span class="guardian-badge">Main Parent</span>
                             @else
                                 <span>📞 Click to select</span>
@@ -573,7 +573,7 @@
                 </div>
                 <div class="guardian-dropdown-list" id="parentDropdown">
                     @foreach($parents as $parent)
-                    <div class="guardian-option" onclick="selectParent({{ $parent->id }}, '{{ addslashes($parent->name) }}', '{{ addslashes($parent->phone) }}', '{{ $parent->photo }}', {{ $parent->id }})">
+                    <div class="guardian-option" onclick="selectParent({{ $parent->id }}, '{{ addslashes($parent->name) }}', '{{ addslashes($parent->phone_number) }}', '{{ $parent->photo }}', {{ $parent->id }})">
                         <div class="option-avatar">
                             @if($parent->photo)
                                 <img src="{{ asset('storage/'.$parent->photo) }}" alt="">
@@ -584,7 +584,7 @@
                         <div class="option-info">
                             <div class="option-name">{{ $parent->name }}</div>
                             <div class="option-detail">
-                                📞 {{ $parent->phone }}
+                                📞 {{ $parent->phone_number }}
                                 @if($parent->verified)
                                 <span class="option-badge">✅ Verified</span>
                                 @endif
@@ -621,7 +621,7 @@
                         </div>
                         <div class="guardian-detail" id="secondParentDetail">
                             @if($child->secondParent)
-                                <span>📞 {{ $child->secondParent->phone }}</span>
+                                <span>📞 {{ $child->secondParent->phone_number }}</span>
                                 <span class="guardian-badge">Second Parent</span>
                             @else
                                 <span>📞 Please select main parent first</span>
@@ -666,7 +666,7 @@
                         </div>
                         <div class="guardian-detail" id="guardianDetail">
                             @if($child->guardian)
-                                <span>📞 {{ $child->guardian->phone }}</span>
+                                <span>📞 {{ $child->guardian->phone_number }}</span>
                                 <span class="guardian-badge">Guardian</span>
                             @else
                                 <span>📞 Please select main parent first</span>

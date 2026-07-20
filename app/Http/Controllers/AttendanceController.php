@@ -1103,7 +1103,7 @@ public function exportSinglePdf($id)
         // Check against parent's phone
         $parent = $child->parent;
         if ($parent) {
-            $parentPhone = preg_replace('/[\s\-]/', '', $parent->phone ?? '');
+            $parentPhone = preg_replace('/[\s\-]/', '', $parent->phone_number ?? '');
             if ($parentPhone && str_contains($phone, substr($parentPhone, -7))) {
                 session(['verified_child_' . $child->id => true]);
                 return response()->json(['success' => true]);
@@ -1113,7 +1113,7 @@ public function exportSinglePdf($id)
         // Check against second parent's phone
         $secondParent = $child->secondParent;
         if ($secondParent) {
-            $spPhone = preg_replace('/[\s\-]/', '', $secondParent->phone ?? '');
+            $spPhone = preg_replace('/[\s\-]/', '', $secondParent->phone_number ?? '');
             if ($spPhone && str_contains($phone, substr($spPhone, -7))) {
                 session(['verified_child_' . $child->id => true]);
                 return response()->json(['success' => true]);
@@ -1123,7 +1123,7 @@ public function exportSinglePdf($id)
         // Check against guardian's phone
         $guardian = $child->guardian;
         if ($guardian) {
-            $gPhone = preg_replace('/[\s\-]/', '', $guardian->phone ?? '');
+            $gPhone = preg_replace('/[\s\-]/', '', $guardian->phone_number ?? '');
             if ($gPhone && str_contains($phone, substr($gPhone, -7))) {
                 session(['verified_child_' . $child->id => true]);
                 return response()->json(['success' => true]);

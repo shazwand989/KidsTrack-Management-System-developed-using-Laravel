@@ -80,7 +80,7 @@
         </div>
         <div>
             <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Phone</div>
-            <div style="font-size:14px;font-weight:600;color:#1e293b;">{{ $parent->phone ?? 'N/A' }}</div>
+            <div style="font-size:14px;font-weight:600;color:#1e293b;">{{ $parent->phone_number ?? 'N/A' }}</div>
         </div>
         <div>
             <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">Role</div>

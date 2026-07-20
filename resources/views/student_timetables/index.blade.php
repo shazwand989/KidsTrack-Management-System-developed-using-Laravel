@@ -414,7 +414,7 @@
                         </div>
                         <div>
                             <p class="guardian-name">{{ $parent->name }}</p>
-                            <p class="guardian-sub">{{ $parent->age ? $parent->age.' yrs' : '' }}{{ $parent->age && $parent->phone ? ' · ' : '' }}{{ $parent->phone ?? '' }}</p>
+                            <p class="guardian-sub">{{ $parent->age ? $parent->age.' yrs' : '' }}{{ $parent->age && $parent->phone_number ? ' · ' : '' }}{{ $parent->phone_number ?? '' }}</p>
                         </div>
                     </div>
                 </td>
@@ -436,7 +436,7 @@
                 </td>
 
                 {{-- Phone --}}
-                <td>{{ $parent->phone ?? '-' }}</td>
+                <td>{{ $parent->phone_number ?? '-' }}</td>
 
                 {{-- Second Parent --}}
                 <td>

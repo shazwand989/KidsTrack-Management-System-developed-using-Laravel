@@ -62,7 +62,7 @@
 <div class="welcome-card">
     <div>
         <h2>Welcome back, {{ $parent->name ?? Auth::user()->name }}!</h2>
-        <p>{{ date('l, d F Y') }} · {{ $parent->phone ?? '' }}</p>
+        <p>{{ date('l, d F Y') }} · {{ $parent->phone_number ?? '' }}</p>
     </div>
     <a href="{{ route('kiosk.index') }}" class="qr-btn" target="_blank">
         <i class="material-symbols-rounded" style="font-size:20px;">qr_code_scanner</i> Scan QR Code

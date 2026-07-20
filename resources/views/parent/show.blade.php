@@ -398,7 +398,7 @@
 
             <div class="profile-info">
                 <h1>{{ $parent->name }}</h1>
-                <p><span>📞</span> {{ $parent->phone ?? '-' }}</p>
+                <p><span>📞</span> {{ $parent->phone_number ?? '-' }}</p>
                 <p><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> {{ $parent->email ?? 'No email' }}</p>
 
                 <div class="profile-badges">

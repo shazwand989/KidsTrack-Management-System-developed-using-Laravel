@@ -20,21 +20,21 @@ class Child extends Model
     public function guardianships() { return $this->hasMany(Guardianship::class); }
     public function attendances() { return $this->hasMany(Attendance::class); }
 
-    // Backward-compatible: main parent as User
+    // Main parent via guardianships
     public function parent()
     {
         return $this->hasOneThrough(User::class, Guardianship::class, 'child_id', 'id', 'id', 'user_id')
             ->where('guardianships.relationship', 'main_parent');
     }
 
-    // Backward-compatible: second parent as User
+    // Second parent via guardianships
     public function secondParent()
     {
         return $this->hasOneThrough(User::class, Guardianship::class, 'child_id', 'id', 'id', 'user_id')
             ->where('guardianships.relationship', 'second_parent');
     }
 
-    // Backward-compatible: guardian as User
+    // Guardian via guardianships
     public function guardian()
     {
         return $this->hasOneThrough(User::class, Guardianship::class, 'child_id', 'id', 'id', 'user_id')
