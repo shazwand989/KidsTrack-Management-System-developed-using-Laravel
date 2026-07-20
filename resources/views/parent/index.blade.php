@@ -432,185 +432,145 @@
     <span class="record-count">{{ $totalFamilies }} families</span>
 </div>
 
-{{-- Family Cards --}}
-<div id="familyList">
-    @forelse($families as $i => $family)
-    @php
-        $main = $family['main'];
-        $second = $family['second'];
-        $guardian = $family['guardian'];
-        $children = $family['children'];
-        $isMainOnly = !$second && !$guardian;
-    @endphp
-    <div class="family-card" data-search="{{ strtolower($main->name) }} {{ strtolower($main->email) }} {{ strtolower($main->phone_number) }} {{ $second ? strtolower($second->name) : '' }} {{ $guardian ? strtolower($guardian->name) : '' }}">
-        {{-- Family Header: Main Parent --}}
-        <div class="family-header" onclick="toggleFamily(this)">
-            <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;">
-                <div class="parent-avatar">
-                    @if($main->photo)
-                        <img src="{{ Storage::url($main->photo) }}" alt="">
+{{-- Table --}}
+<div class="table-card">
+    <table class="pg-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Main Parent</th>
+                <th>Second Parent</th>
+                <th>Guardian</th>
+                <th>👶 Children</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            @forelse($families as $i => $family)
+            @php
+                $main = $family['main'];
+                $second = $family['second'];
+                $guardian = $family['guardian'];
+                $children = $family['children'];
+            @endphp
+            <tr data-search="{{ strtolower($main->name) }} {{ strtolower($main->email ?? '') }} {{ strtolower($main->phone_number ?? '') }} {{ $second ? strtolower($second->name) : '' }} {{ $guardian ? strtolower($guardian->name) : '' }}">
+                <td style="color:#94a3b8;font-weight:700;">{{ $i + 1 }}</td>
+
+                {{-- Main Parent --}}
+                <td>
+                    <div class="parent-cell">
+                        <div class="parent-avatar" style="width:40px;height:40px;border-radius:10px;font-size:14px;">
+                            @if($main->photo)
+                                <img src="{{ Storage::url($main->photo) }}" alt="">
+                            @else
+                                {{ strtoupper(substr($main->name, 0, 1)) }}
+                            @endif
+                        </div>
+                        <div>
+                            <p class="parent-name" style="font-size:13px;">{{ $main->name }}</p>
+                            <p class="parent-sub">📞 {{ $main->phone_number ?? '-' }}</p>
+                            @if($main->verified)
+                                <span class="status-badge verified" style="font-size:9px;padding:1px 6px;">✓</span>
+                            @endif
+                        </div>
+                    </div>
+                </td>
+
+                {{-- Second Parent --}}
+                <td>
+                    @if($second)
+                    <div class="parent-cell">
+                        <div class="parent-avatar" style="width:34px;height:34px;border-radius:8px;font-size:12px;background:linear-gradient(135deg,#3b82f6,#60a5fa);">
+                            {{ strtoupper(substr($second->name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <p class="parent-name" style="font-size:12px;">{{ $second->name }}</p>
+                            <p class="parent-sub">📞 {{ $second->phone_number ?? '-' }}</p>
+                        </div>
+                    </div>
                     @else
-                        {{ strtoupper(substr($main->name, 0, 1)) }}
+                        <span style="color:#cbd5e1;font-size:12px;">—</span>
                     @endif
-                </div>
-                <div style="flex:1;min-width:0;">
-                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                        <span style="font-weight:800;font-size:15px;color:#1e293b;">{{ $main->name }}</span>
-                        <span class="relation-badge main">Main Parent</span>
-                        @if($main->verified)
-                            <span class="status-badge verified" style="font-size:10px;padding:2px 8px;"><i class="fas fa-check-circle" style="font-size:9px;"></i> Verified</span>
-                        @else
-                            <span class="status-badge pending" style="font-size:10px;padding:2px 8px;">⏳ Pending</span>
-                        @endif
+                </td>
+
+                {{-- Guardian --}}
+                <td>
+                    @if($guardian)
+                    <div class="parent-cell">
+                        <div class="parent-avatar" style="width:34px;height:34px;border-radius:8px;font-size:12px;background:linear-gradient(135deg,#f59e0b,#fbbf24);">
+                            {{ strtoupper(substr($guardian->name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <p class="parent-name" style="font-size:12px;">{{ $guardian->name }}</p>
+                            <p class="parent-sub">📞 {{ $guardian->phone_number ?? '-' }}</p>
+                        </div>
                     </div>
-                    <div style="font-size:11px;color:#94a3b8;margin-top:3px;">
-                        📞 {{ $main->phone_number ?? '-' }} · ✉️ {{ $main->email ?? '-' }}
-                        @if($children->count())
-                            · 👶 {{ $children->count() }} child{{ $children->count() > 1 ? 'ren' : '' }}
-                        @endif
+                    @else
+                        <span style="color:#cbd5e1;font-size:12px;">—</span>
+                    @endif
+                </td>
+
+                {{-- Children --}}
+                <td>
+                    @if($children->count())
+                        @foreach($children as $child)
+                            <span class="child-tag">{{ $child->name }}</span>
+                        @endforeach
+                    @else
+                        <span style="color:#cbd5e1;">—</span>
+                    @endif
+                </td>
+
+                {{-- Actions --}}
+                <td>
+                    <div class="action-btns">
+                        <a href="{{ route('parents.show', $main->id) }}" class="act-btn view" title="View"><i class="fas fa-eye"></i></a>
+                        <a href="{{ route('parents.edit', $main->id) }}" class="act-btn edit" title="Edit"><i class="fas fa-edit"></i></a>
                     </div>
-                </div>
-            </div>
-            <div style="display:flex;align-items:center;gap:8px;">
-                @if(!$isMainOnly)<span class="family-expand">▼</span>@endif
-                <span style="font-size:11px;color:#cbd5e1;">#{{ str_pad($main->id, 3, '0', STR_PAD_LEFT) }}</span>
-                <div class="action-btns" onclick="event.stopPropagation();">
-                    <a href="{{ route('parents.show', $main->id) }}" class="act-btn view" title="View"><i class="fas fa-eye"></i></a>
-                    <a href="{{ route('parents.edit', $main->id) }}" class="act-btn edit" title="Edit"><i class="fas fa-edit"></i></a>
-                </div>
-            </div>
-        </div>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="6" style="text-align:center;padding:60px 20px;">
+                    <div style="font-size:48px;margin-bottom:12px;">👨‍👩‍👧‍👦</div>
+                    <h5 style="color:#1e293b;font-weight:800;">No families registered yet</h5>
+                    <p style="color:#94a3b8;">Register a parent to get started.</p>
+                    <a href="{{ route('parents.create') }}" class="btn-register" style="display:inline-flex;margin-top:8px;">
+                        <i class="fas fa-plus"></i> Register Parent
+                    </a>
+                </td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 
-        {{-- Family Body: Second Parent + Guardian + Children --}}
-        @if(!$isMainOnly || $children->count())
-        <div class="family-body" style="display:none;">
-            {{-- Second Parent --}}
-            @if($second)
-            <div class="family-member second">
-                <div class="parent-avatar" style="width:36px;height:36px;border-radius:10px;font-size:13px;background:linear-gradient(135deg,#3b82f6,#60a5fa);">
-                    {{ strtoupper(substr($second->name, 0, 1)) }}
-                </div>
-                <div style="flex:1;min-width:0;">
-                    <span style="font-weight:700;font-size:13px;">{{ $second->name }}</span>
-                    <span class="relation-badge second">Second Parent</span>
-                    <div style="font-size:11px;color:#94a3b8;">📞 {{ $second->phone_number ?? '-' }} · ✉️ {{ $second->email ?? '-' }}</div>
-                </div>
-                <div class="action-btns">
-                    <a href="{{ route('parents.show', $second->id) }}" class="act-btn view" title="View"><i class="fas fa-eye"></i></a>
-                    <a href="{{ route('parents.edit', $second->id) }}" class="act-btn edit" title="Edit"><i class="fas fa-edit"></i></a>
-                </div>
-            </div>
-            @endif
-
-            {{-- Guardian --}}
-            @if($guardian)
-            <div class="family-member guardian">
-                <div class="parent-avatar" style="width:36px;height:36px;border-radius:10px;font-size:13px;background:linear-gradient(135deg,#f59e0b,#fbbf24);">
-                    {{ strtoupper(substr($guardian->name, 0, 1)) }}
-                </div>
-                <div style="flex:1;min-width:0;">
-                    <span style="font-weight:700;font-size:13px;">{{ $guardian->name }}</span>
-                    <span class="relation-badge guardian">Guardian</span>
-                    <div style="font-size:11px;color:#94a3b8;">📞 {{ $guardian->phone_number ?? '-' }} · ✉️ {{ $guardian->email ?? '-' }}</div>
-                </div>
-                <div class="action-btns">
-                    <a href="{{ route('parents.show', $guardian->id) }}" class="act-btn view" title="View"><i class="fas fa-eye"></i></a>
-                    <a href="{{ route('parents.edit', $guardian->id) }}" class="act-btn edit" title="Edit"><i class="fas fa-edit"></i></a>
-                </div>
-            </div>
-            @endif
-
-            {{-- Children --}}
-            @if($children->count())
-            <div class="family-children">
-                <span style="font-size:11px;font-weight:700;color:#94a3b8;margin-right:6px;">👶 Children:</span>
-                @foreach($children as $child)
-                    <span class="child-tag">{{ $child->name }} · {{ $child->classroom->name ?? 'No class' }}</span>
-                @endforeach
-            </div>
-            @endif
-        </div>
-        @endif
+    @if($totalFamilies > 0)
+    <div class="table-footer">
+        <span>{{ $totalFamilies }} families</span>
     </div>
-    @empty
-    <div class="table-card" style="text-align:center;padding:60px 20px;">
-        <div style="font-size:48px;margin-bottom:12px;">👨‍👩‍👧‍👦</div>
-        <h5 style="color:#1e293b;font-weight:800;">No families registered yet</h5>
-        <p style="color:#94a3b8;">Register a parent to get started.</p>
-        <a href="{{ route('parents.create') }}" class="btn-register" style="display:inline-flex;margin-top:8px;">
-            <i class="fas fa-plus"></i> Register Parent
-        </a>
-    </div>
-    @endforelse
+    @endif
 </div>
 
 <script>
-    // Toggle family expand
-    function toggleFamily(header) {
-        const body = header.nextElementSibling;
-        if (body && body.classList.contains('family-body')) {
-            body.style.display = body.style.display === 'none' ? 'block' : 'none';
-            const arrow = header.querySelector('.family-expand');
-            if (arrow) arrow.textContent = body.style.display === 'none' ? '▼' : '▲';
-        }
-    }
-
-    // Search functionality
     document.getElementById('searchInput').addEventListener('input', function() {
         const search = this.value.toLowerCase();
-        document.querySelectorAll('.family-card').forEach(card => {
-            card.style.display = search === '' || card.dataset.search.includes(search) ? '' : 'none';
+        document.querySelectorAll('#tableBody tr').forEach(row => {
+            if (row.querySelector('td[colspan]')) return;
+            row.style.display = search === '' || (row.dataset.search || '').includes(search) ? '' : 'none';
         });
     });
 </script>
 
 <style>
-    .family-card {
-        background: white;
-        border-radius: 18px;
-        margin-bottom: 14px;
-        box-shadow: 0 4px 14px rgba(0,0,0,0.05);
-        border: 1px solid #FFF0EC;
-        overflow: hidden;
-    }
-    .family-header {
-        display: flex; align-items: center; justify-content: space-between;
-        padding: 16px 20px; cursor: pointer; transition: .15s;
-        gap: 12px; flex-wrap: wrap;
-    }
-    .family-header:hover { background: #FFFAF9; }
-
-    .family-expand {
-        font-size: 11px; color: #FF6B6B; transition: .2s;
-        width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
-        border-radius: 50%; background: #FFF5F2;
-    }
-
-    .family-body {
-        border-top: 1px solid #FFF0EC;
-        background: #FFFAF9;
-    }
-
-    .family-member {
-        display: flex; align-items: center; gap: 12px;
-        padding: 12px 20px 12px 60px;
-        border-bottom: 1px solid #FFF0EC;
-    }
-    .family-member.second { border-left: 3px solid #3b82f6; }
-    .family-member.guardian { border-left: 3px solid #f59e0b; }
-
-    .family-children {
-        padding: 12px 20px 12px 60px;
-        display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-    }
     .child-tag {
         display: inline-block;
         background: #f1f5f9;
-        padding: 3px 10px;
+        padding: 2px 8px;
         border-radius: 8px;
         font-size: 11px;
         font-weight: 600;
         color: #475569;
+        margin: 1px;
     }
 </style>
 

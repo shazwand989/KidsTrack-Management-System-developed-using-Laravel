@@ -274,7 +274,7 @@ class ParentController extends Controller
 
         $parent->update($data);
 
-        // Sync children via guardianships — preserve existing relationships with other users
+        // Sync children via guardianships — ONE CHILD = ONE FAMILY constraint
         $childIds = $request->input('child_ids', []);
         $role = $parent->role;
         $relationship = match($role) {
@@ -288,9 +288,17 @@ class ParentController extends Controller
             ->whereNotIn('child_id', $childIds)
             ->delete();
 
-        // Add guardianships for newly checked children
+        // For each checked child: remove same-role guardianship from OTHER users first,
+        // then create/update this user's guardianship
         foreach ($childIds as $childId) {
-            \App\Models\Guardianship::firstOrCreate(
+            // Remove same relationship from any OTHER user for this child
+            \App\Models\Guardianship::where('child_id', $childId)
+                ->where('relationship', $relationship)
+                ->where('user_id', '!=', $parent->id)
+                ->delete();
+
+            // Create or update this user's guardianship
+            \App\Models\Guardianship::updateOrCreate(
                 ['user_id' => $parent->id, 'child_id' => $childId],
                 [
                     'relationship' => $relationship,
