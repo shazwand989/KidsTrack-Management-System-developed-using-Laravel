@@ -43,19 +43,10 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // CHILDREN
-        Schema::create('children', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('parent_id');
-            $table->string('name');
-            $table->string('photo')->nullable();
-            $table->timestamps();
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('children');
         Schema::dropIfExists('guardians');
         Schema::dropIfExists('second_parents');
         Schema::dropIfExists('parents');

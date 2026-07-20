@@ -13,7 +13,7 @@ return new class extends Migration
                 $table->bigInteger('user_id')->unsigned()->nullable()->after('parent_id');
             }
             if (!Schema::hasColumn('guardians', 'type')) {
-                $table->enum('type', ['main', 'second', 'guardian'])->default('guardian')->after('photo');
+                $table->enum('type', ['main', 'second', 'guardian'])->default('guardian')->after('address');
             }
             if (!Schema::hasColumn('guardians', 'verified')) {
                 $table->boolean('verified')->default(false)->after('type');
