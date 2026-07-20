@@ -242,7 +242,7 @@ class AttendanceController extends Controller
             } else {
                 $attendance = Attendance::create([
                     'child_id' => $request->child_id,
-                    'parent_id' => $request->parent_id,
+                    'user_id' => $request->parent_id,
                     'date' => $today,
                     'checkin_time' => $now->format('H:i:s'),
                     'status' => $isLate ? 'late' : 'checkin',
