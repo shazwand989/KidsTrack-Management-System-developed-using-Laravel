@@ -169,7 +169,9 @@ class ParentController extends Controller
     public function edit($id)
     {
         $parent = \App\Models\User::with('children')->findOrFail($id);
-        return view('parent.edit', compact('parent'));
+        $allChildren = \App\Models\Child::with('classroom')->orderBy('name')->get();
+        $assignedChildIds = $parent->children->pluck('id')->toArray();
+        return view('parent.edit', compact('parent', 'allChildren', 'assignedChildIds'));
     }
 
     // UPDATE
@@ -183,6 +185,8 @@ class ParentController extends Controller
             'age' => 'nullable|string',
             'photo' => 'nullable|image|max:2048',
             'verified' => 'nullable|boolean',
+            'child_ids' => 'nullable|array',
+            'child_ids.*' => 'exists:children,id',
         ]);
 
         $parent = \App\Models\User::findOrFail($id);
@@ -210,6 +214,31 @@ class ParentController extends Controller
         }
 
         $parent->update($data);
+
+        // Sync children via guardianships — preserve existing relationships with other users
+        $childIds = $request->input('child_ids', []);
+        $role = $parent->role;
+        $relationship = match($role) {
+            'parent2' => 'second_parent',
+            'guardian' => 'guardian',
+            default => 'main_parent',
+        };
+
+        // Remove this user's guardianships for unchecked children
+        \App\Models\Guardianship::where('user_id', $parent->id)
+            ->whereNotIn('child_id', $childIds)
+            ->delete();
+
+        // Add guardianships for newly checked children
+        foreach ($childIds as $childId) {
+            \App\Models\Guardianship::firstOrCreate(
+                ['user_id' => $parent->id, 'child_id' => $childId],
+                [
+                    'relationship' => $relationship,
+                    'is_emergency_contact' => $parent->role === 'parent1',
+                ]
+            );
+        }
 
         return redirect()->route('parent.index')->with('success', 'Parent updated successfully.');
     }

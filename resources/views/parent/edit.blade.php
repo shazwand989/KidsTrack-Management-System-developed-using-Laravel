@@ -391,6 +391,38 @@
 </div>
 
     {{-- ============================================ --}}
+    {{-- CHILDREN ASSIGNMENT --}}
+    {{-- ============================================ --}}
+    <div class="rg-card">
+        <div class="rg-section-title">
+            <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i></span> Linked Children
+            <small style="color:#94a3b8;font-weight:400;">(check to link, uncheck to remove)</small>
+        </div>
+
+        @if($allChildren->isEmpty())
+            <p style="color:#94a3b8;text-align:center;padding:20px;">No children registered yet. <a href="{{ route('children.create') }}">Register a child first</a>.</p>
+        @else
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;max-height:350px;overflow-y:auto;padding:4px;">
+            @foreach($allChildren as $child)
+            <label style="display:flex;align-items:center;gap:12px;padding:10px 14px;border:1.5px solid #FFE4D6;border-radius:12px;cursor:pointer;transition:.2s;background:{{ in_array($child->id, $assignedChildIds ?? []) ? '#FFF5F2' : 'white' }};"
+                   onmouseover="this.style.borderColor='#FF9E7D'" onmouseout="this.style.borderColor='#FFE4D6'">
+                <input type="checkbox" name="child_ids[]" value="{{ $child->id }}"
+                    {{ in_array($child->id, $assignedChildIds ?? []) ? 'checked' : '' }}
+                    style="width:18px;height:18px;accent-color:#FF6B6B;cursor:pointer;flex-shrink:0;">
+                <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#FF6B6B,#FF9E7D);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px;flex-shrink:0;">
+                    {{ strtoupper(substr($child->name, 0, 1)) }}
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:700;font-size:13px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $child->name }}</div>
+                    <div style="font-size:11px;color:#94a3b8;">{{ $child->classroom->name ?? 'No class' }} · {{ $child->age ?? '?' }} yrs</div>
+                </div>
+            </label>
+            @endforeach
+        </div>
+        @endif
+    </div>
+
+    {{-- ============================================ --}}
     {{-- ACTIONS --}}
     {{-- ============================================ --}}
     <div class="rg-actions">

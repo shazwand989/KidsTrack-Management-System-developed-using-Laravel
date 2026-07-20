@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 // ============================================
 // KIDSTRACK / SAFECARE — ROUTE ENTRY POINT
