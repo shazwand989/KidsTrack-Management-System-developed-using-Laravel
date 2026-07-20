@@ -57,7 +57,6 @@ class ParentController extends Controller
 
             // Settings
             'verified' => 'nullable|boolean',
-            'emergency' => 'nullable|boolean',
         ]);
 
         // ============================================
@@ -151,7 +150,20 @@ class ParentController extends Controller
     public function show($id)
     {
         $parent = \App\Models\User::with('children')->findOrFail($id);
-        return view('parent.show', compact('parent'));
+
+        // Find related family members — other users linked to the same children
+        $childIds = $parent->children->pluck('id');
+        $relatedUsers = \App\Models\User::where('id', '!=', $parent->id)
+            ->whereHas('guardianships', function ($q) use ($childIds) {
+                $q->whereIn('child_id', $childIds);
+            })
+            ->with(['guardianships' => function ($q) use ($childIds) {
+                $q->whereIn('child_id', $childIds);
+            }])
+            ->get()
+            ->groupBy('role');
+
+        return view('parent.show', compact('parent', 'relatedUsers'));
     }
 
     public function edit($id)

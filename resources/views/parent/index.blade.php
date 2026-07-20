@@ -387,7 +387,6 @@
 @php
     $total = $parents->total();
     $verified = $parents->where('verified', true)->count();
-    $emergency = $parents->where('emergency', true)->count();
     $pending = $parents->where('verified', false)->count();
 @endphp
 
@@ -414,10 +413,10 @@
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon blue"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="stat-icon blue"><i class="fas fa-user-shield"></i></div>
         <div>
-            <div class="stat-num">{{ $emergency }}</div>
-            <div class="stat-label">Emergency Contact</div>
+            <div class="stat-num">{{ $parents->where('role', 'guardian')->count() }}</div>
+            <div class="stat-label">Guardians</div>
         </div>
     </div>
 </div>
@@ -433,7 +432,6 @@
         <option value="">All Status</option>
         <option value="verified"><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified</option>
         <option value="pending">⏳ Pending</option>
-        <option value="emergency">🚨 Emergency</option>
     </select>
     <span class="record-count" id="recordCount">{{ $total }} records</span>
 </div>
@@ -444,9 +442,9 @@
         <thead>
             <tr>
                 <th>#</th>
-                <th>👨‍👩‍👧 Family</th>
+                <th><i class="fas fa-user"></i> User</th>
                 <th>Status</th>
-                <th><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">shield</i> Guardian</th>
+                <th>Role</th>
                 <th><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i> Children</th>
                 <th>Action</th>
             </tr>
@@ -454,16 +452,19 @@
         <tbody id="tableBody">
             @forelse($parents as $i => $parent)
             @php
-                $second = $parent->secondParent;
-                $guardian = $parent->guardian;
+                $roleLabel = match($parent->role) {
+                    'parent1' => 'Main Parent',
+                    'parent2' => 'Second Parent',
+                    'guardian' => 'Guardian',
+                    default => $parent->role,
+                };
             @endphp
             <tr>
                 <td style="color:#94a3b8; font-weight:700;">{{ $parents->firstItem() + $i }}</td>
-                
-                {{-- Family Group --}}
+
+                {{-- User Info --}}
                 <td>
-                    {{-- Main Parent --}}
-                    <div class="parent-cell" style="margin-bottom:{{ $second ? '8px' : '0' }};">
+                    <div class="parent-cell">
                         <div class="parent-avatar">
                             @if($parent->photo)
                                 <img src="{{ Storage::url($parent->photo) }}" alt="">
@@ -472,24 +473,12 @@
                             @endif
                         </div>
                         <div>
-                            <p class="parent-name">{{ $parent->name }} <span class="relation-badge main" style="font-size:10px;"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">family_restroom</i> Parent</span></p>
-                            <p class="parent-sub"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">smartphone</i> {{ $parent->phone ?? '-' }} · <i class="fas fa-envelope" style="font-size:10px;"></i> {{ $parent->user->email ?? '-' }}</p>
+                            <p class="parent-name">{{ $parent->name }}</p>
+                            <p class="parent-sub"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">smartphone</i> {{ $parent->phone ?? '-' }} · <i class="fas fa-envelope" style="font-size:10px;"></i> {{ $parent->email ?? '-' }}</p>
                         </div>
                     </div>
-                    {{-- Second Parent --}}
-                    @if($second)
-                    <div class="parent-cell" style="padding-left:10px; border-left:3px solid #e2e8f0; margin-left:22px;">
-                        <div class="parent-avatar" style="width:32px;height:32px;border-radius:10px;font-size:12px;background:linear-gradient(135deg,#3b82f6,#60a5fa);">
-                            {{ strtoupper(substr($second->name, 0, 1)) }}
-                        </div>
-                        <div>
-                            <p class="parent-name" style="font-size:13px;">{{ $second->name }} <span class="relation-badge second" style="font-size:10px;"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">group</i> Second</span></p>
-                            <p class="parent-sub"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">smartphone</i> {{ $second->phone ?? '-' }}</p>
-                        </div>
-                    </div>
-                    @endif
                 </td>
-                
+
                 {{-- Status --}}
                 <td>
                     @if($parent->verified)
@@ -499,21 +488,11 @@
                     @endif
                 </td>
 
-                {{-- Guardian --}}
+                {{-- Role --}}
                 <td>
-                    @if($guardian)
-                        <div class="parent-cell">
-                            <div class="parent-avatar" style="width:32px;height:32px;border-radius:10px;font-size:12px;background:linear-gradient(135deg,#f59e0b,#fbbf24);">
-                                {{ strtoupper(substr($guardian->name, 0, 1)) }}
-                            </div>
-                            <div>
-                                <p class="parent-name" style="font-size:13px;"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">shield</i> {{ $guardian->name }}</p>
-                                <p class="parent-sub"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">smartphone</i> {{ $guardian->phone ?? '-' }} · <i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">child_care</i> {{ $guardian->age ?? 'N/A' }} yrs</p>
-                            </div>
-                        </div>
-                    @else
-                        <span style="color:#cbd5e1;">—</span>
-                    @endif
+                    <span class="relation-badge {{ $parent->role === 'guardian' ? 'guardian' : 'main' }}" style="font-size:10px;">
+                        {{ $roleLabel }}
+                    </span>
                 </td>
 
                 {{-- Children --}}
@@ -529,7 +508,7 @@
                         <span style="color:#cbd5e1;">—</span>
                     @endif
                 </td>
-                
+
                 {{-- Actions --}}
                 <td>
                     <div class="action-btns">
@@ -618,11 +597,11 @@
 
         rows.forEach(row => {
             if (row.querySelector('.empty-state')) return;
-            
+
             const text = row.innerText.toLowerCase();
             const matchSearch = search === '' || text.includes(search);
             const matchStatus = status === '' || text.includes(status);
-            
+
             if (matchSearch && matchStatus) {
                 row.style.display = '';
                 visible++;
@@ -632,11 +611,11 @@
         });
 
         document.getElementById('recordCount').textContent = visible + ' records';
-        
+
         // Show empty message if no results
         const tbody = document.getElementById('tableBody');
         const existingEmpty = tbody.querySelector('.empty-row-message');
-        
+
         if (visible === 0 && !existingEmpty && rows.length > 0) {
             const emptyRow = document.createElement('tr');
             emptyRow.className = 'empty-row-message';

@@ -5,6 +5,9 @@
 
 @section('content')
 
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
 <style>
     .rg-wrap * { box-sizing: border-box !important; }
 
@@ -448,6 +451,51 @@
     .ic-feedback-msg.available { display: block; color: #16a34a; }
     .ic-feedback-msg.taken { display: block; color: #dc2626; }
     @keyframes icSpin { from { transform: translateY(-50%) rotate(0deg); } to { transform: translateY(-50%) rotate(360deg); } }
+
+    /* Select2 Custom Styles */
+    .select2-container--default .select2-selection--single {
+        height: 50px !important;
+        border: 1.5px solid #FFE4D6 !important;
+        border-radius: 14px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 48px !important;
+        padding-left: 16px !important;
+        padding-right: 36px !important;
+        font-size: 14px !important;
+        color: #1e293b !important;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 48px !important;
+        right: 12px !important;
+    }
+    .select2-container--default .select2-results__option {
+        padding: 12px 16px !important;
+        font-size: 13px !important;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .select2-container--default .select2-results__option--highlighted {
+        background: #FFF5F2 !important;
+        color: #1e293b !important;
+    }
+    .select2-dropdown {
+        border: 1.5px solid #FFE4D6 !important;
+        border-radius: 14px !important;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+    }
+    .select2-search--dropdown .select2-search__field {
+        border: 1.5px solid #FFE4D6 !important;
+        border-radius: 10px !important;
+        padding: 10px 14px !important;
+        font-size: 13px !important;
+        outline: none !important;
+    }
+    .select2-search--dropdown .select2-search__field:focus {
+        border-color: #FF9E7D !important;
+    }
 </style>
 
 <div class="rg-wrap">
@@ -482,72 +530,26 @@
     {{-- SHARED INFO: Parent, Address --}}
     {{-- ============================================ --}}
 
-    {{-- Parent & Guardian --}}
+    {{-- Parent --}}
     <div class="rg-card">
-        <div class="rg-section-title"><span>👨‍👩‍👧‍👦</span> Parent & Guardian</div>
+        <div class="rg-section-title"><span>👨‍👩‍👧‍👦</span> Parent</div>
 
         <div class="rg-group">
             <label class="rg-label">Main Parent <span class="req">*</span></label>
-            <div class="guardian-select" id="parentSelect">
-                <div class="guardian-preview" onclick="toggleDropdown('parentDropdown')">
-                    <div class="guardian-avatar" id="parentAvatar"><span>👤</span></div>
-                    <div class="guardian-info">
-                        <div class="guardian-name" id="parentName">-- Select Main Parent --</div>
-                        <div class="guardian-detail" id="parentDetail"><span>📞 Click to select</span></div>
-                    </div>
-                    <span class="dropdown-arrow">▼</span>
-                </div>
-                <div class="guardian-dropdown-list" id="parentDropdown">
-                    @foreach($parents as $parent)
-                    <div class="guardian-option" onclick="selectParent({{ $parent->id }}, '{{ addslashes($parent->name) }}', '{{ addslashes($parent->phone ?? '') }}', '{{ $parent->photo ?? '' }}', '{{ $parent->id }}')">
-                        <div class="option-avatar">@if($parent->photo)<img src="{{ asset('storage/'.$parent->photo) }}">@else<span>{{ strtoupper(substr($parent->name,0,1)) }}</span>@endif</div>
-                        <div class="option-info"><div class="option-name">{{ $parent->name }}</div><div class="option-detail">📞 {{ $parent->phone ?? '-' }}</div></div>
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-            <input type="hidden" name="parent_id" id="parent_id" value="{{ old('parent_id') }}">
+            <select name="parent_id" id="parent_id" style="width:100%;" required>
+                <option value="">-- Search parent by IC, name or phone --</option>
+                @foreach($parents as $parent)
+                <option value="{{ $parent->id }}"
+                    data-name="{{ addslashes($parent->name) }}"
+                    data-ic="{{ $parent->email }}"
+                    data-phone="{{ $parent->phone_number }}"
+                    data-photo="{{ $parent->photo }}"
+                    {{ old('parent_id') == $parent->id ? 'selected' : '' }}>
+                    {{ $parent->email }} | {{ $parent->name }} | {{ $parent->phone_number }}
+                </option>
+                @endforeach
+            </select>
             @error('parent_id')<span class="invalid-msg">{{ $message }}</span>@enderror
-        </div>
-
-        <div class="rg-group" style="margin-top:16px;">
-            <label class="rg-label">Second Parent (Optional)</label>
-            <div class="guardian-select" id="secondParentSelect">
-                <div class="guardian-preview" onclick="toggleDropdown('secondParentDropdown')">
-                    <div class="guardian-avatar" id="secondParentAvatar"><span>👤</span></div>
-                    <div class="guardian-info">
-                        <div class="guardian-name" id="secondParentName">-- Select Main Parent First --</div>
-                        <div class="guardian-detail" id="secondParentDetail"><span>📞 Please select main parent first</span></div>
-                    </div>
-                    <span class="dropdown-arrow">▼</span>
-                </div>
-                <div class="guardian-dropdown-list" id="secondParentDropdown">
-                    <div class="guardian-option" onclick="selectSecondParent('', '-- None --', '', '')"><div class="option-avatar"><span>➖</span></div><div class="option-info"><div class="option-name">-- None / Skip --</div></div></div>
-                    <div id="secondParentList"></div>
-                </div>
-            </div>
-            <input type="hidden" name="second_parent_id" id="second_parent_id" value="{{ old('second_parent_id') }}">
-            <div class="text-muted" id="secondParentHint">💡 Select Main Parent first.</div>
-        </div>
-
-        <div class="rg-group" style="margin-top:16px;">
-            <label class="rg-label">Guardian (Optional)</label>
-            <div class="guardian-select" id="guardianSelect">
-                <div class="guardian-preview" onclick="toggleDropdown('guardianDropdown')">
-                    <div class="guardian-avatar" id="guardianAvatar"><span>🛡️</span></div>
-                    <div class="guardian-info">
-                        <div class="guardian-name" id="guardianName">-- Select Main Parent First --</div>
-                        <div class="guardian-detail" id="guardianDetail"><span>📞 Please select main parent first</span></div>
-                    </div>
-                    <span class="dropdown-arrow">▼</span>
-                </div>
-                <div class="guardian-dropdown-list" id="guardianDropdown">
-                    <div class="guardian-option" onclick="selectGuardian('', '-- None --', '', '')"><div class="option-avatar"><span>➖</span></div><div class="option-info"><div class="option-name">-- None / Skip --</div></div></div>
-                    <div id="guardianList"></div>
-                </div>
-            </div>
-            <input type="hidden" name="guardian_id" id="guardian_id" value="{{ old('guardian_id') }}">
-            <div class="text-muted" id="guardianHint">💡 Select Main Parent first.</div>
         </div>
     </div>
 
@@ -719,8 +721,8 @@
         form.querySelectorAll('input:not([type="radio"]):not([type="hidden"]), textarea').forEach(el => el.style.borderColor = '');
 
         // Check parent
-        if (!document.getElementById('parent_id').value) {
-            showErr(document.getElementById('parentSelect'), 'Please select a Main Parent');
+        if (!$('#parent_id').val()) {
+            showErr(document.getElementById('parent_id'), 'Please select a Main Parent');
             hasError = true;
         }
         // Check address
@@ -874,24 +876,13 @@
     // ============================================
     // DATA DARI PHP
     // ============================================
-    const allSecondParents = @json($secondParents);
-    const allGuardians = @json($guardians);
 
     // ============================================
     // AUTO SELECT PARENT IF URL HAS parent_id
     // ============================================
     const preSelectedParentId = '{{ $preSelectedParentId ?? '' }}';
-    if (preSelectedParentId) {
-        setTimeout(function() {
-            const options = document.querySelectorAll('#parentDropdown .guardian-option');
-            options.forEach(option => {
-                const onclickAttr = option.getAttribute('onclick');
-                if (onclickAttr && onclickAttr.includes(`selectParent(${preSelectedParentId}`)) {
-                    option.click();
-                }
-            });
-        }, 600);
-    }
+    // Select2 will handle pre-selection via the 'selected' attribute on the <option>
+    // No manual click needed
 
     // ============================================
     // PHOTO PREVIEW
@@ -922,226 +913,63 @@
     });
 
     // ============================================
-    // DROPDOWN TOGGLE
+    // PRE-SELECT OLD VALUES (Select2 handles this via selected attribute)
     // ============================================
-    function toggleDropdown(dropdownId) {
-        document.querySelectorAll('.guardian-dropdown-list').forEach(dropdown => {
-            if (dropdown.id !== dropdownId) {
-                dropdown.style.display = 'none';
-            }
-        });
-        const dropdown = document.getElementById(dropdownId);
-        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-    }
+</script>
 
-    document.addEventListener('click', function(e) {
-        if (!e.target.closest('.guardian-select')) {
-            document.querySelectorAll('.guardian-dropdown-list').forEach(dropdown => {
-                dropdown.style.display = 'none';
-            });
+<!-- jQuery + Select2 JS -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+$(document).ready(function() {
+    $('#parent_id').select2({
+        placeholder: '🔍 Search by IC, name or phone number...',
+        allowClear: true,
+        width: '100%',
+        templateResult: formatParentOption,
+        templateSelection: formatParentSelection,
+        matcher: function(params, data) {
+            // Default matcher + custom search
+            if ($.trim(params.term) === '') return data;
+            var term = $.trim(params.term).toLowerCase();
+            var text = (data.text || '').toLowerCase();
+            var ic = ($(data.element).data('ic') || '').toLowerCase();
+            var phone = ($(data.element).data('phone') || '').toLowerCase();
+            if (text.indexOf(term) > -1 || ic.indexOf(term) > -1 || phone.indexOf(term) > -1) {
+                return data;
+            }
+            return null;
         }
     });
 
-    // ============================================
-    // SELECT MAIN PARENT
-    // ============================================
-    function selectParent(id, name, phone, photo, parentId) {
-        document.getElementById('parent_id').value = id;
-        document.getElementById('parentName').innerHTML = name;
-        document.getElementById('parentDetail').innerHTML = `<span>📞 ${phone}</span><span class="guardian-badge">Main Parent</span>`;
-
-        const avatarDiv = document.getElementById('parentAvatar');
-        if (photo) {
-            avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
-        } else {
-            avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
-        }
-        document.getElementById('parentDropdown').style.display = 'none';
-
-        populateSecondParents(parentId);
-        populateGuardians(parentId);
+    function formatParentOption(option) {
+        if (!option.id) return option.text;
+        var $el = $(option.element);
+        var name = $el.data('name') || option.text.split('|')[1] || option.text;
+        var ic = $el.data('ic') || option.text.split('|')[0] || '';
+        var phone = $el.data('phone') || option.text.split('|')[2] || '';
+        var photo = $el.data('photo');
+        var avatar = photo
+            ? '<img src="/storage/' + photo + '" style="width:40px;height:40px;border-radius:10px;object-fit:cover;">'
+            : '<span style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#FF6B6B,#FF9E7D);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:16px;">' + (name.trim().charAt(0).toUpperCase()) + '</span>';
+        return $(
+            '<div style="display:flex;align-items:center;gap:12px;">' +
+            avatar +
+            '<div style="flex:1;line-height:1.3;">' +
+            '<div style="font-weight:700;font-size:14px;">' + name.trim() + '</div>' +
+            '<div style="font-size:11px;color:#94a3b8;">' + ic.trim() + ' · 📞 ' + phone.trim() + '</div>' +
+            '</div></div>'
+        );
     }
 
-    // ============================================
-    // POPULATE SECOND PARENTS
-    // ============================================
-    function populateSecondParents(parentId) {
-        const listContainer = document.getElementById('secondParentList');
-        const hint = document.getElementById('secondParentHint');
-
-        const filtered = allSecondParents.filter(sp => sp.parent_id == parentId);
-
-        if (filtered.length > 0) {
-            let html = '';
-            filtered.forEach(sp => {
-                const photoHtml = sp.photo ? `<img src="/storage/${sp.photo}" alt="">` : `<span>${sp.name.charAt(0).toUpperCase()}</span>`;
-                const phone = sp.phone || '-';
-                html += `
-                    <div class="guardian-option" onclick="selectSecondParent(${sp.id}, '${sp.name}', '${phone}', '${sp.photo || ''}')">
-                        <div class="option-avatar">${photoHtml}</div>
-                        <div class="option-info">
-                            <div class="option-name">${sp.name}</div>
-                            <div class="option-detail">📞 ${phone}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            listContainer.innerHTML = html;
-            hint.innerHTML = '✅ ' + filtered.length + ' Second Parent(s) available.';
-        } else {
-            listContainer.innerHTML = `
-                <div class="guardian-option" style="cursor:default; opacity:0.6;">
-                    <div class="option-info">
-                        <div class="option-name">No Second Parent registered</div>
-                        <div class="option-detail">Add second parent in Parent Management</div>
-                    </div>
-                </div>
-            `;
-            hint.innerHTML = '💡 No Second Parent found for this Main Parent.';
-        }
-
-        document.getElementById('second_parent_id').value = '';
-        document.getElementById('secondParentName').innerHTML = '-- Select Second Parent --';
-        document.getElementById('secondParentDetail').innerHTML = '<span>📞 Click to select</span>';
-        document.getElementById('secondParentAvatar').innerHTML = '<span>👤</span>';
+    function formatParentSelection(option) {
+        if (!option.id) return option.text;
+        var $el = $(option.element);
+        var name = $el.data('name') || option.text.split('|')[1] || option.text;
+        var phone = $el.data('phone') || option.text.split('|')[2] || '';
+        return name.trim() + ' (📞 ' + phone.trim() + ')';
     }
-
-    // ============================================
-    // POPULATE GUARDIANS
-    // ============================================
-    function populateGuardians(parentId) {
-        const listContainer = document.getElementById('guardianList');
-        const hint = document.getElementById('guardianHint');
-
-        const filtered = allGuardians.filter(g => g.parent_id == parentId);
-
-        if (filtered.length > 0) {
-            let html = '';
-            filtered.forEach(g => {
-                const photoHtml = g.photo ? `<img src="/storage/${g.photo}" alt="">` : `<span>${g.name.charAt(0).toUpperCase()}</span>`;
-                const phone = g.phone || '-';
-                html += `
-                    <div class="guardian-option" onclick="selectGuardian(${g.id}, '${g.name}', '${phone}', '${g.photo || ''}')">
-                        <div class="option-avatar">${photoHtml}</div>
-                        <div class="option-info">
-                            <div class="option-name">${g.name}</div>
-                            <div class="option-detail">📞 ${phone}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            listContainer.innerHTML = html;
-            hint.innerHTML = '✅ ' + filtered.length + ' Guardian(s) available.';
-        } else {
-            listContainer.innerHTML = `
-                <div class="guardian-option" style="cursor:default; opacity:0.6;">
-                    <div class="option-info">
-                        <div class="option-name">No Guardian registered</div>
-                        <div class="option-detail">Add guardian in Guardian Management</div>
-                    </div>
-                </div>
-            `;
-            hint.innerHTML = '💡 No Guardian found for this Main Parent.';
-        }
-
-        document.getElementById('guardian_id').value = '';
-        document.getElementById('guardianName').innerHTML = '-- Select Guardian --';
-        document.getElementById('guardianDetail').innerHTML = '<span>📞 Click to select</span>';
-        document.getElementById('guardianAvatar').innerHTML = '<span>🛡️</span>';
-    }
-
-    // ============================================
-    // 🔥🔥🔥 SELECT SECOND PARENT - FIXED! 🔥🔥🔥
-// ============================================
-// 🔥🔥🔥 SELECT SECOND PARENT - FIXED! 🔥🔥🔥
-// ============================================
-function selectSecondParent(id, name, phone, photo) {
-    // Cari second parent dalam allSecondParents
-    const sp = allSecondParents.find(item => item.id == id);
-
-    if (sp) {
-        document.getElementById('second_parent_id').value = sp.id;
-        console.log('✅ Second Parent selected:', {
-            id: sp.id,
-            parent_id: sp.parent_id,
-            name: sp.name
-        });
-    } else {
-        document.getElementById('second_parent_id').value = '';
-    }
-
-    if (id === '' || !sp) {
-        document.getElementById('secondParentName').innerHTML = '-- None / Skip --';
-        document.getElementById('secondParentDetail').innerHTML = '<span>📞 No second parent selected</span>';
-        document.getElementById('secondParentAvatar').innerHTML = '<span>👤</span>';
-    } else {
-        document.getElementById('secondParentName').innerHTML = name;
-        document.getElementById('secondParentDetail').innerHTML = `<span>📞 ${phone}</span><span class="guardian-badge">Second Parent</span>`;
-        const avatarDiv = document.getElementById('secondParentAvatar');
-        if (photo) {
-            avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
-        } else {
-            avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
-        }
-    }
-    document.getElementById('secondParentDropdown').style.display = 'none';
-}
-
-    // ============================================
-    // SELECT GUARDIAN
-    // ============================================
-    function selectGuardian(id, name, phone, photo) {
-        document.getElementById('guardian_id').value = id;
-        if (id === '') {
-            document.getElementById('guardianName').innerHTML = '-- None / Skip --';
-            document.getElementById('guardianDetail').innerHTML = '<span>📞 No guardian selected</span>';
-            document.getElementById('guardianAvatar').innerHTML = '<span>🛡️</span>';
-        } else {
-            document.getElementById('guardianName').innerHTML = name;
-            document.getElementById('guardianDetail').innerHTML = `<span>📞 ${phone}</span><span class="guardian-badge">Guardian</span>`;
-            const avatarDiv = document.getElementById('guardianAvatar');
-            if (photo) {
-                avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
-            } else {
-                avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
-            }
-        }
-        document.getElementById('guardianDropdown').style.display = 'none';
-    }
-
-    // ============================================
-    // PRE-SELECT OLD VALUES
-    // ============================================
-    @if(old('parent_id'))
-        @php
-            $selectedParent = $parents->firstWhere('id', old('parent_id'));
-        @endphp
-        @if($selectedParent)
-            selectParent({{ $selectedParent->id }}, '{{ addslashes($selectedParent->name) }}', '{{ addslashes($selectedParent->phone ?? '') }}', '{{ $selectedParent->photo ?? '' }}', '{{ $selectedParent->id }}');
-
-            @if(old('second_parent_id'))
-                @php
-                    $selectedSecondParent = $secondParents->firstWhere('id', old('second_parent_id'));
-                @endphp
-                @if($selectedSecondParent)
-                    setTimeout(function() {
-                        selectSecondParent({{ $selectedSecondParent->id }}, '{{ addslashes($selectedSecondParent->name) }}', '{{ addslashes($selectedSecondParent->phone ?? '') }}', '{{ $selectedSecondParent->photo ?? '' }}');
-                    }, 100);
-                @endif
-            @endif
-
-            @if(old('guardian_id'))
-                @php
-                    $selectedGuardian = $guardians->firstWhere('id', old('guardian_id'));
-                @endphp
-                @if($selectedGuardian)
-                    setTimeout(function() {
-                        selectGuardian({{ $selectedGuardian->id }}, '{{ addslashes($selectedGuardian->name) }}', '{{ addslashes($selectedGuardian->phone ?? '') }}', '{{ $selectedGuardian->photo ?? '' }}');
-                    }, 200);
-                @endif
-            @endif
-        @endif
-    @endif
+});
 </script>
 
 @endsection

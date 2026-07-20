@@ -550,16 +550,6 @@
                     <small>Identity has been confirmed</small>
                 </div>
             </label>
-
-            <label class="check-row" style="margin-bottom:0;">
-                {{-- HIDDEN INPUT UNTUK FALSE VALUE --}}
-                <input type="hidden" name="emergency" value="0">
-                <input type="checkbox" name="emergency" value="1" {{ old('emergency') ? 'checked' : '' }}>
-                <div class="check-row-text">
-                    <p><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i> Emergency Contact</p>
-                    <small>Contact in case of emergency</small>
-                </div>
-            </label>
         </div>
     </div>
 

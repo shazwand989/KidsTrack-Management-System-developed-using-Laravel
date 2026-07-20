@@ -395,15 +395,15 @@
                     <span>{{ strtoupper(substr($parent->name, 0, 1)) }}</span>
                 @endif
             </div>
-            
+
             <div class="profile-info">
                 <h1>{{ $parent->name }}</h1>
                 <p><span>📞</span> {{ $parent->phone ?? '-' }}</p>
                 <p><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> {{ $parent->email ?? 'No email' }}</p>
-                
+
                 <div class="profile-badges">
                     <span class="badge-status">
-                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">family_restroom</i></span> 
+                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">family_restroom</i></span>
                         {{ $parent->role == 'parent1' ? 'Main Parent' : ($parent->role == 'parent2' ? 'Second Parent' : ($parent->role == 'guardian' ? 'Guardian' : 'Parent')) }}
                     </span>
                     @if($parent->verified)
@@ -411,7 +411,7 @@
                     @endif
                 </div>
             </div>
-            
+
             <div class="profile-header-actions">
                 <a href="{{ route('parents.edit', $parent->id) }}" class="btn-edit">
                     <i class="fas fa-edit"></i> Edit
@@ -425,12 +425,12 @@
 
     {{-- BODY - TWO COLUMN LAYOUT --}}
     <div class="content-section">
-        
+
         <div class="two-column-layout">
-            
+
             {{-- LEFT COLUMN - INFO CARDS --}}
             <div class="left-column">
-                
+
                 {{-- MAIN PARENT INFO CARD --}}
                 <div class="info-card">
                     <div class="info-card-header">
@@ -478,12 +478,43 @@
                         </div>
                     </div>
                 </div>
-                
+
+                {{-- LINKED FAMILY MEMBERS --}}
+                @if(isset($relatedUsers) && count($relatedUsers))
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">group</i></span>
+                        <h3>Linked Family Members</h3>
+                    </div>
+                    @foreach($relatedUsers as $role => $users)
+                        @foreach($users as $related)
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f1f5f9;">
+                            <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#60a5fa);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:16px;">
+                                {{ strtoupper(substr($related->name, 0, 1)) }}
+                            </div>
+                            <div style="flex:1;">
+                                <div style="font-weight:600;font-size:14px;">{{ $related->name }}</div>
+                                <div style="font-size:12px;color:#64748b;">
+                                    {{ $role === 'parent2' ? 'Second Parent' : ($role === 'guardian' ? 'Guardian' : ucfirst($role)) }}
+                                    @if($related->phone_number) · 📞 {{ $related->phone_number }} @endif
+                                </div>
+                                @php
+                                    $sharedChildren = $related->guardianships->pluck('child_id');
+                                    $sharedNames = $parent->children->whereIn('id', $sharedChildren)->pluck('name')->join(', ');
+                                @endphp
+                                <div style="font-size:11px;color:#94a3b8;">Shared: {{ $sharedNames }}</div>
+                            </div>
+                        </div>
+                        @endforeach
+                    @endforeach
+                </div>
+                @endif
+
             </div>
-            
+
             {{-- RIGHT COLUMN - PHOTO, QR, SETTINGS --}}
             <div class="right-column">
-                
+
                 {{-- PHOTO GALLERY CARD --}}
                 <div class="right-card">
                     <div class="right-card-header">
@@ -493,37 +524,19 @@
                     <div class="photo-gallery">
                         @if($parent->photo)
                         <div class="photo-item">
-                            <div class="label">Main Parent</div>
+                            <div class="label">Photo</div>
                             <div class="photo-preview">
                                 <img src="{{ asset('storage/'.$parent->photo) }}" alt="">
                             </div>
                         </div>
                         @endif
-                        
-                        @if($parent->secondParent && $parent->secondParent->photo)
-                        <div class="photo-item">
-                            <div class="label">Second Parent</div>
-                            <div class="photo-preview">
-                                <img src="{{ asset('storage/'.$parent->secondParent->photo) }}" alt="">
-                            </div>
-                        </div>
-                        @endif
-                        
-                        @if($parent->guardian && $parent->guardian->photo)
-                        <div class="photo-item">
-                            <div class="label">Guardian</div>
-                            <div class="photo-preview">
-                                <img src="{{ asset('storage/'.$parent->guardian->photo) }}" alt="">
-                            </div>
-                        </div>
-                        @endif
-                        
-                        @if(!$parent->photo && (!$parent->secondParent || !$parent->secondParent->photo) && (!$parent->guardian || !$parent->guardian->photo))
-                            <div class="empty-text" style="padding:20px;">No photos uploaded yet</div>
+
+                        @if(!$parent->photo)
+                            <div class="empty-text" style="padding:20px;">No photo uploaded yet</div>
                         @endif
                     </div>
                 </div>
-                
+
                 {{-- QR CODE CARD --}}
                 <div class="right-card">
                     <div class="right-card-header">
@@ -540,7 +553,7 @@
                         <small style="color:#94a3b8;">ID: {{ str_pad($parent->id, 4, '0', STR_PAD_LEFT) }}</small>
                     </div>
                 </div>
-                
+
                 {{-- SETTINGS CARD --}}
                 <div class="right-card">
                     <div class="right-card-header">
@@ -554,19 +567,13 @@
                         </span>
                     </div>
                     <div class="settings-row">
-                        <span class="settings-label"><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i> Emergency Contact:</span>
-                        <span class="status-badge {{ $parent->emergency ? 'emergency' : 'unverified' }}">
-                            {{ $parent->emergency ? '<i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i> Yes' : '❌ No' }}
-                        </span>
-                    </div>
-                    <div class="settings-row">
                         <span class="settings-label">👑 Role:</span>
                         <span class="status-badge verified">
-                            {{ $parent->user->role ?? 'parent1' }}
+                            {{ $parent->role ?? 'N/A' }}
                         </span>
                     </div>
                 </div>
-                
+
                 {{-- QUICK INFO CARD --}}
                 <div class="right-card">
                     <div class="right-card-header">
@@ -586,11 +593,11 @@
                         <span class="settings-label">{{ $parent->updated_at->format('d M Y') }}</span>
                     </div>
                 </div>
-                
+
             </div>
-            
+
         </div>
-        
+
     </div>
 
 </div>

@@ -22,11 +22,9 @@ class ChildController extends Controller
     {
         $classrooms = Classroom::all();
         $parents = \App\Models\User::whereIn('role', ['parent1'])->get();
-        $secondParents = \App\Models\User::whereIn('role', ['parent2'])->get();
-        $guardians = \App\Models\User::whereIn('role', ['guardian'])->get();
         $preSelectedParentId = $request->query('parent_id');
 
-        return view('children.create', compact('classrooms', 'parents', 'secondParents', 'guardians', 'preSelectedParentId'));
+        return view('children.create', compact('classrooms', 'parents', 'preSelectedParentId'));
     }
 
     // AJAX CHECK IC NUMBER

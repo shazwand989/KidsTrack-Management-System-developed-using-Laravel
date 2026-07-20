@@ -331,7 +331,7 @@
                 {{-- EMAIL MAIN PARENT --}}
                 <div class="rg-group">
                     <label class="rg-label">Email Address <span class="req">*</span></label>
-                    <input type="email" name="email" value="{{ old('email', $parent->user->email ?? '') }}"
+                    <input type="email" name="email" value="{{ old('email', $parent->email ?? '') }}"
                         placeholder="sarah@example.com">
                     @error('email')<span class="invalid-msg">{{ $message }}</span>@enderror
                 </div>
@@ -339,7 +339,7 @@
                 {{-- PASSWORD MAIN PARENT --}}
                 <div class="rg-group">
                     <label class="rg-label">Password</label>
-                    <input type="password" name="password" 
+                    <input type="password" name="password"
                         placeholder="Leave blank to keep current password">
                     <small style="color:#888; font-size:12px;">Leave blank to keep current password</small>
                     @error('password')<span class="invalid-msg">{{ $message }}</span>@enderror
@@ -370,174 +370,6 @@
     </div>
 
     {{-- ============================================ --}}
-    {{-- SECOND PARENT --}}
-    {{-- ============================================ --}}
-    <div class="rg-card">
-        <div class="rg-section-title">
-            <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">group</i></span> Second Parent (Optional)
-        </div>
-
-        <div class="card-inner">
-            <div class="card-photo-col">
-                <div class="photo-circle" id="photoCircle2"
-                    onclick="document.getElementById('photoFile2').click()">
-                    @if($parent->secondParent && $parent->secondParent->photo)
-                        <img src="{{ Storage::url($parent->secondParent->photo) }}">
-                    @else
-                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">person</i></span>
-                    @endif
-                </div>
-                <div class="upload-zone"
-                    onclick="document.getElementById('photoFile2').click()">
-                    <span>📸</span>
-                    <p>Upload Photo</p>
-                    <small>JPG/PNG · 2MB</small>
-                </div>
-                <input type="file" id="photoFile2" name="second_photo" accept="image/*">
-                @if($parent->secondParent && $parent->secondParent->photo)
-                    <small style="display:block; margin-top:6px; color:#888;">
-                        Current: {{ basename($parent->secondParent->photo) }}
-                    </small>
-                @endif
-            </div>
-
-            <div>
-                {{-- EMAIL SECOND PARENT --}}
-                <div class="rg-group">
-                    <label class="rg-label">Email Address</label>
-                    <input type="email" name="second_email" 
-                        value="{{ old('second_email', $parent->secondParent->user->email ?? '') }}"
-                        placeholder="second@example.com">
-                    @error('second_email')<span class="invalid-msg">{{ $message }}</span>@enderror
-                </div>
-
-                {{-- PASSWORD SECOND PARENT --}}
-                <div class="rg-group">
-                    <label class="rg-label">Password</label>
-                    <input type="password" name="second_password" 
-                        placeholder="Leave blank to keep current password">
-                    <small style="color:#888; font-size:12px;">Leave blank to keep current password</small>
-                    @error('second_password')<span class="invalid-msg">{{ $message }}</span>@enderror
-                </div>
-
-                <div class="rg-2col">
-                    <div>
-                        <label class="rg-label">Full Name</label>
-                        <input type="text" name="second_name" 
-                            value="{{ old('second_name', $parent->secondParent->name ?? '') }}"
-                            placeholder="Full name">
-                    </div>
-                    <div>
-                        <label class="rg-label">Age</label>
-                        <input type="text" name="second_age" 
-                            value="{{ old('second_age', $parent->secondParent->age ?? '') }}"
-                            placeholder="e.g. 33">
-                    </div>
-                </div>
-
-                <div class="rg-2col">
-                    <div>
-                        <label class="rg-label">Phone Number</label>
-                        <input type="text" name="second_phone" 
-                            value="{{ old('second_phone', $parent->secondParent->phone ?? '') }}"
-                            placeholder="013-XXXXXXX">
-                    </div>
-                    <div>
-                        <label class="rg-label">Address</label>
-                        <input type="text" name="second_address" 
-                            value="{{ old('second_address', $parent->secondParent->address ?? '') }}"
-                            placeholder="Address">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- ============================================ --}}
-    {{-- GUARDIAN --}}
-    {{-- ============================================ --}}
-    <div class="rg-card">
-        <div class="rg-section-title">
-            <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">shield</i></span> Guardian (Optional)
-        </div>
-
-        <div class="card-inner">
-            <div class="card-photo-col">
-                <div class="photo-circle" id="photoCircle3"
-                    onclick="document.getElementById('photoFile3').click()">
-                    @if($parent->guardian && $parent->guardian->photo)
-                        <img src="{{ Storage::url($parent->guardian->photo) }}">
-                    @else
-                        <span><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">shield</i></span>
-                    @endif
-                </div>
-                <div class="upload-zone"
-                    onclick="document.getElementById('photoFile3').click()">
-                    <span>📸</span>
-                    <p>Upload Photo</p>
-                    <small>JPG/PNG · 2MB</small>
-                </div>
-                <input type="file" id="photoFile3" name="guardian_photo" accept="image/*">
-                @if($parent->guardian && $parent->guardian->photo)
-                    <small style="display:block; margin-top:6px; color:#888;">
-                        Current: {{ basename($parent->guardian->photo) }}
-                    </small>
-                @endif
-            </div>
-
-            <div>
-                {{-- EMAIL GUARDIAN --}}
-                <div class="rg-group">
-                    <label class="rg-label">Email Address</label>
-                    <input type="email" name="guardian_email" 
-                        value="{{ old('guardian_email', $parent->guardian->user->email ?? '') }}"
-                        placeholder="guardian@example.com">
-                    @error('guardian_email')<span class="invalid-msg">{{ $message }}</span>@enderror
-                </div>
-
-                {{-- PASSWORD GUARDIAN --}}
-                <div class="rg-group">
-                    <label class="rg-label">Password</label>
-                    <input type="password" name="guardian_password" 
-                        placeholder="Leave blank to keep current password">
-                    <small style="color:#888; font-size:12px;">Leave blank to keep current password</small>
-                    @error('guardian_password')<span class="invalid-msg">{{ $message }}</span>@enderror
-                </div>
-
-                <div class="rg-2col">
-                    <div>
-                        <label class="rg-label">Full Name</label>
-                        <input type="text" name="guardian_name" 
-                            value="{{ old('guardian_name', $parent->guardian->name ?? '') }}"
-                            placeholder="Guardian name">
-                    </div>
-                    <div>
-                        <label class="rg-label">Age</label>
-                        <input type="text" name="guardian_age" 
-                            value="{{ old('guardian_age', $parent->guardian->age ?? '') }}"
-                            placeholder="e.g. 45">
-                    </div>
-                </div>
-
-                <div class="rg-2col">
-                    <div>
-                        <label class="rg-label">Phone Number</label>
-                        <input type="text" name="guardian_phone" 
-                            value="{{ old('guardian_phone', $parent->guardian->phone ?? '') }}"
-                            placeholder="011-XXXXXXX">
-                    </div>
-                    <div>
-                        <label class="rg-label">Address</label>
-                        <input type="text" name="guardian_address" 
-                            value="{{ old('guardian_address', $parent->guardian->address ?? '') }}"
-                            placeholder="Address">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-full coding {{-- ============================================ --}}
 {{-- SPECIAL SETTINGS --}}
 {{-- ============================================ --}}
 <div class="rg-card">
@@ -545,24 +377,14 @@ full coding {{-- ============================================ --}}
         <span>⚙️</span> Special Settings
     </div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+    <div style="display:grid; grid-template-columns:1fr; gap:12px;">
         <label class="check-row">
             <input type="hidden" name="verified" value="0">
-            <input type="checkbox" name="verified" value="1" 
+            <input type="checkbox" name="verified" value="1"
                 {{ old('verified', $parent->verified) ? 'checked' : '' }}>
             <div class="check-row-text">
                 <p><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified</p>
                 <small>Identity has been confirmed</small>
-            </div>
-        </label>
-
-        <label class="check-row" style="margin-bottom:0;">
-            <input type="hidden" name="emergency" value="0">
-            <input type="checkbox" name="emergency" value="1" 
-                {{ old('emergency', $parent->emergency) ? 'checked' : '' }}>
-            <div class="check-row-text">
-                <p><i class="material-symbols-rounded" style="font-size:14px;vertical-align:middle;">warning</i> Emergency Contact</p>
-                <small>Contact in case of emergency</small>
             </div>
         </label>
     </div>
