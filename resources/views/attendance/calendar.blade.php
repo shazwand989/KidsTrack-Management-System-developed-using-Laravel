@@ -6,7 +6,7 @@
 @section('content')
 
 <style>
-    .cal-wrap { max-width: 1400px; }
+    .cal-wrap { width: 100%; }
 
     /* Header */
     .cal-header {
@@ -15,6 +15,14 @@
     }
     .cal-header h2 { font-size: 20px; font-weight: 800; color: #0f172a; margin: 0; }
     .cal-header h2 span { color: #FF6B6B; }
+
+    /* View toggle */
+    .view-toggle { display: flex; gap: 4px; background: #f1f5f9; border-radius: 10px; padding: 3px; }
+    .view-toggle button {
+        border: none; padding: 6px 16px; border-radius: 8px; font-size: 12px;
+        font-weight: 700; cursor: pointer; transition: .15s; background: transparent; color: #64748b;
+    }
+    .view-toggle button.active { background: white; color: #FF6B6B; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
 
     /* Week nav */
     .week-nav {
@@ -115,28 +123,34 @@
 
     {{-- Header --}}
     <div class="cal-header">
-        <h2>📅 <span>Attendance</span> Calendar</h2>
-        <div class="week-nav">
-            <button onclick="navWeek(-1)">‹ Prev</button>
-            <span class="week-label" id="weekLabel"></span>
-            <button onclick="navWeek(1)">Next ›</button>
-            <button onclick="navWeek(0)" style="background:#FF6B6B;color:white;">Today</button>
+        <h2><i class="fas fa-calendar-alt"></i> <span>Attendance</span> Calendar</h2>
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div class="view-toggle">
+                <button id="btnWeek" class="active" onclick="switchView('week')">Week</button>
+                <button id="btnMonth" onclick="switchView('month')">Month</button>
+            </div>
+            <div class="week-nav">
+                <button onclick="nav(-1)">‹ Prev</button>
+                <span class="week-label" id="weekLabel"></span>
+                <button onclick="nav(1)">Next ›</button>
+                <button onclick="nav(0)" style="background:#FF6B6B;color:white;">Today</button>
+            </div>
         </div>
     </div>
 
     {{-- Stats --}}
     <div class="stats-row">
-        <div class="stat-card"><div class="stat-dot green">✓</div><div><div class="stat-num" id="statPresent">--</div><div class="stat-lbl">Present</div></div></div>
-        <div class="stat-card"><div class="stat-dot orange">⚠</div><div><div class="stat-num" id="statLate">--</div><div class="stat-lbl">Late</div></div></div>
-        <div class="stat-card"><div class="stat-dot red">✗</div><div><div class="stat-num" id="statAbsent">--</div><div class="stat-lbl">Absent</div></div></div>
-        <div class="stat-card"><div class="stat-dot blue">👶</div><div><div class="stat-num" id="statKids">--</div><div class="stat-lbl">Children</div></div></div>
+        <div class="stat-card"><div class="stat-dot green"><i class="fas fa-check"></i></div><div><div class="stat-num" id="statPresent">--</div><div class="stat-lbl">Present</div></div></div>
+        <div class="stat-card"><div class="stat-dot orange"><i class="fas fa-exclamation-triangle"></i></div><div><div class="stat-num" id="statLate">--</div><div class="stat-lbl">Late</div></div></div>
+        <div class="stat-card"><div class="stat-dot red"><i class="fas fa-times"></i></div><div><div class="stat-num" id="statAbsent">--</div><div class="stat-lbl">Absent</div></div></div>
+        <div class="stat-card"><div class="stat-dot blue"><i class="fas fa-child"></i></div><div><div class="stat-num" id="statKids">--</div><div class="stat-lbl">Children</div></div></div>
     </div>
 
     {{-- Filter --}}
     <div class="filter-bar">
-        <input type="text" id="searchCal" placeholder="🔍 Search child..." oninput="renderWeek()">
-        <select id="classCal" onchange="renderWeek()">
-            <option value="all">🏫 All Classes</option>
+        <input type="text" id="searchCal" placeholder="Search child..." oninput="renderCalendar()">
+        <select id="classCal" onchange="renderCalendar()">
+            <option value="all">All Classes</option>
             @foreach($classrooms as $c)
                 <option value="{{ $c->id }}">{{ $c->name }}</option>
             @endforeach
@@ -166,12 +180,14 @@
 </div>
 
 <script>
-// Data from server
 const children = @json($children);
 const attendances = @json($attendances);
 const todayStr = '{{ now()->toDateString() }}';
+const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
+let currentView = 'week';
 let currentWeekStart = getMonday(new Date());
+let currentMonthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 
 function getMonday(d) {
     const date = new Date(d);
@@ -188,52 +204,86 @@ function fmtShort(d) {
     return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()] + ' ' + d.getDate();
 }
 
-// Build attendance lookup: {childId: {dateStr: status}}
 const attLookup = {};
 attendances.forEach(a => {
     if (!attLookup[a.child_id]) attLookup[a.child_id] = {};
     attLookup[a.child_id][a.date] = a.status;
 });
 
-function navWeek(dir) {
-    if (dir === 0) currentWeekStart = getMonday(new Date());
-    else currentWeekStart.setDate(currentWeekStart.getDate() + (dir * 7));
-    renderWeek();
+function switchView(view) {
+    currentView = view;
+    document.getElementById('btnWeek').classList.toggle('active', view === 'week');
+    document.getElementById('btnMonth').classList.toggle('active', view === 'month');
+    if (view === 'week') currentWeekStart = getMonday(new Date());
+    else currentMonthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    renderCalendar();
 }
 
-function renderWeek() {
+function nav(dir) {
+    if (currentView === 'week') {
+        if (dir === 0) currentWeekStart = getMonday(new Date());
+        else currentWeekStart.setDate(currentWeekStart.getDate() + (dir * 7));
+    } else {
+        if (dir === 0) currentMonthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        else currentMonthStart.setMonth(currentMonthStart.getMonth() + dir);
+    }
+    renderCalendar();
+}
+
+function getDays() {
+    if (currentView === 'week') {
+        const days = [];
+        for (let i = 0; i < 5; i++) {
+            const d = new Date(currentWeekStart);
+            d.setDate(d.getDate() + i);
+            days.push(d);
+        }
+        return days;
+    } else {
+        // Month: all Mon-Fri days of the month
+        const days = [];
+        const year = currentMonthStart.getFullYear();
+        const month = currentMonthStart.getMonth();
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        for (let d = 1; d <= lastDay; d++) {
+            const date = new Date(year, month, d);
+            const dow = date.getDay();
+            if (dow !== 0 && dow !== 6) days.push(date); // Mon-Fri only
+        }
+        return days;
+    }
+}
+
+function renderCalendar() {
     const search = document.getElementById('searchCal').value.toLowerCase();
     const cls = document.getElementById('classCal').value;
 
-    // Filter children
     let filtered = children.filter(c => {
         if (cls !== 'all' && c.classroom_id != cls) return false;
         if (search && !c.name.toLowerCase().includes(search)) return false;
         return true;
     });
 
-    // Build days array (Mon-Fri only)
-    const days = [];
-    for (let i = 0; i < 5; i++) {
-        const d = new Date(currentWeekStart);
-        d.setDate(d.getDate() + i);
-        days.push(d);
+    const days = getDays();
+
+    // Label
+    if (currentView === 'week') {
+        document.getElementById('weekLabel').textContent = fmtShort(days[0]) + ' – ' + fmtShort(days[4]);
+    } else {
+        document.getElementById('weekLabel').textContent = monthNames[currentMonthStart.getMonth()] + ' ' + currentMonthStart.getFullYear();
     }
 
-    // Week label
-    document.getElementById('weekLabel').textContent =
-        fmtShort(days[0]) + ' – ' + fmtShort(days[4]);
-
-    // Table head
+    // Head
     let headHtml = '<tr><th>Child</th>';
     days.forEach(d => {
         const isToday = fmtDate(d) === todayStr;
-        headHtml += `<th class="${isToday ? 'today-col' : ''}"><div>${['Mon','Tue','Wed','Thu','Fri'][d.getDay()-1]}</div><div style="font-size:16px;">${d.getDate()}</div><div style="font-size:9px;font-weight:500;color:#64748b;">${d.toLocaleDateString('en-MY',{month:'short'})}</div></th>`;
+        const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        headHtml += `<th class="${isToday ? 'today-col' : ''}"><div>${dayNames[d.getDay()]}</div><div style="font-size:16px;">${d.getDate()}</div><div style="font-size:9px;font-weight:500;color:#64748b;">${monthNames[d.getMonth()]}</div></th>`;
     });
     headHtml += '</tr>';
     document.getElementById('calHead').innerHTML = headHtml;
 
-    // Table body
+    // Body
     let bodyHtml = '';
     let stats = {present: 0, late: 0, absent: 0};
 
@@ -242,33 +292,26 @@ function renderWeek() {
         document.getElementById('calBody').innerHTML = '';
     } else {
         document.getElementById('emptyCal').style.display = 'none';
-        filtered.forEach((child, i) => {
+        filtered.forEach(child => {
             bodyHtml += '<tr>';
             bodyHtml += `<td>
                 <div class="child-info">
                     <div class="child-avatar">${child.name.charAt(0).toUpperCase()}</div>
-                    <div>
-                        <div class="child-name">${child.name}</div>
-                        <div class="child-class">${child.classroom?.name || '-'} · ${child.age}y</div>
-                    </div>
-                </div>
-            </td>`;
+                    <div><div class="child-name">${child.name}</div><div class="child-class">${child.classroom?.name || '-'} · ${child.age}y</div></div>
+                </div></td>`;
 
             days.forEach(d => {
                 const dateStr = fmtDate(d);
                 const status = (attLookup[child.id] || {})[dateStr] || null;
                 let cls = 'empty', label = '—';
-
                 if (status) {
                     if (status === 'present' || status === 'checkin') { cls = 'present'; label = '✓'; stats.present++; }
                     else if (status === 'late' || status === 'late_checkout') { cls = 'late'; label = '⚠'; stats.late++; }
                     else if (status === 'absent') { cls = 'absent'; label = '✗'; stats.absent++; }
                     else if (status === 'checkout') { cls = 'present'; label = '✓'; stats.present++; }
                 }
-
-                bodyHtml += `<td><span class="day-dot ${cls}" title="${status || 'No record'}">${label}</span></td>`;
+                bodyHtml += `<td><span class="day-dot ${cls}" title="${status||'No record'}">${label}</span></td>`;
             });
-
             bodyHtml += '</tr>';
         });
         document.getElementById('calBody').innerHTML = bodyHtml;
@@ -280,7 +323,7 @@ function renderWeek() {
     document.getElementById('statKids').textContent = filtered.length;
 }
 
-renderWeek();
+renderCalendar();
 </script>
 
 @endsection

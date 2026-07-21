@@ -501,7 +501,7 @@
     </div>
     <div class="pg-header-right">
         {{-- 🔥 BUTTON EXPORT PDF --}}
-        <a href="{{ route('attendance.export.pdf') }}" class="btn-pdf no-print" id="exportPdfBtn" target="_blank">
+        <a href="#" class="btn-pdf no-print" id="exportPdfBtn" target="_blank" onclick="exportPDF(event)">
             <span>📄</span> Export PDF Report
         </a>
         <a href="#" class="btn-export no-print" onclick="exportCSV()">
@@ -514,25 +514,12 @@
 </div>
 
 {{-- STATS CARDS --}}
-@php
-    $totalCheckin = $attendances->filter(function($item) {
-        return in_array($item->status, ['checkin', 'present']);
-    })->count();
-
-    $totalCheckout = $attendances->filter(function($item) {
-        return in_array($item->status, ['checkout', 'late_checkout']);
-    })->count();
-    $totalLate = $attendances->where('status', 'late')->count();
-    $totalAbsent = $attendances->where('status', 'absent')->count();
-    $totalRecords = $attendances->total() ?? $attendances->count();
-@endphp
-
 <div class="row g-3 mb-4">
     <div class="col-3">
         <div class="stat-card">
             <div class="stat-icon pink"><span>📋</span></div>
             <div>
-                <div class="stat-num">{{ $totalRecords }}</div>
+                <div class="stat-num">{{ $stats['total'] ?? 0 }}</div>
                 <div class="stat-label">Total Records</div>
             </div>
         </div>
@@ -541,7 +528,7 @@
         <div class="stat-card">
             <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
             <div>
-                <div class="stat-num">{{ $totalCheckin }}</div>
+                <div class="stat-num">{{ $stats['checkin'] ?? 0 }}</div>
                 <div class="stat-label">Check-ins</div>
             </div>
         </div>
@@ -550,7 +537,7 @@
         <div class="stat-card">
             <div class="stat-icon blue"><span>📤</span></div>
             <div>
-                <div class="stat-num">{{ $totalCheckout }}</div>
+                <div class="stat-num">{{ $stats['checkout'] ?? 0 }}</div>
                 <div class="stat-label">Check-outs</div>
             </div>
         </div>
@@ -559,7 +546,7 @@
         <div class="stat-card" style="border-left-color: #d97706;">
             <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><span>⏰</span></div>
             <div>
-                <div class="stat-num">{{ $totalLate }}</div>
+                <div class="stat-num">{{ $stats['late'] ?? 0 }}</div>
                 <div class="stat-label">Late</div>
             </div>
         </div>
@@ -593,9 +580,9 @@
         <option value="absent" {{ request('status') == 'absent' ? 'selected' : '' }}>❌ Absent</option>
     </select>
 
-    <input type="date" class="date-input" id="filterDate" value="{{ request('date') }}" placeholder="Filter by date">
+    <input type="date" class="date-input" id="filterDate" value="{{ request('date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" placeholder="Filter by date">
     <input type="hidden" id="searchValue" value="{{ request('search') }}">
-    <span class="record-count" id="recordCount">{{ $totalRecords }} records</span>
+    <span class="record-count" id="recordCount">{{ $stats['total'] ?? 0 }} records</span>
 </div>
 
 {{-- Table --}}
@@ -780,7 +767,7 @@
     <div class="table-footer">
         <span>ℹ️</span>
         <span>Click any row to view details</span>
-        <span>{{ $totalRecords }} total records</span>
+        <span>{{ $stats['total'] ?? 0 }} total records</span>
     </div>
     @endif
 </div>
@@ -815,10 +802,12 @@
 
 <script>
     // 🔥 SEARCH AND FILTER FUNCTIONALITY
-    document.getElementById('searchInput').addEventListener('input', filterTable);
-    document.getElementById('filterStatus').addEventListener('change', filterTable);
-    document.getElementById('filterDate').addEventListener('change', filterTable);
-    document.getElementById('filterClassroom').addEventListener('change', filterTable);
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') submitFilters();
+    });
+    document.getElementById('filterStatus').addEventListener('change', submitFilters);
+    document.getElementById('filterDate').addEventListener('change', submitFilters);
+    document.getElementById('filterClassroom').addEventListener('change', submitFilters);
 
     function getFilterParams() {
         var params = new URLSearchParams();
@@ -833,6 +822,11 @@
         return params.toString();
     }
 
+    function submitFilters() {
+        var qs = getFilterParams();
+        window.location.href = '{{ route('attendance.index') }}' + (qs ? '?' + qs : '');
+    }
+
     function exportPDF(e) {
         e.preventDefault();
         var qs = getFilterParams();
@@ -845,110 +839,9 @@
         setTimeout(function(){ iframe.remove(); }, 10000);
     }
 
-    function filterTable() {
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const status = document.getElementById('filterStatus').value.toLowerCase();
-        const date = document.getElementById('filterDate').value;
-        const classroom = document.getElementById('filterClassroom').value;
-        const rows = document.querySelectorAll('#tableBody tr');
-        let visible = 0;
-
-        rows.forEach(row => {
-            if (row.querySelector('.empty-state')) return;
-
-            const text = row.innerText.toLowerCase();
-            const rowStatus = row.getAttribute('data-status') || '';
-            const rowDate = row.getAttribute('data-date') || '';
-            const rowClassroom = row.getAttribute('data-classroom') || '0';
-
-            let matchSearch = search === '' || text.includes(search);
-            let matchStatus = status === '' || rowStatus.includes(status);
-            let matchDate = date === '' || rowDate.includes(date);
-            let matchClassroom = classroom === '' || rowClassroom === classroom;
-
-            if (matchSearch && matchStatus && matchDate && matchClassroom) {
-                row.style.display = '';
-                visible++;
-            } else {
-                row.style.display = 'none';
-            }
-        });
-
-        document.getElementById('recordCount').textContent = visible + ' records';
-
-        // Show empty message if no results
-        const tbody = document.getElementById('tableBody');
-        const existingEmpty = tbody.querySelector('.empty-row-message');
-
-        if (visible === 0 && !existingEmpty && rows.length > 0) {
-            const emptyRow = document.createElement('tr');
-            emptyRow.className = 'empty-row-message';
-            emptyRow.innerHTML = `
-                <td colspan="10">
-                    <div class="empty-state" style="padding: 40px;">
-                        <div class="empty-icon">🔍</div>
-                        <h5>No matching records found</h5>
-                        <p>Try adjusting your search or filter criteria</p>
-                    </div>
-                </td>
-            `;
-            tbody.appendChild(emptyRow);
-        } else if (visible > 0 && existingEmpty) {
-            existingEmpty.remove();
-        }
-    }
-
-    // 🔥 ROW CLICK TO VIEW DETAILS
-    document.querySelectorAll('#tableBody tr').forEach(row => {
-        row.addEventListener('click', function(e) {
-            if (e.target.closest('.action-btns')) return;
-            if (this.querySelector('.empty-state')) return;
-
-            // 🔥 REDIRECT TO VIEW PAGE
-            const viewLink = this.querySelector('.act-btn.view');
-            if (viewLink) {
-                window.location.href = viewLink.href;
-            }
-        });
-    });
-
-    // 🔥 EXPORT CSV FUNCTION
     function exportCSV() {
-        const rows = document.querySelectorAll('#tableBody tr');
-        let csv = 'No,Child,Classroom,Date,Status,Check-in Time,Check-out Time,Drop Off By,Pickup By\n';
-
-        rows.forEach(row => {
-            if (row.querySelector('.empty-state')) return;
-            if (row.style.display === 'none') return;
-
-            const cells = row.querySelectorAll('td');
-            if (cells.length < 9) return;
-
-            const rowData = [
-                cells[0].innerText.trim(),
-                cells[1].innerText.trim().replace(/\s+/g, ' '),
-                cells[2].innerText.trim(),
-                cells[3].innerText.trim(),
-                cells[4].innerText.trim(),
-                cells[5].innerText.trim(),
-                cells[6].innerText.trim(),
-                cells[7].innerText.trim(),
-                cells[8].innerText.trim()
-            ];
-
-            csv += rowData.join(',') + '\n';
-        });
-
-        // Download CSV
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'attendance_report_' + new Date().toISOString().split('T')[0] + '.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        var qs = getFilterParams();
+        window.location.href = '{{ route('attendance.index') }}/export-csv' + (qs ? '?' + qs : '');
     }
 </script>
 

@@ -56,7 +56,20 @@ class AttendanceController extends Controller
             $this->applyFilters($query, $request);
             $attendances = $query->orderBy('date', 'desc')
                 ->orderBy('checkin_time', 'desc')
-                ->paginate(20)->appends($request->query());
+                ->paginate(10)->appends($request->query());
+
+            // Stats from UNFILTERED data (today's totals, not just current page)
+            $statsQuery = Attendance::query();
+            $this->applyFilters($statsQuery, $request);
+            $allFiltered = $statsQuery->get();
+            $stats = [
+                'total'     => $allFiltered->count(),
+                'checkin'   => $allFiltered->filter(fn($a) => in_array($a->status, ['checkin','present']))->count(),
+                'checkout'  => $allFiltered->filter(fn($a) => in_array($a->status, ['checkout','late_checkout']))->count(),
+                'late'      => $allFiltered->where('status', 'late')->count(),
+                'absent'    => $allFiltered->where('status', 'absent')->count(),
+            ];
+
             $children = Child::with('classroom')->get();
             $classrooms = Classroom::all();
         } elseif (in_array($user->role, ['parent', 'parent1'])) {
@@ -88,7 +101,7 @@ class AttendanceController extends Controller
             }
         }
 
-        return view('attendance.index', compact('attendances', 'children', 'classrooms')); // 🔥 TAMBAH classrooms
+        return view('attendance.index', compact('attendances', 'children', 'classrooms', 'stats'));
     }
 
     // ============================================
@@ -788,12 +801,20 @@ class AttendanceController extends Controller
 public function exportPdf(Request $request)
 {
     try {
+        // Increase memory for PDF generation
+        ini_set('memory_limit', '256M');
+
         $user = Auth::user();
         $query = Attendance::with(['child', 'child.classroom']);
 
-        // Apply filters from request
-        if ($request->has('date') && $request->date) {
+        // Apply same filters as the list page
+        $hasFilters = false;
+        if ($request->filled('date')) {
             $query->whereDate('date', $request->date);
+            $hasFilters = true;
+        } else {
+            // Safety: default to current month to prevent memory exhaustion
+            $query->whereMonth('date', now()->month)->whereYear('date', now()->year);
         }
 
         if ($request->has('status') && $request->status) {
@@ -839,7 +860,7 @@ public function exportPdf(Request $request)
         $totalLate = $attendances->where('status', 'late')->count();
         $totalAbsent = $attendances->where('status', 'absent')->count();
 
-        // 🔥 Generate PDF using DomPDF with remote enabled for local assets
+        // Generate PDF with minimal memory footprint
         $pdf = Pdf::loadView('attendance.export-pdf', [
             'attendances' => $attendances,
             'total' => $attendances->count(),
@@ -849,7 +870,12 @@ public function exportPdf(Request $request)
             'totalAbsent' => $totalAbsent,
             'generated_at' => Carbon::now()->format('d/m/Y H:i:s'),
             'generated_by' => $user->name,
-        ])->setOptions(['isRemoteEnabled' => true]);
+        ])->setPaper('a4', 'landscape')
+          ->setOptions([
+              'isRemoteEnabled' => false,
+              'isHtml5ParserEnabled' => true,
+              'defaultFont' => 'DejaVu Sans',
+          ]);
 
         return $pdf->download('attendance_report_' . Carbon::now()->format('Y-m-d') . '.pdf');
 
