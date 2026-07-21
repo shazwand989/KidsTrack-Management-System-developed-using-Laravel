@@ -437,6 +437,7 @@
                 <th>Classroom</th>
                 <th>Teacher</th>
                 <th>Age Group</th>
+                <th>⏰ Schedule</th>
                 <th>Students</th>
                 <th>Capacity</th>
                 <th>Status</th>
@@ -485,7 +486,18 @@
                     <div><strong>{{ $classroom->age_group }}</strong></div>
                     <div style="font-size: 11px; color: #94a3b8;">{{ $classroom->min_age }} - {{ $classroom->max_age }} yrs</div>
                 </td>
-                
+
+                {{-- Schedule --}}
+                <td>
+                    @if($classroom->start_time && $classroom->end_time)
+                        <span style="font-weight:700;color:#1e293b;font-family:monospace;font-size:13px;">
+                            {{ substr($classroom->start_time, 0, 5) }} – {{ substr($classroom->end_time, 0, 5) }}
+                        </span>
+                    @else
+                        <span style="color:#cbd5e1;">—</span>
+                    @endif
+                </td>
+
                 {{-- Students --}}
                 <td>
                     <div class="stats-cell">

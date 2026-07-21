@@ -98,6 +98,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/attendance/checkin', [AttendanceController::class, 'checkin'])->name('attendance.checkin');
     Route::post('/attendance/checkout', [AttendanceController::class, 'checkout'])->name('attendance.checkout');
     Route::post('/attendance/batch', [AttendanceController::class, 'batchStore'])->name('attendance.batch-store');
+    Route::get('/attendance/export-single/{id}', [AttendanceController::class, 'exportSinglePdf'])->name('attendance.export.single');
+    Route::get('/attendance/export-pdf', [AttendanceController::class, 'exportPdf'])->name('attendance.export.pdf');
     Route::resource('attendance', AttendanceController::class);
 
     // ============================================
@@ -203,14 +205,6 @@ Route::middleware(['auth'])->group(function () {
     })->name('api.send.bulk.reminder');
 
 });
-
-// ============================================
-// ATTENDANCE EXPORT PDF (ADMIN - NO AUTH GROUP BUT PROTECTED BY CONTROLLER)
-// ============================================
-Route::get('/attendance/export-single/{id}', [AttendanceController::class, 'exportSinglePdf'])
-    ->name('attendance.export.single');
-Route::get('/attendance/export-pdf', [AttendanceController::class, 'exportPdf'])
-    ->name('attendance.export.pdf');
 
 // ============================================
 // SIMULATION CLOCK SETTINGS (ADMIN)
