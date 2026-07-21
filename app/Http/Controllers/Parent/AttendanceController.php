@@ -92,7 +92,7 @@ class AttendanceController extends Controller
             $endDate = Carbon::createFromDate($year, $month, 1)->endOfMonth();
         }
 
-        $attendances = Attendance::with(['child'])
+        $attendances = Attendance::with(['child.classroom'])
             ->whereIn('child_id', $childIds)
             ->whereBetween('date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
@@ -113,6 +113,10 @@ class AttendanceController extends Controller
                     $color = '#fb8c00'; // orange
                 }
 
+                // Build attendance summary for rich modal
+                $summary = $this->summaryService->getAttendanceSummary($attendance);
+                $classroom = $attendance->child->classroom ?? null;
+
                 return [
                     'id' => $attendance->id,
                     'title' => $attendance->child->name ?? 'Child',
@@ -122,13 +126,22 @@ class AttendanceController extends Controller
                     'textColor' => '#ffffff',
                     'extendedProps' => [
                         'child_name' => $attendance->child->name ?? 'Child',
+                        'classroom' => $classroom->name ?? '-',
                         'status' => $status,
                         'checkin_time' => $attendance->checkin_time
                             ? Carbon::parse($attendance->checkin_time)->format('h:i A')
                             : null,
+                        'checkin_status' => $summary['checkin']['status'] ?? 'unknown',
+                        'checkin_label' => $summary['checkin']['status_label'] ?? '—',
+                        'checkin_minutes' => $summary['checkin']['minutes_diff'] ?? 0,
                         'checkout_time' => $attendance->checkout_time
                             ? Carbon::parse($attendance->checkout_time)->format('h:i A')
                             : null,
+                        'checkout_status' => $summary['checkout']['status'] ?? 'unknown',
+                        'checkout_label' => $summary['checkout']['status_label'] ?? '—',
+                        'checkout_minutes' => $summary['checkout']['minutes_diff'] ?? 0,
+                        'schedule_in' => $summary['schedule']['morning_end'] ?? '07:30',
+                        'schedule_out' => $summary['schedule']['class_end'] ?? $summary['schedule']['evening_end'] ?? '17:00',
                         'is_late' => in_array($attendance->status, ['late', 'late_checkout']),
                         'color' => $color,
                     ],

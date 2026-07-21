@@ -353,6 +353,10 @@ class QRScanController extends Controller
                         'is_verified' => true
                     ]);
                 }
+
+                // Send Telegram notification
+                $isLate = $this->isLateForCheckin();
+                $this->sendTelegramNotification($child, $parentId, 'checkin', $isLate);
             }
 
             // ➡️ REDIRECT KE AddAnotherChildController
@@ -646,41 +650,39 @@ class QRScanController extends Controller
     private function sendTelegramNotification($child, $parentId, $action, $isLate = false, $lateReason = null)
     {
         $parent = \App\Models\User::find($parentId);
-        if (!$parent || !$parent->telegram_chat_id) {
-            return;
-        }
-
         $now = Carbon::now('Asia/Kuala_Lumpur');
-        $slot = $this->getCurrentSlot($child);
-        $slotLabel = $slot ? $slot['label'] : 'Unknown';
-        $timerInfo = $this->getTimerSlotInfo($child);
-
-        $message = "🧸 KidsTrack Alert\n\n";
-        $message .= "👶 Child: {$child->name}\n";
-        $message .= "🏫 Class: " . ($child->classroom->name ?? 'No class') . "\n";
+        $classroom = $child->classroom->name ?? 'No class';
 
         if ($action == 'checkin') {
-            $message .= "✅ Checked-in at: " . $now->format('h:i A') . "\n";
-            $message .= "📊 Status: " . ($isLate ? '⏰ Late' : '✅ On Time') . "\n";
-            $message .= "⏱️ Slot: " . $slotLabel;
-            if ($isLate && $lateReason) {
-                $message .= "\n📝 Reason: " . $lateReason;
-            }
+            $statusIcon = $isLate ? '⚠️' : '✅';
+            $statusText = $isLate ? 'LATE' : 'ON TIME';
+            $actionLabel = '📥 CHECK-IN';
         } else {
-            $message .= "👋 Checked-out at: " . $now->format('h:i A') . "\n";
-            $message .= "📊 Status: " . ($isLate ? '⏰ Late Checkout' : '✅ On Time') . "\n";
-            $message .= "⏱️ Slot: " . $slotLabel;
+            $statusIcon = $isLate ? '⚠️' : '👋';
+            $statusText = $isLate ? 'LATE CHECKOUT' : 'ON TIME';
+            $actionLabel = '📤 CHECK-OUT';
         }
 
-        if ($timerInfo) {
-            $message .= "\n⏰ Operating Hours:";
-            $message .= "\n   Morning: " . $timerInfo['morning'];
-            $message .= "\n   Evening: " . $timerInfo['evening'];
+        $message = "<b>🧸 KidsTrack — {$actionLabel}</b>\n\n";
+        $message .= "<b>👶 Child:</b> {$child->name}\n";
+        $message .= "<b>🏫 Class:</b> {$classroom}\n";
+        $message .= "<b>⏰ Time:</b> " . $now->format('h:i A') . "\n";
+        $message .= "<b>📅 Date:</b> " . $now->format('d M Y, l') . "\n";
+        $message .= "<b>📊 Status:</b> {$statusIcon} {$statusText}";
+
+        if ($isLate && $lateReason) {
+            $message .= "\n<b>📝 Reason:</b> " . $lateReason;
         }
 
-        $message .= "\n📅 Date: " . $now->format('d M Y');
+        $message .= "\n\n<i>📍 kidstrack-management-system.shazwan-danial.com</i>";
 
-        $this->telegram->sendMessage($parent->telegram_chat_id, $message);
+        // Send to parent
+        if ($parent && $parent->telegram_chat_id) {
+            $this->telegram->sendMessage($parent->telegram_chat_id, $message);
+        }
+
+        // Send to admin
+        $this->telegram->sendToAdmin($message);
     }
 
     // ============================================
@@ -1054,6 +1056,9 @@ class QRScanController extends Controller
             'pickup_by' => 'Parent ID: ' . $parentId,
         ]);
 
+        // Send Telegram notification
+        $this->sendTelegramNotification($child, $parentId, 'checkout');
+
         return response()->json([
             'success' => true,
             'message' => '✅ Check-out berjaya!',
@@ -1226,6 +1231,9 @@ class QRScanController extends Controller
 
                 $this->telegram->sendMessage($parent->telegram_chat_id, $message);
             }
+
+            // Send to admin
+            $this->telegram->sendToAdmin($message ?? "🧸 KidsTrack: {$action} for {$childNames}");
 
             return response()->json([
                 'status' => 'success',

@@ -69,10 +69,10 @@ class AttendanceSummaryService
     private function analyzeCheckin(Attendance $attendance, string $morningEnd): array
     {
         $checkinTime = $attendance->checkin_time
-            ? Carbon::parse($attendance->checkin_time)
+            ? $this->normalizeTime($attendance->checkin_time)
             : null;
 
-        $morningEndCarbon = Carbon::parse($morningEnd);
+        $morningEndCarbon = $this->normalizeTime($morningEnd);
 
         if (!$checkinTime) {
             // No check-in at all → Absent
@@ -114,13 +114,12 @@ class AttendanceSummaryService
     private function analyzeCheckout(Attendance $attendance, string $classEnd, string $eveningEnd): array
     {
         $checkoutTime = $attendance->checkout_time
-            ? Carbon::parse($attendance->checkout_time)
+            ? $this->normalizeTime($attendance->checkout_time)
             : null;
 
         // Use the class end time as the official dismissal time
-        // If no class end, fall back to evening_end
         $dismissalTime = $classEnd ?: $eveningEnd;
-        $dismissalCarbon = Carbon::parse($dismissalTime);
+        $dismissalCarbon = $this->normalizeTime($dismissalTime);
 
         if (!$checkoutTime) {
             return [
@@ -134,7 +133,8 @@ class AttendanceSummaryService
 
         // 5-minute buffer for "on time"
         $buffer = 5;
-        $diff = (int) round($checkoutTime->diffInMinutes($dismissalCarbon, false)); // negative = early
+        // diff from schedule(dismissal) to actual(checkout): positive = late, negative = early
+        $diff = (int) round($dismissalCarbon->diffInMinutes($checkoutTime, false));
 
         if ($diff < -$buffer) {
             // Early: check-out before dismissal time (beyond buffer)
@@ -210,6 +210,19 @@ class AttendanceSummaryService
         $h = intdiv($minutes, 60);
         $m = $minutes % 60;
         return $m > 0 ? "{$h}h {$m}m" : "{$h}h";
+    }
+
+    /**
+     * Normalize a time value (Carbon or string) to today's date at that time.
+     * MySQL TIME fields lack a date, so Carbon may use 1970-01-01.
+     * This ensures both times share the same date for accurate comparison.
+     */
+    private function normalizeTime($time): Carbon
+    {
+        $carbon = $time instanceof Carbon ? $time->copy() : Carbon::parse($time);
+        // Force both times to the same reference date for accurate comparison
+        $ref = Carbon::now('Asia/Kuala_Lumpur')->startOfDay();
+        return $ref->setTime($carbon->hour, $carbon->minute, $carbon->second);
     }
 
     /**

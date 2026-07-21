@@ -179,9 +179,26 @@
 
 </div>
 
+@php
+$attData = $attendances->map(function($a) {
+    return [
+        'id' => $a->id,
+        'child_id' => $a->child_id,
+        'date' => $a->date instanceof \Carbon\Carbon ? $a->date->format('Y-m-d') : $a->date,
+        'status' => $a->status,
+        'checkin_time' => $a->checkin_time ? \Carbon\Carbon::parse($a->checkin_time)->format('h:i A') : null,
+        'checkout_time' => $a->checkout_time ? \Carbon\Carbon::parse($a->checkout_time)->format('h:i A') : null,
+        'child_name' => $a->child->name ?? '',
+        'classroom' => $a->child->classroom->name ?? '-',
+        'class_start' => $a->child->classroom->start_time ?? null,
+        'class_end' => $a->child->classroom->end_time ?? null,
+    ];
+});
+@endphp
+
 <script>
 const children = @json($children);
-const attendances = @json($attendances);
+const attendances = @json($attData);
 const todayStr = '{{ now()->toDateString() }}';
 const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -207,7 +224,7 @@ function fmtShort(d) {
 const attLookup = {};
 attendances.forEach(a => {
     if (!attLookup[a.child_id]) attLookup[a.child_id] = {};
-    attLookup[a.child_id][a.date] = a.status;
+    attLookup[a.child_id][a.date] = a;
 });
 
 function switchView(view) {
@@ -302,15 +319,17 @@ function renderCalendar() {
 
             days.forEach(d => {
                 const dateStr = fmtDate(d);
-                const status = (attLookup[child.id] || {})[dateStr] || null;
+                const att = (attLookup[child.id] || {})[dateStr] || null;
                 let cls = 'empty', label = '—';
-                if (status) {
-                    if (status === 'present' || status === 'checkin') { cls = 'present'; label = '✓'; stats.present++; }
-                    else if (status === 'late' || status === 'late_checkout') { cls = 'late'; label = '⚠'; stats.late++; }
-                    else if (status === 'absent') { cls = 'absent'; label = '✗'; stats.absent++; }
-                    else if (status === 'checkout') { cls = 'present'; label = '✓'; stats.present++; }
+                if (att) {
+                    const s = att.status || '';
+                    if (s === 'present' || s === 'checkin') { cls = 'present'; label = '✓'; stats.present++; }
+                    else if (s === 'late' || s === 'late_checkout') { cls = 'late'; label = '⚠'; stats.late++; }
+                    else if (s === 'absent') { cls = 'absent'; label = '✗'; stats.absent++; }
+                    else if (s === 'checkout') { cls = 'present'; label = '✓'; stats.present++; }
                 }
-                bodyHtml += `<td><span class="day-dot ${cls}" title="${status||'No record'}">${label}</span></td>`;
+                const onClick = att ? `onclick="showAttModal('${child.name.replace(/'/g,"\\'")}','${att.classroom||'-'}','${dateStr}','${att.status||''}','${att.checkin_time||''}','${att.checkout_time||''}','${att.class_start||''}','${att.class_end||''}')"` : '';
+                bodyHtml += `<td><span class="day-dot ${cls} ${att?'clickable':''}" ${onClick} title="${att?att.status||'No record':'No record'}">${label}</span></td>`;
             });
             bodyHtml += '</tr>';
         });
@@ -324,6 +343,106 @@ function renderCalendar() {
 }
 
 renderCalendar();
+
+function toMinutes(t){
+    if(!t) return null;
+    t=t.trim();
+    var isPM=/pm/i.test(t),isAM=/am/i.test(t);
+    t=t.replace(/\s*[ap]m\s*/i,'').trim();
+    var parts=t.split(':');
+    var h=parseInt(parts[0])||0,m=parseInt(parts[1])||0;
+    if(isPM && h<12) h+=12;
+    if(isAM && h==12) h=0;
+    return h*60+m;
+}
+
+function showAttModal(name, classroom, date, status, ciTime, coTime, classStart, classEnd){
+    document.getElementById('amName').textContent=name;
+    document.getElementById('amClass').textContent='🏫 '+classroom+' · 📅 '+date;
+
+    var s=status||'No record';
+    var sColor='#FF6B6B';
+    if(s==='present'||s==='checkin'||s==='checkout') sColor='#16a34a';
+    else if(s==='late'||s==='late_checkout') sColor='#d97706';
+    else if(s==='absent') sColor='#dc2626';
+    document.getElementById('amStatus').textContent=s;
+    document.getElementById('amStatus').style.background=sColor+'18';
+    document.getElementById('amStatus').style.color=sColor;
+
+    // Check-in
+    var ciBadge='',ciMins='';
+    var ciMin=toMinutes(ciTime),schInMin=toMinutes(classStart);
+    if(ciMin!==null&&schInMin!==null&&ciTime&&classStart){
+        var diff=ciMin-schInMin;
+        if(diff>0){
+            ciBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟡 Late</span>';
+            ciMins='+'+diff+'m late';
+        }else{
+            ciBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟢 On Time</span>';
+        }
+    }
+    document.getElementById('amCiTime').textContent=ciTime||'—';
+    document.getElementById('amCiSched').textContent=classStart?(classStart.length>5?classStart.substring(0,5):classStart):'—';
+    document.getElementById('amCiBadge').innerHTML=ciBadge;
+    document.getElementById('amCiMins').textContent=ciMins;
+
+    // Check-out
+    var coBadge='',coMins='';
+    var coMin=toMinutes(coTime),schOutMin=toMinutes(classEnd);
+    if(coMin!==null&&schOutMin!==null&&coTime&&classEnd){
+        var coDiff=coMin-schOutMin;
+        if(coDiff<0){
+            coBadge='<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🔴 Early</span>';
+            coMins=Math.abs(coDiff)+'m early';
+        }else if(coDiff>0){
+            coBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟡 Late</span>';
+            coMins='+'+coDiff+'m late';
+        }else{
+            coBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟢 On Time</span>';
+        }
+    }
+    document.getElementById('amCoTime').textContent=coTime||'—';
+    document.getElementById('amCoSched').textContent=classEnd?(classEnd.length>5?classEnd.substring(0,5):classEnd):'—';
+    document.getElementById('amCoBadge').innerHTML=coBadge;
+    document.getElementById('amCoMins').textContent=coMins;
+
+    document.getElementById('attModal').classList.add('show');
+}
+function closeAttModal(){document.getElementById('attModal').classList.remove('show');}
 </script>
 
+{{-- Modal --}}
+<div class="modal-overlay" id="attModal" onclick="if(event.target===this)closeAttModal()">
+    <div class="modal-box" style="background:white;border-radius:20px;padding:28px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;">
+        <button onclick="closeAttModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;">✕</button>
+        <div style="font-size:18px;font-weight:800;color:#1e293b;margin-bottom:2px;" id="amName"></div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;" id="amClass"></div>
+        <div style="display:inline-block;padding:4px 14px;border-radius:10px;font-size:12px;font-weight:700;background:#FFF5F2;color:#FF6B6B;margin-bottom:16px;" id="amStatus"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="background:#f8fafc;border-radius:12px;padding:12px;text-align:center;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;">📥 Check-in</div>
+                <div style="font-size:20px;font-weight:800;color:#1e293b;margin:4px 0;" id="amCiTime">—</div>
+                <div style="font-size:11px;color:#64748b;">Schedule: <span id="amCiSched" style="font-weight:700;">—</span></div>
+                <div style="margin-top:6px;" id="amCiBadge"></div>
+                <div style="font-size:11px;font-weight:700;color:#c62828;margin-top:2px;" id="amCiMins"></div>
+            </div>
+            <div style="background:#f8fafc;border-radius:12px;padding:12px;text-align:center;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;">📤 Check-out</div>
+                <div style="font-size:20px;font-weight:800;color:#1e293b;margin:4px 0;" id="amCoTime">—</div>
+                <div style="font-size:11px;color:#64748b;">Schedule: <span id="amCoSched" style="font-weight:700;">—</span></div>
+                <div style="margin-top:6px;" id="amCoBadge"></div>
+                <div style="font-size:11px;font-weight:700;color:#c62828;margin-top:2px;" id="amCoMins"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.2s;}
+.modal-overlay.show{opacity:1;visibility:visible;}
+.modal-overlay.show .modal-box{transform:translateY(0);}
+.modal-box{transform:translateY(20px);transition:.3s;}
+.day-dot.clickable{cursor:pointer;}
+.day-dot.clickable:hover{transform:scale(1.3);}
+</style>
 @endsection

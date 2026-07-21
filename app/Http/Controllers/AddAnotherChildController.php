@@ -536,23 +536,25 @@ class AddAnotherChildController extends Controller
     private function sendTelegramNotification($child, $parentId, $action)
     {
         $parent = \App\Models\User::find($parentId);
-        if (!$parent || !$parent->telegram_chat_id) {
-            return;
-        }
-
         $now = Carbon::now('Asia/Kuala_Lumpur');
-        $message = "🧸 KidsTrack Alert\n\n";
-        $message .= "👶 Child: {$child->name}\n";
-        $message .= "🏫 Class: " . ($child->classroom->name ?? 'No class') . "\n";
+        $classroom = $child->classroom->name ?? 'No class';
 
-        if ($action == 'checkin') {
-            $message .= "✅ Checked-in at: " . $now->format('h:i A') . "\n";
-        } else {
-            $message .= "👋 Checked-out at: " . $now->format('h:i A') . "\n";
+        $actionLabel = $action == 'checkin' ? '📥 CHECK-IN' : '📤 CHECK-OUT';
+
+        $message = "<b>🧸 KidsTrack — {$actionLabel}</b>\n\n";
+        $message .= "<b>👶 Child:</b> {$child->name}\n";
+        $message .= "<b>🏫 Class:</b> {$classroom}\n";
+        $message .= "<b>⏰ Time:</b> " . $now->format('h:i A') . "\n";
+        $message .= "<b>📅 Date:</b> " . $now->format('d M Y, l') . "\n";
+        $message .= "<b>📊 Status:</b> ✅ Completed\n";
+        $message .= "\n<i>📍 kidstrack-management-system.shazwan-danial.com</i>";
+
+        // Send to parent
+        if ($parent && $parent->telegram_chat_id) {
+            $this->telegram->sendMessage($parent->telegram_chat_id, $message);
         }
 
-        $message .= "📅 Date: " . $now->format('d M Y');
-
-        $this->telegram->sendMessage($parent->telegram_chat_id, $message);
+        // Send to admin
+        $this->telegram->sendToAdmin($message);
     }
 }

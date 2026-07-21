@@ -827,33 +827,30 @@ class CheckinController extends Controller
 
     private function sendTelegramNotification($child, $parentName, $action, $isLate = false)
     {
-        // Find the parent via hasOneThrough relationship
         $parent = $child->parent;
-
-        if (!$parent || !$parent->telegram_notification || !$parent->telegram_id) {
-            return;
-        }
-
         $now = Carbon::now('Asia/Kuala_Lumpur');
+        $classroom = $child->classroom->name ?? 'N/A';
+
         $statusEmoji = $isLate ? '⚠️' : '✅';
         $statusText = $isLate ? 'LATE' : 'ON TIME';
+        $actionLabel = $action == 'checkin' ? '📥 CHECK-IN' : '📤 CHECK-OUT';
 
-        $message = "🧸 <b>KidsTrack Notification</b>\n\n";
-        $message .= "👶 <b>Child:</b> {$child->name}\n";
-        $message .= "🏫 <b>Class:</b> " . ($child->classroom->name ?? 'N/A') . "\n";
-        $message .= "👤 <b>Parent:</b> {$parentName}\n";
-        $message .= "📅 <b>Date:</b> " . $now->format('d M Y') . "\n";
-        $message .= "⏰ <b>Time:</b> " . $now->format('h:i A') . "\n";
+        $message = "<b>🧸 KidsTrack — {$actionLabel}</b>\n\n";
+        $message .= "<b>👶 Child:</b> {$child->name}\n";
+        $message .= "<b>🏫 Class:</b> {$classroom}\n";
+        $message .= "<b>👤 Parent:</b> {$parentName}\n";
+        $message .= "<b>⏰ Time:</b> " . $now->format('h:i A') . "\n";
+        $message .= "<b>📅 Date:</b> " . $now->format('d M Y, l') . "\n";
+        $message .= "<b>📊 Status:</b> {$statusEmoji} {$statusText}\n";
+        $message .= "\n<i>📍 kidstrack-management-system.shazwan-danial.com</i>";
 
-        if ($action == 'checkin') {
-            $message .= "📥 <b>Action:</b> Check-in\n";
-        } else {
-            $message .= "📤 <b>Action:</b> Check-out\n";
+        // Send to parent
+        if ($parent && $parent->telegram_chat_id) {
+            $this->telegram->sendMessage($parent->telegram_chat_id, $message);
         }
 
-        $message .= "{$statusEmoji} <b>Status:</b> {$statusText}";
-
-        $this->telegram->sendMessage($parent->telegram_id, $message);
+        // Send to admin
+        $this->telegram->sendToAdmin($message);
     }
 }
 

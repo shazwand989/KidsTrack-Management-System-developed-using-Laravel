@@ -30,4 +30,17 @@ class TelegramService
             return null;
         }
     }
+
+    /**
+     * Send notification to admin via TELEGRAM_ADMIN_CHAT_ID env.
+     */
+    public function sendToAdmin($message)
+    {
+        $adminChatId = env('TELEGRAM_ADMIN_CHAT_ID');
+        if (!$adminChatId) {
+            \Log::warning('Telegram: TELEGRAM_ADMIN_CHAT_ID not set in .env');
+            return null;
+        }
+        return $this->sendMessage($adminChatId, $message);
+    }
 }

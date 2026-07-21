@@ -86,21 +86,59 @@ document.addEventListener('DOMContentLoaded',function(){
         initialView:'dayGridMonth',
         headerToolbar:{left:'prev,next today',center:'title',right:'dayGridMonth'},
         height:'auto',
-        events:'/parent/attendance/calendar-data',
+        events:{
+            url:'/parent/attendance/calendar-data',
+            failure:function(){console.error('Failed to load calendar events');}
+        },
         eventDisplay:'block',
         eventTimeFormat:{hour:'2-digit',minute:'2-digit',hour12:true},
+        eventDidMount:function(info){
+            info.el.style.cursor='pointer';
+        },
         eventClick:function(info){
+            console.log('Event clicked:', info.event.title);
             var p=info.event.extendedProps;
             var statusLabel={'present':'Present / Checked In','checkin':'Checked In','checkout':'Checked Out','late':'Late Check-in','late_checkout':'Late Check-out','absent':'Absent'};
             var s=p.status||'present';
+
+            // Child info
             document.getElementById('modalChildName').textContent=p.child_name||'Child';
-            document.getElementById('modalStatus').textContent=statusLabel[s]||s;
-            document.getElementById('modalStatus').className='modal-status '+s;
-            document.getElementById('modalCheckin').textContent=p.checkin_time||'--';
-            document.getElementById('modalCheckout').textContent=p.checkout_time||'--';
-            document.getElementById('modalDate').textContent=info.event.startStr;
+            document.getElementById('modalClassroom').textContent=p.classroom||'-';
             document.getElementById('modalAvatar').style.background=p.color||'#6d28d9';
             document.getElementById('modalAvatar').textContent=(p.child_name||'?').charAt(0).toUpperCase();
+
+            // Status
+            document.getElementById('modalStatus').textContent=statusLabel[s]||s;
+            document.getElementById('modalStatus').className='modal-status '+s;
+
+            // Date
+            document.getElementById('modalDate').textContent=info.event.startStr;
+
+            // Check-in row
+            var ciStatus=p.checkin_status||'unknown';
+            var ciBadge='<span style="color:#94a3b8;">—</span>';
+            if(ciStatus==='on_time') ciBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟢 On Time</span>';
+            else if(ciStatus==='late') ciBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟡 Late</span>';
+            else if(ciStatus==='absent') ciBadge='<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🔴 Absent</span>';
+            document.getElementById('modalCheckinStatus').innerHTML=ciBadge;
+            document.getElementById('modalCheckinTime').textContent=p.checkin_time||'—';
+            var ciMins=p.checkin_minutes||0;
+            document.getElementById('modalCheckinMins').textContent=ciMins>0?'+'+ciMins+'m':'';
+            document.getElementById('modalCheckinSched').textContent=p.schedule_in||'—';
+
+            // Check-out row
+            var coStatus=p.checkout_status||'unknown';
+            var coBadge='<span style="color:#94a3b8;">—</span>';
+            if(coStatus==='on_time') coBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟢 On Time</span>';
+            else if(coStatus==='early') coBadge='<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🔴 Early</span>';
+            else if(coStatus==='late') coBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟡 Late</span>';
+            else if(coStatus==='not_checked_out') coBadge='<span style="background:#f3e8ff;color:#6d28d9;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟣 Not Out</span>';
+            document.getElementById('modalCheckoutStatus').innerHTML=coBadge;
+            document.getElementById('modalCheckoutTime').textContent=p.checkout_time||'—';
+            var coMins=p.checkout_minutes||0;
+            document.getElementById('modalCheckoutMins').textContent=coMins>0?(coStatus==='early'?'-':'+')+coMins+'m':'';
+            document.getElementById('modalCheckoutSched').textContent=p.schedule_out||'—';
+
             document.getElementById('attendanceModal').classList.add('show');
         }
     });
@@ -115,23 +153,64 @@ function closeModal(){document.getElementById('attendanceModal').classList.remov
         <button class="modal-close" onclick="closeModal()"><i class="material-symbols-rounded" style="font-size:20px;">close</i></button>
         <div class="modal-title">
             <div class="modal-avatar" id="modalAvatar" style="background:#6d28d9;">?</div>
-            <span id="modalChildName">Child Name</span>
+            <div>
+                <span id="modalChildName" style="display:block;">Child Name</span>
+                <small id="modalClassroom" style="color:#94a3b8;font-size:11px;">—</small>
+            </div>
         </div>
         <div class="modal-row">
             <span class="lbl">Date</span>
             <span class="val" id="modalDate">--</span>
         </div>
         <div class="modal-row">
-            <span class="lbl">Status</span>
+            <span class="lbl">Overall Status</span>
             <span class="modal-status present" id="modalStatus">Present</span>
         </div>
-        <div class="modal-row">
-            <span class="lbl">Check-in Time</span>
-            <span class="val time" id="modalCheckin">--</span>
+
+        {{-- Check-in Detail --}}
+        <div style="margin-top:12px;padding:12px;background:#f8fafc;border-radius:12px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;">📥 Check-in</div>
+            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+                <tr>
+                    <td style="padding:4px 0;color:#94a3b8;">Schedule</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:600;" id="modalCheckinSched">—</td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0;color:#94a3b8;">Actual</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:700;" id="modalCheckinTime">—</td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0;color:#94a3b8;">Status</td>
+                    <td style="padding:4px 0;text-align:right;" id="modalCheckinStatus">—</td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0;color:#94a3b8;">Diff</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:700;color:#c62828;" id="modalCheckinMins">—</td>
+                </tr>
+            </table>
         </div>
-        <div class="modal-row">
-            <span class="lbl">Check-out Time</span>
-            <span class="val time" id="modalCheckout">--</span>
+
+        {{-- Check-out Detail --}}
+        <div style="margin-top:10px;padding:12px;background:#f8fafc;border-radius:12px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;">📤 Check-out</div>
+            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+                <tr>
+                    <td style="padding:4px 0;color:#94a3b8;">Schedule</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:600;" id="modalCheckoutSched">—</td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0;color:#94a3b8;">Actual</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:700;" id="modalCheckoutTime">—</td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0;color:#94a3b8;">Status</td>
+                    <td style="padding:4px 0;text-align:right;" id="modalCheckoutStatus">—</td>
+                </tr>
+                <tr>
+                    <td style="padding:4px 0;color:#94a3b8;">Diff</td>
+                    <td style="padding:4px 0;text-align:right;font-weight:700;color:#c62828;" id="modalCheckoutMins">—</td>
+                </tr>
+            </table>
         </div>
     </div>
 </div>

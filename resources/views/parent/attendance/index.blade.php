@@ -60,7 +60,23 @@
             <tbody>
                 @foreach($attendance as $att)
                 @php $s = $summaries[$att->id] ?? null; @endphp
-                <tr onclick="location.href='{{ route('parent.attendance.child', hash_id($att->child_id)) }}'">
+                <tr class="att-row" style="cursor:pointer;"
+                    data-name="{{ $att->child->name ?? 'N/A' }}"
+                    data-classroom="{{ $att->child->classroom->name ?? '-' }}"
+                    data-date="{{ \Carbon\Carbon::parse($att->date)->format('d M Y') }}"
+                    data-summary="{{ $s ? strip_tags($s['summary']) : '—' }}"
+                    data-ci-time="{{ $s['checkin']['time'] ?? '—' }}"
+                    data-ci-status="{{ $s['checkin']['status'] ?? '—' }}"
+                    data-ci-label="{{ $s['checkin']['status_label'] ?? '—' }}"
+                    data-ci-mins="{{ $s['checkin']['minutes_diff'] ?? 0 }}"
+                    data-ci-sched="{{ $s['schedule']['morning_end'] ?? '—' }}"
+                    data-co-time="{{ $s['checkout']['time'] ?? '—' }}"
+                    data-co-status="{{ $s['checkout']['status'] ?? '—' }}"
+                    data-co-label="{{ $s['checkout']['status_label'] ?? '—' }}"
+                    data-co-mins="{{ $s['checkout']['minutes_diff'] ?? 0 }}"
+                    data-co-sched="{{ $s['schedule']['class_end'] ?? $s['schedule']['evening_end'] ?? '—' }}"
+                    data-link="{{ route('parent.attendance.child', hash_id($att->child_id)) }}"
+                    onclick="showDetailModal(this)">
                     <td style="font-weight:700;">{{ $att->child->name ?? 'N/A' }}</td>
                     <td><small style="color:#64748b;">{{ $att->child->classroom->name ?? '—' }}</small></td>
                     <td>{{ \Carbon\Carbon::parse($att->date)->format('d M Y') }}</td>
@@ -100,4 +116,82 @@
     <div style="text-align:center;padding:40px;color:#94a3b8;">No attendance records.</div>
     @endif
 </div>
+
+{{-- Detail Modal --}}
+<div class="modal-overlay" id="detailModal" onclick="if(event.target===this)closeDetailModal()">
+    <div class="modal-box" style="background:white;border-radius:20px;padding:28px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;">
+        <button class="modal-close" onclick="closeDetailModal()" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:22px;cursor:pointer;color:#94a3b8;">✕</button>
+        <div style="font-size:18px;font-weight:800;color:#1e293b;margin-bottom:4px;" id="mdlName"></div>
+        <div style="font-size:12px;color:#94a3b8;margin-bottom:16px;" id="mdlClassDate"></div>
+
+        {{-- Check-in --}}
+        <div style="padding:12px;background:#f8fafc;border-radius:12px;margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;">📥 Check-in</div>
+            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+                <tr><td style="padding:3px 0;color:#94a3b8;">Schedule</td><td style="padding:3px 0;text-align:right;font-weight:600;" id="mdlCiSched">—</td></tr>
+                <tr><td style="padding:3px 0;color:#94a3b8;">Actual</td><td style="padding:3px 0;text-align:right;font-weight:700;" id="mdlCiTime">—</td></tr>
+                <tr><td style="padding:3px 0;color:#94a3b8;">Status</td><td style="padding:3px 0;text-align:right;" id="mdlCiStatus">—</td></tr>
+                <tr><td style="padding:3px 0;color:#94a3b8;">Diff</td><td style="padding:3px 0;text-align:right;font-weight:700;" id="mdlCiMins">—</td></tr>
+            </table>
+        </div>
+
+        {{-- Check-out --}}
+        <div style="padding:12px;background:#f8fafc;border-radius:12px;margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;">📤 Check-out</div>
+            <table style="width:100%;font-size:12px;border-collapse:collapse;">
+                <tr><td style="padding:3px 0;color:#94a3b8;">Schedule</td><td style="padding:3px 0;text-align:right;font-weight:600;" id="mdlCoSched">—</td></tr>
+                <tr><td style="padding:3px 0;color:#94a3b8;">Actual</td><td style="padding:3px 0;text-align:right;font-weight:700;" id="mdlCoTime">—</td></tr>
+                <tr><td style="padding:3px 0;color:#94a3b8;">Status</td><td style="padding:3px 0;text-align:right;" id="mdlCoStatus">—</td></tr>
+                <tr><td style="padding:3px 0;color:#94a3b8;">Diff</td><td style="padding:3px 0;text-align:right;font-weight:700;" id="mdlCoMins">—</td></tr>
+            </table>
+        </div>
+
+        <a id="mdlLink" href="#" style="display:block;text-align:center;padding:8px;background:#ede9fe;color:#6d28d9;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;">📋 View Full History</a>
+    </div>
+</div>
+
+<style>
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:.2s;}
+.modal-overlay.show{opacity:1;visibility:visible;}
+.modal-overlay.show .modal-box{transform:translateY(0);}
+.modal-box{transform:translateY(20px);transition:.3s;}
+</style>
+
+<script>
+function showDetailModal(row){
+    var d=row.dataset;
+    document.getElementById('mdlName').textContent=d.name;
+    document.getElementById('mdlClassDate').textContent='🏫 '+d.classroom+' · 📅 '+d.date;
+    document.getElementById('mdlLink').href=d.link;
+
+    // Check-in
+    document.getElementById('mdlCiTime').textContent=d.ciTime;
+    document.getElementById('mdlCiSched').textContent=d.ciSched;
+    var ciBadge=statusBadge(d.ciStatus,d.ciLabel);
+    document.getElementById('mdlCiStatus').innerHTML=ciBadge;
+    document.getElementById('mdlCiMins').textContent=+d.ciMins>0?'+'+d.ciMins+'m':'';
+    document.getElementById('mdlCiMins').style.color='#c62828';
+
+    // Check-out
+    document.getElementById('mdlCoTime').textContent=d.coTime;
+    document.getElementById('mdlCoSched').textContent=d.coSched;
+    var coBadge=statusBadge(d.coStatus,d.coLabel);
+    document.getElementById('mdlCoStatus').innerHTML=coBadge;
+    var coM=+d.coMins;
+    document.getElementById('mdlCoMins').textContent=coM>0?(d.coStatus==='early'?'-':'+')+coM+'m':'';
+    document.getElementById('mdlCoMins').style.color=d.coStatus==='early'?'#1565c0':'#c62828';
+
+    document.getElementById('detailModal').classList.add('show');
+}
+
+function statusBadge(status,label){
+    if(status==='on_time') return '<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟢 '+label+'</span>';
+    if(status==='late') return '<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟡 '+label+'</span>';
+    if(status==='early') return '<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🔴 '+label+'</span>';
+    if(status==='absent') return '<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🔴 '+label+'</span>';
+    return '<span style="color:#94a3b8;">'+label+'</span>';
+}
+
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('show');}
+</script>
 @endsection
