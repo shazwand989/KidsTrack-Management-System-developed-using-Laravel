@@ -160,7 +160,7 @@ class CheckinController extends Controller
         }
 
         if (count($checkedInChildren) === 1) {
-            return redirect()->route('kiosk.checkin.page', \App\Helper\KioskHelper::hashId($checkedInChildren[0]->id));
+            return redirect()->route('kiosk.checkin.page', hash_id($checkedInChildren[0]->id));
         }
 
         $parent = \App\Models\User::find($parentId);

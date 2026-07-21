@@ -260,7 +260,7 @@ class QRScanController extends Controller
                 'has_checkin' => $hasCheckin,
                 'has_checkout' => $hasCheckout,
                 'is_late' => $isLate,
-                'redirect' => route('kiosk.confirm.child', \App\Helper\KioskHelper::hashId($child->id))
+                'redirect' => route('kiosk.confirm.child', hash_id($child->id))
             ]);
 
         } catch (\Exception $e) {
@@ -324,7 +324,7 @@ class QRScanController extends Controller
             }
 
             // ➡️ REDIRECT KE AddAnotherChildController
-            return redirect()->route('kiosk.add.another', \App\Helper\KioskHelper::hashId($childId));
+            return redirect()->route('kiosk.add.another', hash_id($childId));
         } catch (\Exception $e) {
             Log::error('confirmChild Error: ' . $e->getMessage());
             return redirect()->route('kiosk.add.another', $childId)
@@ -906,7 +906,7 @@ class QRScanController extends Controller
         if (!$child) {
             abort(404, 'QR Code tidak dijumpai');
         }
-        return redirect()->route('kiosk.checkin.page', \App\Helper\KioskHelper::hashId($child->id));
+        return redirect()->route('kiosk.checkin.page', hash_id($child->id));
     }
 
     public function confirmCheckin(Request $request)

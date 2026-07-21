@@ -13,7 +13,7 @@ use App\Http\Controllers\HolidayController;
 // GLOBAL BINDING: {child} accepts hashed OR plain ID
 // ============================================
 Route::bind('child', function ($value) {
-    $id = \App\Helper\KioskHelper::decodeId($value);
+    $id = unhash_id($value);
     if ($id) {
         return \App\Models\Child::findOrFail($id);
     }
