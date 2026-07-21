@@ -31,51 +31,83 @@ class QRScanController extends Controller
         return TimerSetting::where('day_name', 'like', '%' . $today . '%')->first();
     }
 
-    private function getCurrentSlot()
+    private function getCurrentSlot(?Child $child = null)
     {
         $timer = $this->getTimerForToday();
-
-        if (!$timer) {
-            return null;
-        }
-
         $currentTime = Carbon::now('Asia/Kuala_Lumpur');
         $currentTimeInt = (int) $currentTime->format('Hi');
 
-        $morningStart = (int) str_replace(':', '', $timer->morning_start);
-        $morningEnd = (int) str_replace(':', '', $timer->morning_end);
-        $eveningStart = (int) str_replace(':', '', $timer->evening_start);
-        $eveningEnd = (int) str_replace(':', '', $timer->evening_end);
+        // Use classroom schedule if child is provided
+        if ($child && $child->classroom) {
+            $cls = $child->classroom;
+            $classStart  = $cls->start_time ? (int) str_replace(':', '', substr($cls->start_time, 0, 5)) : 800;
+            $classEnd    = $cls->end_time   ? (int) str_replace(':', '', substr($cls->end_time, 0, 5))   : 1700;
 
-        if ($currentTimeInt >= $morningStart && $currentTimeInt <= $morningEnd) {
-            return [
-                'slot' => 'morning',
-                'type' => 'checkin',
-                'label' => 'Morning (Check-in)',
-                'start' => $timer->morning_start,
-                'end' => $timer->morning_end
-            ];
-        }
-
-        if ($currentTimeInt >= $eveningStart && $currentTimeInt <= $eveningEnd) {
+            // Before class = check-in window, after class = check-out window
+            if ($currentTimeInt < $classEnd) {
+                return [
+                    'slot' => 'morning',
+                    'type' => 'checkin',
+                    'label' => 'Check-in',
+                    'start' => $cls->start_time ?? '08:00',
+                    'end' => $cls->end_time ?? '17:00',
+                ];
+            }
             return [
                 'slot' => 'evening',
                 'type' => 'checkout',
-                'label' => 'Evening (Check-out)',
-                'start' => $timer->evening_start,
-                'end' => $timer->evening_end
+                'label' => 'Check-out',
+                'start' => $cls->end_time ?? '17:00',
+                'end' => $cls->end_time ?? '17:00',
             ];
         }
 
-        return null;
+        // Fallback: TimerSetting (general display)
+        if ($timer) {
+            $morningStart = (int) str_replace(':', '', $timer->morning_start);
+            $morningEnd   = (int) str_replace(':', '', $timer->morning_end);
+            $eveningStart = (int) str_replace(':', '', $timer->evening_start);
+            $eveningEnd   = (int) str_replace(':', '', $timer->evening_end);
+
+            if ($currentTimeInt >= $morningStart && $currentTimeInt <= $morningEnd) {
+                return ['slot' => 'morning', 'type' => 'checkin', 'label' => 'Morning (Check-in)', 'start' => $timer->morning_start, 'end' => $timer->morning_end];
+            }
+            if ($currentTimeInt >= $eveningStart && $currentTimeInt <= $eveningEnd) {
+                return ['slot' => 'evening', 'type' => 'checkout', 'label' => 'Evening (Check-out)', 'start' => $timer->evening_start, 'end' => $timer->evening_end];
+            }
+        }
+
+        // Always return a usable slot — allow check-in anytime
+        return [
+            'slot' => 'general',
+            'type' => 'checkin',
+            'label' => 'Open',
+            'start' => '07:00',
+            'end' => '17:30',
+        ];
     }
 
-    private function getTimerSlotInfo()
+    private function getTimerSlotInfo(?Child $child = null)
     {
-        $timer = $this->getTimerForToday();
+        // Use classroom schedule if child is provided
+        if ($child && $child->classroom) {
+            $cls = $child->classroom;
+            return [
+                'morning' => ($cls->start_time ? substr($cls->start_time, 0, 5) : '08:00') . ' - ' . '17:00',
+                'evening' => '17:00 - ' . ($cls->end_time ? substr($cls->end_time, 0, 5) : '17:00'),
+                'day' => Carbon::now('Asia/Kuala_Lumpur')->format('l'),
+                'class_start' => $cls->start_time ? substr($cls->start_time, 0, 5) : '08:00',
+                'class_end' => $cls->end_time ? substr($cls->end_time, 0, 5) : '17:00',
+            ];
+        }
 
+        $timer = $this->getTimerForToday();
         if (!$timer) {
-            return null;
+            return [
+                'morning' => '07:00 - 07:30',
+                'evening' => '17:00 - 17:30',
+                'day' => Carbon::now('Asia/Kuala_Lumpur')->format('l'),
+            ];
         }
 
         return [
@@ -201,8 +233,8 @@ class QRScanController extends Controller
                 ], 200);
             }
 
-            $slot = $this->getCurrentSlot();
-            $timerInfo = $this->getTimerSlotInfo();
+            $slot = $this->getCurrentSlot($child);
+            $timerInfo = $this->getTimerSlotInfo($child);
 
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
             $existing = Attendance::where('child_id', $child->id)
@@ -360,7 +392,7 @@ class QRScanController extends Controller
         $hasCheckin = $todayAttendance && $todayAttendance->checkin_time;
         $hasCheckout = $todayAttendance && $todayAttendance->checkout_time;
 
-        $slot = $this->getCurrentSlot();
+        $slot = $this->getCurrentSlot($child);
         $isLate = $slot && $slot['slot'] === 'morning' ? $this->isLateForCheckin() : false;
 
         // Can checkout anytime after checkin, not just during evening slot
@@ -450,8 +482,8 @@ class QRScanController extends Controller
                 'action' => 'required|in:checkin,checkout'
             ]);
 
-            $slot = $this->getCurrentSlot();
-            $timerInfo = $this->getTimerSlotInfo();
+            $slot = $this->getCurrentSlot($child);
+            $timerInfo = $this->getTimerSlotInfo($child);
 
             $child = Child::find($request->child_id);
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
@@ -618,9 +650,9 @@ class QRScanController extends Controller
         }
 
         $now = Carbon::now('Asia/Kuala_Lumpur');
-        $slot = $this->getCurrentSlot();
+        $slot = $this->getCurrentSlot($child);
         $slotLabel = $slot ? $slot['label'] : 'Unknown';
-        $timerInfo = $this->getTimerSlotInfo();
+        $timerInfo = $this->getTimerSlotInfo($child);
 
         $message = "🧸 KidsTrack Alert\n\n";
         $message .= "👶 Child: {$child->name}\n";

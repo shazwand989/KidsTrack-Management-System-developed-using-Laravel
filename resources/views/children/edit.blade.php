@@ -507,10 +507,11 @@
                 </div>
 
                 <div class="rg-group">
-                    <label class="rg-label">Home Address <span class="req">*</span></label>
-                    <textarea name="address" rows="2"
-                        placeholder="e.g. No. 12, Jalan Mawar, Taman Sentosa...">{{ old('address', $child->address) }}</textarea>
-                    @error('address')<span class="invalid-msg">{{ $message }}</span>@enderror
+                    <label class="rg-label">Home Address</label>
+                    <div style="padding:10px 14px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;color:#475569;font-size:13px;">
+                        📍 {{ $child->parent->address ?? 'No address set for parent' }}
+                    </div>
+                    <small style="color:#94a3b8;font-size:11px;display:block;margin-top:4px;">Address is managed from parent profile.</small>
                 </div>
             </div>
         </div>

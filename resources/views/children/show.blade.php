@@ -578,7 +578,7 @@
                     </div>
                     <div class="info-row">
                         <div class="info-label"><span>📍</span> Home Address</div>
-                        <div class="info-value">{{ $child->address ?? '-' }}</div>
+                        <div class="info-value">{{ $child->parent->address ?? '-' }}</div>
                     </div>
                 </div>
 

@@ -553,13 +553,15 @@
         </div>
     </div>
 
-    {{-- Shared Address --}}
+    {{-- Shared Address (from parent) --}}
     <div class="rg-card">
         <div class="rg-section-title"><span>📍</span> Home Address</div>
         <div class="rg-group">
-            <label class="rg-label">Address <span class="req">*</span></label>
-            <textarea name="address" rows="2" placeholder="e.g. No. 12, Jalan Mawar, Taman Sentosa...">{{ old('address') }}</textarea>
-            @error('address')<span class="invalid-msg">{{ $message }}</span>@enderror
+            <label class="rg-label">Address</label>
+            <div id="parentAddressDisplay" style="padding:10px 14px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;color:#94a3b8;font-size:13px;">
+                Select a parent to show address
+            </div>
+            <small style="color:#94a3b8;font-size:11px;display:block;margin-top:4px;">Address is from the selected parent's profile.</small>
         </div>
     </div>
 
@@ -725,9 +727,6 @@
             showErr(document.getElementById('parent_id'), 'Please select a Main Parent');
             hasError = true;
         }
-        // Check address
-        const addr = form.querySelector('[name="address"]');
-        if (!addr.value.trim()) { showErr(addr, 'Address is required'); hasError = true; }
         // Check each child
         document.querySelectorAll('.child-card').forEach(card => {
             const idx = card.getAttribute('data-index');
