@@ -81,6 +81,7 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('student-timetables', StudentTimetableController::class);
 
     Route::resource('parents', ParentController::class);
+    Route::get('/parents/export/csv', [ParentController::class, 'exportCsv'])->name('parents.export-csv');
     Route::post('/parents/check-email', [ParentController::class, 'checkEmail'])->name('parents.check-email');
     Route::resource('children', ChildController::class);
     Route::post('/children/check-ic', [ChildController::class, 'checkIc'])->name('children.check-ic');

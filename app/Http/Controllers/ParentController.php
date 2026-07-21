@@ -10,71 +10,172 @@ use Illuminate\Support\Facades\Storage;
 class ParentController extends Controller
 {
     // LIST - show families grouped by shared children
-    public function index()
+    public function index(Request $request)
     {
-        // Get all main parents with their children
-        $mainParents = \App\Models\User::where('role', 'parent1')
-            ->with('children')
-            ->get();
+        // AJAX: return paginated JSON data
+        if ($request->ajax() || $request->wantsJson()) {
+            return $this->fetchFamilies($request);
+        }
 
-        // Build family groups: each main parent + their linked second parent & guardian
+        // Stats for the cards
+        $stats = $this->getStats();
+
+        return view('parent.index', compact('stats'));
+    }
+
+    /**
+     * Fetch paginated family data for AJAX calls.
+     */
+    private function fetchFamilies(Request $request)
+    {
+        $search  = (string) $request->get('search', '');
+        $perPage = $request->get('per_page', 10);
+        $page    = $request->get('page', 1);
+
+        // Build families collection
+        $families = $this->buildFamilies($search);
+
+        // Paginate the collection manually
+        $total    = $families->count();
+        $paginated = $families->forPage($page, $perPage)->values();
+
+        return response()->json([
+            'data'         => $paginated,
+            'current_page' => (int) $page,
+            'per_page'     => (int) $perPage,
+            'total'        => $total,
+            'last_page'    => (int) ceil($total / $perPage),
+            'from'         => $total > 0 ? (($page - 1) * $perPage) + 1 : 0,
+            'to'           => min($page * $perPage, $total),
+        ]);
+    }
+
+    /**
+     * Build normalized family groups from the database.
+     */
+    private function buildFamilies(?string $search = ''): \Illuminate\Support\Collection
+    {
+        $search = (string) $search;
+        $query = \App\Models\User::where('role', 'parent1');
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone_number', 'like', "%{$search}%");
+            });
+        }
+
+        $mainParents = $query->with('children')->get();
+
         $families = collect();
         $seenUserIds = [];
 
         foreach ($mainParents as $main) {
             $childIds = $main->children->pluck('id');
 
-            if ($childIds->isEmpty()) {
-                // Main parent with no children — show alone
-                $families->push([
-                    'main' => $main,
-                    'second' => null,
-                    'guardian' => null,
-                    'children' => collect(),
-                    'childCount' => 0,
-                ]);
-                $seenUserIds[] = $main->id;
-                continue;
+            // Find linked second parent and guardian
+            $related = collect();
+            if ($childIds->isNotEmpty()) {
+                $related = \App\Models\User::whereIn('role', ['parent2', 'guardian'])
+                    ->whereNotIn('id', $seenUserIds)
+                    ->whereHas('guardianships', fn($q) => $q->whereIn('child_id', $childIds))
+                    ->get();
             }
 
-            // Find related users sharing same children
-            $related = \App\Models\User::where('id', '!=', $main->id)
-                ->whereHas('guardianships', fn($q) => $q->whereIn('child_id', $childIds))
-                ->get();
-
-            $second = $related->firstWhere('role', 'parent2');
+            $second   = $related->firstWhere('role', 'parent2');
             $guardian = $related->firstWhere('role', 'guardian');
 
             $families->push([
-                'main' => $main,
-                'second' => $second,
-                'guardian' => $guardian,
-                'children' => $main->children,
+                'main'       => $main,
+                'second'     => $second,
+                'guardian'   => $guardian,
+                'children'   => $main->children,
                 'childCount' => $main->children->count(),
             ]);
 
             $seenUserIds[] = $main->id;
-            if ($second) $seenUserIds[] = $second->id;
+            if ($second)   $seenUserIds[] = $second->id;
             if ($guardian) $seenUserIds[] = $guardian->id;
         }
 
-        // Add orphan parent2/guardian users not linked to any parent1
-        $orphans = \App\Models\User::whereIn('role', ['parent2', 'guardian'])
-            ->whereNotIn('id', $seenUserIds)
-            ->with('children')
-            ->get();
+        return $families;
+    }
 
-        foreach ($orphans as $orphan) {
-            $families->push([
-                'main' => $orphan,
-                'second' => null,
-                'guardian' => null,
-                'children' => $orphan->children,
-                'childCount' => $orphan->children->count(),
+    /**
+     * Get aggregate stats for the stat cards.
+     */
+    private function getStats(): array
+    {
+        $families  = $this->buildFamilies();
+        $totalMain = \App\Models\User::where('role', 'parent1')->count();
+
+        return [
+            'totalFamilies'  => $families->count(),
+            'totalChildren'  => $families->sum('childCount'),
+            'totalMain'      => $totalMain,
+            'totalSecond'    => \App\Models\User::where('role', 'parent2')->count(),
+            'totalGuardian'  => \App\Models\User::where('role', 'guardian')->count(),
+            'verified'       => $families->filter(fn($f) => $f['main']->verified)->count(),
+            'guardianCount'  => $families->filter(fn($f) => $f['guardian'])->count(),
+        ];
+    }
+
+    /**
+     * Export all families to CSV.
+     */
+    public function exportCsv()
+    {
+        $families = $this->buildFamilies();
+
+        $filename = 'loving_guardians_' . now()->format('Y-m-d_His') . '.csv';
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function () use ($families) {
+            $output = fopen('php://output', 'w');
+            // BOM for Excel UTF-8 compatibility
+            fwrite($output, "\xEF\xBB\xBF");
+
+            fputcsv($output, [
+                '#', 'Main Parent', 'Phone', 'Email', 'Role',
+                'Second Parent', 'Second Phone', 'Second Email',
+                'Guardian', 'Guardian Phone', 'Guardian Email',
+                'Children', 'Child Count', 'Verified',
             ]);
-        }
 
-        return view('parent.index', compact('families'));
+            $i = 1;
+            foreach ($families as $family) {
+                $main    = $family['main'];
+                $second  = $family['second'];
+                $guard   = $family['guardian'];
+                $kids    = $family['children']->pluck('name')->implode(', ');
+
+                fputcsv($output, [
+                    $i++,
+                    $main->name,
+                    $main->phone_number ?? '-',
+                    $main->email ?? '-',
+                    ucfirst(str_replace('parent', 'Parent ', $main->role)),
+                    $second ? $second->name : '-',
+                    $second ? ($second->phone_number ?? '-') : '-',
+                    $second ? ($second->email ?? '-') : '-',
+                    $guard ? $guard->name : '-',
+                    $guard ? ($guard->phone_number ?? '-') : '-',
+                    $guard ? ($guard->email ?? '-') : '-',
+                    $kids ?: '-',
+                    $family['childCount'],
+                    $main->verified ? 'Yes' : 'No',
+                ]);
+            }
+
+            fclose($output);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     // CREATE FORM

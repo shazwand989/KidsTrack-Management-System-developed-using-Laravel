@@ -374,7 +374,7 @@
         <p>View, update, and manage parent and guardian records.</p>
     </div>
     <div class="pg-header-right">
-        <a href="#" class="btn-export">
+        <a href="{{ route('parents.export-csv') }}" class="btn-export">
             <i class="fas fa-download"></i> Export CSV
         </a>
         <a href="{{ route('parents.create') }}" class="btn-register">
@@ -384,182 +384,308 @@
 </div>
 
 {{-- Stat Cards --}}
-@php
-    $totalFamilies = $families->count();
-    $totalChildren = $families->sum('childCount');
-    $verified = $families->filter(fn($f) => $f['main']->verified)->count();
-    $guardianCount = $families->filter(fn($f) => $f['guardian'])->count();
-@endphp
-
 <div class="stat-row">
     <div class="stat-card">
         <div class="stat-icon pink"><i class="fas fa-users"></i></div>
         <div>
-            <div class="stat-num">{{ $totalFamilies }}</div>
+            <div class="stat-num">{{ $stats['totalFamilies'] }}</div>
             <div class="stat-label">Families</div>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
         <div>
-            <div class="stat-num">{{ $verified }}</div>
+            <div class="stat-num">{{ $stats['verified'] }}</div>
             <div class="stat-label">Verified</div>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon orange"><i class="fas fa-child"></i></div>
         <div>
-            <div class="stat-num">{{ $totalChildren }}</div>
+            <div class="stat-num">{{ $stats['totalChildren'] }}</div>
             <div class="stat-label">Children</div>
         </div>
     </div>
     <div class="stat-card">
         <div class="stat-icon blue"><i class="fas fa-user-shield"></i></div>
         <div>
-            <div class="stat-num">{{ $guardianCount }}</div>
+            <div class="stat-num">{{ $stats['guardianCount'] }}</div>
             <div class="stat-label">With Guardian</div>
         </div>
     </div>
 </div>
 
-{{-- Search --}}
+{{-- Search & Per Page --}}
 <div class="filter-bar">
     <div class="search-wrap">
         <i class="fas fa-search"></i>
         <input type="text" class="search-input" id="searchInput"
             placeholder="Search family name, phone, email...">
     </div>
-    <span class="record-count">{{ $totalFamilies }} families</span>
+    <select class="filter-select" id="perPageSelect">
+        <option value="10">10 per page</option>
+        <option value="25">25 per page</option>
+        <option value="50">50 per page</option>
+        <option value="100">100 per page</option>
+    </select>
+    <span class="record-count" id="recordCount">{{ $stats['totalFamilies'] }} families</span>
 </div>
 
 {{-- Table --}}
 <div class="table-card">
-    <table class="pg-table">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Main Parent</th>
-                <th>Second Parent</th>
-                <th>Guardian</th>
-                <th>👶 Children</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody id="tableBody">
-            @forelse($families as $i => $family)
-            @php
-                $main = $family['main'];
-                $second = $family['second'];
-                $guardian = $family['guardian'];
-                $children = $family['children'];
-            @endphp
-            <tr data-search="{{ strtolower($main->name) }} {{ strtolower($main->email ?? '') }} {{ strtolower($main->phone_number ?? '') }} {{ $second ? strtolower($second->name) : '' }} {{ $guardian ? strtolower($guardian->name) : '' }}">
-                <td style="color:#94a3b8;font-weight:700;">{{ $i + 1 }}</td>
-
-                {{-- Main Parent --}}
-                <td>
-                    <div class="parent-cell">
-                        <div class="parent-avatar" style="width:40px;height:40px;border-radius:10px;font-size:14px;">
-                            @if($main->photo)
-                                <img src="{{ Storage::url($main->photo) }}" alt="">
-                            @else
-                                {{ strtoupper(substr($main->name, 0, 1)) }}
-                            @endif
-                        </div>
-                        <div>
-                            <p class="parent-name" style="font-size:13px;">{{ $main->name }}</p>
-                            <p class="parent-sub">📞 {{ $main->phone_number ?? '-' }}</p>
-                            @if($main->verified)
-                                <span class="status-badge verified" style="font-size:9px;padding:1px 6px;">✓</span>
-                            @endif
-                        </div>
-                    </div>
-                </td>
-
-                {{-- Second Parent --}}
-                <td>
-                    @if($second)
-                    <div class="parent-cell">
-                        <div class="parent-avatar" style="width:34px;height:34px;border-radius:8px;font-size:12px;background:linear-gradient(135deg,#3b82f6,#60a5fa);">
-                            {{ strtoupper(substr($second->name, 0, 1)) }}
-                        </div>
-                        <div>
-                            <p class="parent-name" style="font-size:12px;">{{ $second->name }}</p>
-                            <p class="parent-sub">📞 {{ $second->phone_number ?? '-' }}</p>
-                        </div>
-                    </div>
-                    @else
-                        <span style="color:#cbd5e1;font-size:12px;">—</span>
-                    @endif
-                </td>
-
-                {{-- Guardian --}}
-                <td>
-                    @if($guardian)
-                    <div class="parent-cell">
-                        <div class="parent-avatar" style="width:34px;height:34px;border-radius:8px;font-size:12px;background:linear-gradient(135deg,#f59e0b,#fbbf24);">
-                            {{ strtoupper(substr($guardian->name, 0, 1)) }}
-                        </div>
-                        <div>
-                            <p class="parent-name" style="font-size:12px;">{{ $guardian->name }}</p>
-                            <p class="parent-sub">📞 {{ $guardian->phone_number ?? '-' }}</p>
-                        </div>
-                    </div>
-                    @else
-                        <span style="color:#cbd5e1;font-size:12px;">—</span>
-                    @endif
-                </td>
-
-                {{-- Children --}}
-                <td>
-                    @if($children->count())
-                        @foreach($children as $child)
-                            <span class="child-tag">{{ $child->name }}</span>
-                        @endforeach
-                    @else
-                        <span style="color:#cbd5e1;">—</span>
-                    @endif
-                </td>
-
-                {{-- Actions --}}
-                <td>
-                    <div class="action-btns">
-                        <a href="{{ route('parents.show', $main->id) }}" class="act-btn view" title="View"><i class="fas fa-eye"></i></a>
-                        <a href="{{ route('parents.edit', $main->id) }}" class="act-btn edit" title="Edit"><i class="fas fa-edit"></i></a>
-                    </div>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="6" style="text-align:center;padding:60px 20px;">
-                    <div style="font-size:48px;margin-bottom:12px;">👨‍👩‍👧‍👦</div>
-                    <h5 style="color:#1e293b;font-weight:800;">No families registered yet</h5>
-                    <p style="color:#94a3b8;">Register a parent to get started.</p>
-                    <a href="{{ route('parents.create') }}" class="btn-register" style="display:inline-flex;margin-top:8px;">
-                        <i class="fas fa-plus"></i> Register Parent
-                    </a>
-                </td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
-
-    @if($totalFamilies > 0)
-    <div class="table-footer">
-        <span>{{ $totalFamilies }} families</span>
+    <div style="min-height:300px;">
+        <table class="pg-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Main Parent</th>
+                    <th>Second Parent</th>
+                    <th>Guardian</th>
+                    <th>👶 Children</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr id="loadingRow">
+                    <td colspan="6" style="text-align:center;padding:60px 20px;">
+                        <div style="font-size:28px;margin-bottom:12px;">⏳</div>
+                        <p style="color:#94a3b8;font-weight:600;">Loading families...</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
-    @endif
+</div>
+
+{{-- Pagination --}}
+<div class="pagination-wrap" id="paginationWrap" style="display:none;">
+    <div class="pagination-info" id="paginationInfo"></div>
+    <div class="pagination-links" id="paginationLinks"></div>
+</div>
+
+{{-- Empty State (hidden by default) --}}
+<div id="emptyState" class="empty-state" style="display:none;margin-top:20px;">
+    <div class="empty-icon">👨‍👩‍👧‍👦</div>
+    <h5>No families found</h5>
+    <p>Try adjusting your search or <a href="{{ route('parents.create') }}">register a parent</a>.</p>
 </div>
 
 <script>
+// Pass route URLs to JS
+window.parentRouteShow = "{{ route('parents.show', 'PLACEHOLDER') }}";
+window.parentRouteEdit = "{{ route('parents.edit', 'PLACEHOLDER') }}";
+
+let currentPage = 1;
+let currentSearch = '';
+let currentPerPage = 10;
+let debounceTimer;
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadFamilies();
+
     document.getElementById('searchInput').addEventListener('input', function() {
-        const search = this.value.toLowerCase();
-        document.querySelectorAll('#tableBody tr').forEach(row => {
-            if (row.querySelector('td[colspan]')) return;
-            row.style.display = search === '' || (row.dataset.search || '').includes(search) ? '' : 'none';
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            currentSearch = this.value;
+            currentPage = 1;
+            loadFamilies();
+        }, 300);
+    });
+
+    document.getElementById('perPageSelect').addEventListener('change', function() {
+        currentPerPage = parseInt(this.value);
+        currentPage = 1;
+        loadFamilies();
+    });
+});
+
+function loadFamilies() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:60px 20px;">
+        <div style="font-size:28px;margin-bottom:12px;">⏳</div>
+        <p style="color:#94a3b8;font-weight:600;">Loading families...</p>
+    </td></tr>`;
+
+    fetch(`?search=${encodeURIComponent(currentSearch)}&per_page=${currentPerPage}&page=${currentPage}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.data.length === 0 && currentSearch === '') {
+            // Completely empty
+            document.getElementById('emptyState').style.display = 'block';
+            tbody.innerHTML = '';
+            document.getElementById('paginationWrap').style.display = 'none';
+            document.getElementById('recordCount').textContent = '0 families';
+            return;
+        }
+
+        if (res.data.length === 0) {
+            // Search returned nothing
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:60px 20px;">
+                <div style="font-size:48px;margin-bottom:12px;">🔍</div>
+                <h5 style="color:#1e293b;font-weight:800;">No families match your search</h5>
+                <p style="color:#94a3b8;">Try a different keyword.</p>
+            </td></tr>`;
+            document.getElementById('paginationWrap').style.display = 'none';
+            document.getElementById('recordCount').textContent = '0 families';
+            document.getElementById('emptyState').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('recordCount').textContent = res.total + ' families';
+        renderTable(res.data, res.from);
+        renderPagination(res);
+    })
+    .catch(err => {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:60px 20px;">
+            <p style="color:#dc2626;">Failed to load data. Please try again.</p>
+        </td></tr>`;
+    });
+}
+
+function renderTable(families, startIndex) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    families.forEach((family, i) => {
+        const main    = family.main;
+        const second  = family.second;
+        const guardian = family.guardian;
+        const children = family.children || [];
+        const childCount = family.childCount || children.length;
+
+        const mainInitial = main.name ? main.name.charAt(0).toUpperCase() : '?';
+        const secInitial  = second ? second.name.charAt(0).toUpperCase() : '';
+        const gdInitial   = guardian ? guardian.name.charAt(0).toUpperCase() : '';
+
+        const mainPhoto = main.photo
+            ? `<img src="/storage/${main.photo}" alt="">`
+            : mainInitial;
+
+        let childrenHtml = '';
+        if (children.length) {
+            children.forEach(child => {
+                childrenHtml += `<span class="child-tag">${child.name}</span>`;
+            });
+        } else {
+            childrenHtml = '<span style="color:#cbd5e1;">—</span>';
+        }
+
+        const rowNum = startIndex + i;
+
+        tbody.innerHTML += `
+        <tr onclick="window.location='${window.parentRouteShow.replace('PLACEHOLDER', main.id)}'" style="cursor:pointer;">
+            <td style="color:#94a3b8;font-weight:700;">${rowNum}</td>
+            <td>
+                <div class="parent-cell">
+                    <div class="parent-avatar" style="width:40px;height:40px;border-radius:10px;font-size:14px;">
+                        ${mainPhoto}
+                    </div>
+                    <div>
+                        <p class="parent-name" style="font-size:13px;">${main.name}</p>
+                        <p class="parent-sub">📞 ${main.phone_number || '-'}</p>
+                        ${main.verified ? '<span class="status-badge verified" style="font-size:9px;padding:1px 6px;">✓</span>' : ''}
+                    </div>
+                </div>
+            </td>
+            <td>
+                ${second ? `
+                <div class="parent-cell">
+                    <div class="parent-avatar" style="width:34px;height:34px;border-radius:8px;font-size:12px;background:linear-gradient(135deg,#3b82f6,#60a5fa);">
+                        ${secInitial}
+                    </div>
+                    <div>
+                        <p class="parent-name" style="font-size:12px;">${second.name}</p>
+                        <p class="parent-sub">📞 ${second.phone_number || '-'}</p>
+                    </div>
+                </div>` : '<span style="color:#cbd5e1;font-size:12px;">—</span>'}
+            </td>
+            <td>
+                ${guardian ? `
+                <div class="parent-cell">
+                    <div class="parent-avatar" style="width:34px;height:34px;border-radius:8px;font-size:12px;background:linear-gradient(135deg,#f59e0b,#fbbf24);">
+                        ${gdInitial}
+                    </div>
+                    <div>
+                        <p class="parent-name" style="font-size:12px;">${guardian.name}</p>
+                        <p class="parent-sub">📞 ${guardian.phone_number || '-'}</p>
+                    </div>
+                </div>` : '<span style="color:#cbd5e1;font-size:12px;">—</span>'}
+            </td>
+            <td>${childrenHtml}</td>
+            <td>
+                <div class="action-btns" onclick="event.stopPropagation();">
+                    <a href="${window.parentRouteShow.replace('PLACEHOLDER', main.id)}" class="act-btn view" title="View"><i class="fas fa-eye"></i></a>
+                    <a href="${window.parentRouteEdit.replace('PLACEHOLDER', main.id)}" class="act-btn edit" title="Edit"><i class="fas fa-edit"></i></a>
+                </div>
+            </td>
+        </tr>`;
+    });
+}
+
+function renderPagination(res) {
+    const wrap = document.getElementById('paginationWrap');
+    const info = document.getElementById('paginationInfo');
+    const links = document.getElementById('paginationLinks');
+
+    if (res.last_page <= 1) {
+        wrap.style.display = 'none';
+        return;
+    }
+
+    wrap.style.display = 'flex';
+    info.textContent = `Showing ${res.from}–${res.to} of ${res.total} families`;
+
+    links.innerHTML = '';
+
+    // Previous
+    const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+    links.innerHTML += `<span class="${prevDisabled}"><a href="#" class="page-link" data-page="${currentPage - 1}">‹</a></span>`;
+
+    // Page numbers
+    const maxPages = 7;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
+    let endPage = Math.min(res.last_page, startPage + maxPages - 1);
+    if (endPage - startPage < maxPages - 1) {
+        startPage = Math.max(1, endPage - maxPages + 1);
+    }
+
+    if (startPage > 1) {
+        links.innerHTML += `<span><a href="#" class="page-link" data-page="1">1</a></span>`;
+        if (startPage > 2) links.innerHTML += `<span class="disabled"><span class="page-link">…</span></span>`;
+    }
+
+    for (let p = startPage; p <= endPage; p++) {
+        const active = p === currentPage ? 'active' : '';
+        links.innerHTML += `<span class="${active}"><a href="#" class="page-link" data-page="${p}">${p}</a></span>`;
+    }
+
+    if (endPage < res.last_page) {
+        if (endPage < res.last_page - 1) links.innerHTML += `<span class="disabled"><span class="page-link">…</span></span>`;
+        links.innerHTML += `<span><a href="#" class="page-link" data-page="${res.last_page}">${res.last_page}</a></span>`;
+    }
+
+    // Next
+    const nextDisabled = currentPage >= res.last_page ? 'disabled' : '';
+    links.innerHTML += `<span class="${nextDisabled}"><a href="#" class="page-link" data-page="${currentPage + 1}">›</a></span>`;
+
+    // Click handlers
+    links.querySelectorAll('.page-link[data-page]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const page = parseInt(this.dataset.page);
+            if (page && page !== currentPage) {
+                currentPage = page;
+                loadFamilies();
+                document.querySelector('.table-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         });
     });
+}
 </script>
+
 
 <style>
     .child-tag {
