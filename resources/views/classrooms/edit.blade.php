@@ -434,16 +434,19 @@
         <a href="{{ route('classrooms.show', $classroom->id) }}" class="btn-cancel">
             <span>✖️</span> Cancel
         </a>
-        <form action="{{ route('classrooms.destroy', $classroom->id) }}" method="POST" style="display: inline;" 
-            onsubmit="return confirm('⚠️ Are you sure you want to delete {{ $classroom->name }}?\n\nThis action cannot be undone and will affect all children in this class.')">
-            @csrf
-            @method('DELETE')
+    </div>
+
+    </form>
+
+    <form action="{{ route('classrooms.destroy', $classroom->id) }}" method="POST" style="display: inline;"
+        onsubmit="return confirm('⚠️ Are you sure you want to delete {{ $classroom->name }}?\n\nThis action cannot be undone and will affect all children in this class.')">
+        @csrf
+        @method('DELETE')
+        <div class="rg-actions">
             <button type="submit" class="btn-delete">
                 <i class="fas fa-trash-alt"></i> Delete Classroom
             </button>
-        </form>
-    </div>
-
+        </div>
     </form>
 
 </div>

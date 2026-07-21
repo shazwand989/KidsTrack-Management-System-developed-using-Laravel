@@ -629,9 +629,15 @@ class AttendanceController extends Controller
     // ============================================
     public function create()
     {
-        $children = Child::with('classroom')->where('is_active', true)->get();
+        $children   = Child::with(['classroom', 'guardianships.user'])->where('is_active', true)->orderBy('name')->get();
         $classrooms = Classroom::all();
-        return view('attendance.create', compact('children', 'classrooms'));
+
+        // Today's existing attendance (keyed by child_id)
+        $todayAttendance = Attendance::whereDate('date', now()->toDateString())
+            ->get()
+            ->keyBy('child_id');
+
+        return view('attendance.create', compact('children', 'classrooms', 'todayAttendance'));
     }
 
     // ============================================
@@ -655,6 +661,50 @@ class AttendanceController extends Controller
 
         return redirect()->route('attendance.index')
             ->with('success', 'Attendance record created successfully.');
+    }
+
+    // ============================================
+    // BATCH STORE — Save multiple attendance records
+    // ============================================
+    public function batchStore(Request $request)
+    {
+        $request->validate([
+            'date'        => 'required|date',
+            'attendances' => 'required|array',
+        ]);
+
+        $date   = $request->date;
+        $count  = 0;
+        $errors = [];
+
+        foreach ($request->attendances as $childId => $data) {
+            if (empty($data['status'])) continue;
+
+            try {
+                // Upsert: update existing or create new
+                Attendance::updateOrCreate(
+                    ['child_id' => $childId, 'date' => $date],
+                    [
+                        'status'       => $data['status'],
+                        'checkin_time' => $data['checkin_time'] ?? null,
+                        'checkout_time'=> $data['checkout_time'] ?? null,
+                        'drop_off_by'  => $data['drop_off_by'] ?? null,
+                        'pickup_by'    => $data['pickup_by'] ?? null,
+                        'late_reason'  => $data['late_reason'] ?? null,
+                        'is_verified'  => $data['status'] !== 'absent',
+                    ]
+                );
+                $count++;
+            } catch (\Exception $e) {
+                $errors[] = "Child #{$childId}: {$e->getMessage()}";
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'saved'   => $count,
+            'errors'  => $errors,
+        ]);
     }
 
     // ============================================

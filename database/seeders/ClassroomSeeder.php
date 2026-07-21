@@ -13,9 +13,9 @@ class ClassroomSeeder extends Seeder
 
         // Format: [name, code, age_group, min_age, max_age, capacity, color]
         $classrooms = [
-            ['Ceria 1 (2 Tahun)', 'C1', '2 Tahun', 1, 2,  15, '#45B7D1'],
-            ['Ceria 2 (3 Tahun)', 'C2', '3 Tahun', 2, 3,  15, '#FF6B6B'],
-            ['Bestari (4 Tahun)', 'B1', '4 Tahun', 3, 4,  15, '#4ECDC4'],
+            ['Ceria 1 (2 Tahun)', 'C1', '2 Tahun', 1, 2,  35, '#45B7D1'],
+            ['Ceria 2 (3 Tahun)', 'C2', '3 Tahun', 2, 3,  35, '#FF6B6B'],
+            ['Bestari (4 Tahun)', 'B1', '4 Tahun', 3, 4,  35, '#4ECDC4'],
         ];
 
         $this->insertClassrooms($classrooms);

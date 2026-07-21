@@ -82,6 +82,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::resource('parents', ParentController::class);
     Route::get('/parents/export/csv', [ParentController::class, 'exportCsv'])->name('parents.export-csv');
+    Route::get('/parents/export/excel', [ParentController::class, 'exportExcel'])->name('parents.export-excel');
+    Route::get('/parents/export/pdf', [ParentController::class, 'exportPdf'])->name('parents.export-pdf');
     Route::post('/parents/check-email', [ParentController::class, 'checkEmail'])->name('parents.check-email');
     Route::resource('children', ChildController::class);
     Route::post('/children/check-ic', [ChildController::class, 'checkIc'])->name('children.check-ic');
@@ -95,6 +97,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/attendance/data', [AttendanceController::class, 'getData'])->name('attendance.data');
     Route::post('/attendance/checkin', [AttendanceController::class, 'checkin'])->name('attendance.checkin');
     Route::post('/attendance/checkout', [AttendanceController::class, 'checkout'])->name('attendance.checkout');
+    Route::post('/attendance/batch', [AttendanceController::class, 'batchStore'])->name('attendance.batch-store');
     Route::resource('attendance', AttendanceController::class);
 
     // ============================================

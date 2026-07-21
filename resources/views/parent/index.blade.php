@@ -43,9 +43,65 @@
         align-items: center;
         gap: 7px;
         transition: .2s;
+        cursor: pointer;
     }
 
     .btn-export:hover { background: #FFF5F2; color: #C2410C; }
+
+    /* Fancy dropdown */
+    .export-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .export-dropdown-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 100%;
+        margin-top: 6px;
+        background: white;
+        border-radius: 14px;
+        box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+        border: 1px solid #f1f5f9;
+        min-width: 180px;
+        z-index: 100;
+        overflow: hidden;
+        animation: fadeDown .2s ease;
+    }
+
+    @keyframes fadeDown {
+        from { opacity: 0; transform: translateY(-6px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .export-dropdown-menu.show { display: block; }
+
+    .export-dropdown-menu a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 16px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #475569;
+        text-decoration: none;
+        transition: background .15s;
+    }
+
+    .export-dropdown-menu a:hover { background: #FFF5F2; }
+
+    .export-dropdown-menu a .export-icon {
+        width: 32px; height: 32px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+    .export-icon.csv   { background: #eff6ff; color: #3b82f6; }
+    .export-icon.excel { background: #f0fdf4; color: #16a34a; }
+    .export-icon.pdf   { background: #fef2f2; color: #dc2626; }
 
     .btn-register {
         background: linear-gradient(to right, #FF6B6B, #FF9E7D);
@@ -374,9 +430,26 @@
         <p>View, update, and manage parent and guardian records.</p>
     </div>
     <div class="pg-header-right">
-        <a href="{{ route('parents.export-csv') }}" class="btn-export">
-            <i class="fas fa-download"></i> Export CSV
-        </a>
+        <div class="export-dropdown">
+            <button class="btn-export" onclick="document.getElementById('exportMenu').classList.toggle('show')">
+                <i class="fas fa-download"></i> Export
+                <i class="fas fa-chevron-down" style="font-size:10px;margin-left:2px;"></i>
+            </button>
+            <div class="export-dropdown-menu" id="exportMenu">
+                <a href="{{ route('parents.export-csv') }}">
+                    <span class="export-icon csv"><i class="fas fa-file-csv"></i></span>
+                    <span>CSV<span style="color:#94a3b8;font-weight:500;font-size:10px;display:block;">Comma-separated</span></span>
+                </a>
+                <a href="{{ route('parents.export-excel') }}">
+                    <span class="export-icon excel"><i class="fas fa-file-excel"></i></span>
+                    <span>Excel<span style="color:#94a3b8;font-weight:500;font-size:10px;display:block;">Spreadsheet (.xls)</span></span>
+                </a>
+                <a href="{{ route('parents.export-pdf') }}">
+                    <span class="export-icon pdf"><i class="fas fa-file-pdf"></i></span>
+                    <span>PDF<span style="color:#94a3b8;font-weight:500;font-size:10px;display:block;">Printable document</span></span>
+                </a>
+            </div>
+        </div>
         <a href="{{ route('parents.create') }}" class="btn-register">
             <i class="fas fa-plus"></i> Register Parent
         </a>
@@ -482,6 +555,15 @@ let debounceTimer;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadFamilies();
+
+    // Close export dropdown on outside click
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('exportMenu');
+        const btn  = e.target.closest('.btn-export');
+        if (!btn && menu && menu.classList.contains('show')) {
+            menu.classList.remove('show');
+        }
+    });
 
     document.getElementById('searchInput').addEventListener('input', function() {
         clearTimeout(debounceTimer);

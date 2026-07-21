@@ -53,6 +53,7 @@ class ParentController extends Controller
 
     /**
      * Build normalized family groups from the database.
+     * Uses batch queries to avoid N+1.
      */
     private function buildFamilies(?string $search = ''): \Illuminate\Support\Collection
     {
@@ -69,23 +70,45 @@ class ParentController extends Controller
 
         $mainParents = $query->with('children')->get();
 
+        // Collect ALL child IDs in one pass
+        $allChildIds = $mainParents->pluck('children.*.id')->flatten()->unique()->filter()->toArray();
+
+        // Single batch query: all parent2/guardian users linked to any of these children
+        $relatedUsers = collect();
+        if (!empty($allChildIds)) {
+            $relatedUsers = \App\Models\User::whereIn('role', ['parent2', 'guardian'])
+                ->whereHas('guardianships', fn($q) => $q->whereIn('child_id', $allChildIds))
+                ->with(['guardianships' => fn($q) => $q->whereIn('child_id', $allChildIds)])
+                ->get();
+        }
+
+        $usedUserIds = [];
         $families = collect();
-        $seenUserIds = [];
 
         foreach ($mainParents as $main) {
-            $childIds = $main->children->pluck('id');
+            $childIds = $main->children->pluck('id')->toArray();
 
-            // Find linked second parent and guardian
-            $related = collect();
-            if ($childIds->isNotEmpty()) {
-                $related = \App\Models\User::whereIn('role', ['parent2', 'guardian'])
-                    ->whereNotIn('id', $seenUserIds)
-                    ->whereHas('guardianships', fn($q) => $q->whereIn('child_id', $childIds))
-                    ->get();
+            // Find related users by matching child_ids from the batch
+            $second   = null;
+            $guardian = null;
+
+            if (!empty($childIds)) {
+                $second = $relatedUsers
+                    ->where('role', 'parent2')
+                    ->reject(fn($u) => in_array($u->id, $usedUserIds))
+                    ->first(fn($u) => !empty(array_intersect(
+                        $u->guardianships->pluck('child_id')->toArray(),
+                        $childIds
+                    )));
+
+                $guardian = $relatedUsers
+                    ->where('role', 'guardian')
+                    ->reject(fn($u) => in_array($u->id, $usedUserIds))
+                    ->first(fn($u) => !empty(array_intersect(
+                        $u->guardianships->pluck('child_id')->toArray(),
+                        $childIds
+                    )));
             }
-
-            $second   = $related->firstWhere('role', 'parent2');
-            $guardian = $related->firstWhere('role', 'guardian');
 
             $families->push([
                 'main'       => $main,
@@ -95,9 +118,9 @@ class ParentController extends Controller
                 'childCount' => $main->children->count(),
             ]);
 
-            $seenUserIds[] = $main->id;
-            if ($second)   $seenUserIds[] = $second->id;
-            if ($guardian) $seenUserIds[] = $guardian->id;
+            $usedUserIds[] = $main->id;
+            if ($second)   $usedUserIds[] = $second->id;
+            if ($guardian) $usedUserIds[] = $guardian->id;
         }
 
         return $families;
@@ -138,18 +161,20 @@ class ParentController extends Controller
     }
 
     /**
-     * Export all families to Excel (.xls).
+     * Export all families to Excel (.xls) — styled HTML table.
      */
     public function exportExcel()
     {
         $families = $this->buildFamilies();
         $filename = 'loving_guardians_' . now()->format('Y-m-d_His') . '.xls';
 
-        return response()->stream(
-            $this->exportCallback($families, "\t"), // tab-separated for Excel
-            200,
-            ['Content-Type' => 'application/vnd.ms-excel; charset=UTF-8', 'Content-Disposition' => "attachment; filename=\"$filename\""]
-        );
+        $html = view('parent.exports.excel', compact('families'))->render();
+
+        return response($html, 200, [
+            'Content-Type'        => 'application/vnd.ms-excel; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+            'Cache-Control'       => 'no-cache',
+        ]);
     }
 
     /**
