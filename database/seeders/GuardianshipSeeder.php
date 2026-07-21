@@ -15,22 +15,39 @@ class GuardianshipSeeder extends Seeder
         $mainParents   = DB::table('users')->where('role', 'parent1')->orderBy('id')->pluck('id')->toArray();
         $secondParents = DB::table('users')->where('role', 'parent2')->orderBy('id')->pluck('id')->toArray();
         $guardians     = DB::table('users')->where('role', 'guardian')->orderBy('id')->pluck('id')->toArray();
-        $childIds      = DB::table('children')->orderBy('id')->pluck('id')->toArray();
+        $children      = DB::table('children')->orderBy('id')->get();
 
-        // Every child gets all 3 guardians — pick from pool evenly
+        // Group children by insertion order — ChildSeeder creates 1-3 per family in sequence
+        $families = [];
+        $currentFamily = 0;
+        $prevParent = null;
+
+        // Since ChildSeeder creates kids per main parent, we infer families by cycling parents
+        // Each family = same main parent, same second parent, same guardian for all its kids
+        $childCount = $children->count();
+        $familyIndex = 0;
+        $childIndex = 0;
+
+        // Distribute children into family groups (~2 per family average)
         $count = 0;
-        foreach ($childIds as $i => $childId) {
-            $main   = $mainParents[$i % count($mainParents)];
-            $second = $secondParents[$i % count($secondParents)];
-            $guard  = $guardians[$i % count($guardians)];
+        foreach ($children as $child) {
+            $idx = $familyIndex % count($mainParents);
+            $main   = $mainParents[$idx];
+            $second = $secondParents[$idx % count($secondParents)];
+            $guard  = $guardians[$idx % count($guardians)];
 
             DB::table('guardianships')->insert([
-                ['child_id' => $childId, 'user_id' => $main,   'relationship' => 'main_parent',   'is_emergency_contact' => 1, 'created_at' => now(), 'updated_at' => now()],
-                ['child_id' => $childId, 'user_id' => $second, 'relationship' => 'second_parent', 'is_emergency_contact' => 0, 'created_at' => now(), 'updated_at' => now()],
-                ['child_id' => $childId, 'user_id' => $guard,  'relationship' => 'guardian',      'is_emergency_contact' => 1, 'created_at' => now(), 'updated_at' => now()],
+                ['child_id' => $child->id, 'user_id' => $main,   'relationship' => 'main_parent',   'is_emergency_contact' => 1, 'created_at' => now(), 'updated_at' => now()],
+                ['child_id' => $child->id, 'user_id' => $second, 'relationship' => 'second_parent', 'is_emergency_contact' => 0, 'created_at' => now(), 'updated_at' => now()],
+                ['child_id' => $child->id, 'user_id' => $guard,  'relationship' => 'guardian',      'is_emergency_contact' => 1, 'created_at' => now(), 'updated_at' => now()],
             ]);
             $count += 3;
+
+            $childIndex++;
+            // Move to next family every ~2 children
+            if ($childIndex % 2 === 0) $familyIndex++;
         }
-        $this->command->info('  ✓ guardianships: ' . $count);
+
+        $this->command->info('  ✓ guardianships: ' . $count . ' (families: ' . ($familyIndex + 1) . ')');
     }
 }

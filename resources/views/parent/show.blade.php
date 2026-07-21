@@ -563,7 +563,11 @@
                     <div class="settings-row">
                         <span class="settings-label"><i class="fas fa-check-circle" style="font-size:10px;"></i> Verified Status:</span>
                         <span class="status-badge {{ $parent->verified ? 'verified' : 'unverified' }}">
-                            {{ $parent->verified ? '<i class="fas fa-check-circle" style="font-size:10px;"></i> Verified' : '❌ Unverified' }}
+                            @if($parent->verified)
+                                <i class="fas fa-check-circle" style="font-size:10px;"></i> Verified
+                            @else
+                                ❌ Unverified
+                            @endif
                         </span>
                     </div>
                     <div class="settings-row">

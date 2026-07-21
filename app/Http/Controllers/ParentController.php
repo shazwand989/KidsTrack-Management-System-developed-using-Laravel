@@ -301,29 +301,62 @@ class ParentController extends Controller
             $user->update(['photo' => $request->file('photo')->store('parents', 'public')]);
         }
 
-        // Link children if provided (for inline registration)
-        $childIds = $request->input('child_ids', []);
-        if (!empty($childIds)) {
-            $relationship = match($role) {
-                'parent2' => 'second_parent',
-                'guardian' => 'guardian',
-                default => 'main_parent',
-            };
-            foreach ($childIds as $childId) {
-                \App\Models\Guardianship::where('child_id', $childId)
-                    ->where('relationship', $relationship)
-                    ->where('user_id', '!=', $user->id)
-                    ->delete();
-                \App\Models\Guardianship::create([
-                    'user_id' => $user->id,
-                    'child_id' => $childId,
-                    'relationship' => $relationship,
-                    'is_emergency_contact' => $role === 'parent1',
-                ]);
+        // Create children from form & link them to this parent (and second/guardian)
+        $childrenInput = $request->input('children', []);
+        $createdChildIds = [];
+
+        foreach ($childrenInput as $i => $childData) {
+            if (empty($childData['name'])) continue;
+
+            // Validate IC format & extract DOB
+            $ic = $childData['ic_number'] ?? null;
+            $dob = null;
+            if ($ic) {
+                $cleanIc = str_replace(['-', ' '], '', $ic);
+                if (strlen($cleanIc) !== 12 || !preg_match('/^\d{12}$/', $cleanIc)) {
+                    return back()->withInput()->withErrors(['children.' . $i . '.ic_number' => 'IC must be exactly 12 digits (YYMMDDXXXXXX).']);
+                }
+                $dob = $this->dobFromIc($cleanIc);
+                if (!$dob) {
+                    return back()->withInput()->withErrors(['children.' . $i . '.ic_number' => 'Invalid or future date in IC (YYMMDD).']);
+                }
             }
+
+            // Age auto-calculated from IC's year (simple: current year - birth year)
+            $age = (int) ($childData['age'] ?? 0);
+            if (!$age && $dob) {
+                $age = now()->year - (int) substr($dob, 0, 4);
+            }
+            if ($age < 1 || $age > 12) {
+                return back()->withInput()->withErrors(['children.' . $i . '.age' => 'Child age must be between 1 and 12.']);
+            }
+
+            $child = \App\Models\Child::create([
+                'name'         => $childData['name'],
+                'age'          => $age,
+                'ic_number'    => $ic,
+                'classroom_id' => $childData['classroom_id'] ?? null,
+                'dob'          => $childData['dob'] ?? $dob,
+                'is_active'    => true,
+                'enrollment_date' => now(),
+                'qr_code'      => 'KID-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),
+            ]);
+
+            $createdChildIds[] = $child->id;
+
+            // Link main parent
+            \App\Models\Guardianship::create([
+                'user_id'       => $user->id,
+                'child_id'      => $child->id,
+                'relationship'  => $role === 'parent2' ? 'second_parent' : ($role === 'guardian' ? 'guardian' : 'main_parent'),
+                'is_emergency_contact' => $role === 'parent1',
+            ]);
         }
 
-        // Handle second parent & guardian for full form (non-JSON)
+        // Create second parent & guardian (if provided)
+        $secondUser = null;
+        $guardianUser = null;
+
         if (!$isJson) {
             if ($request->filled('second_name') && $request->filled('second_email')) {
                 $secondUser = \App\Models\User::firstOrCreate(
@@ -335,6 +368,7 @@ class ParentController extends Controller
                         'phone_number' => $request->second_phone,
                         'address' => $request->second_address,
                         'role' => 'parent2',
+                        'verified' => true,
                     ]
                 );
                 if ($request->hasFile('second_photo')) {
@@ -352,11 +386,30 @@ class ParentController extends Controller
                         'phone_number' => $request->guardian_phone,
                         'address' => $request->guardian_address,
                         'role' => 'guardian',
+                        'verified' => true,
                     ]
                 );
                 if ($request->hasFile('guardian_photo')) {
                     $guardianUser->update(['photo' => $request->file('guardian_photo')->store('parents', 'public')]);
                 }
+            }
+        }
+
+        // Link second parent & guardian to the same children as main parent
+        if ($secondUser) {
+            foreach ($createdChildIds as $childId) {
+                \App\Models\Guardianship::updateOrCreate(
+                    ['user_id' => $secondUser->id, 'child_id' => $childId, 'relationship' => 'second_parent'],
+                    ['is_emergency_contact' => false]
+                );
+            }
+        }
+        if ($guardianUser) {
+            foreach ($createdChildIds as $childId) {
+                \App\Models\Guardianship::updateOrCreate(
+                    ['user_id' => $guardianUser->id, 'child_id' => $childId, 'relationship' => 'guardian'],
+                    ['is_emergency_contact' => true]
+                );
             }
         }
 
@@ -366,6 +419,32 @@ class ParentController extends Controller
 
         return redirect()->route('parents.index')
             ->with('success', 'Parent registered successfully!');
+    }
+
+    /**
+     * Extract DOB from Malaysian IC format (YYMMDDXXXXXX or YYMMDD-XX-XXXX).
+     * Supports birth years 2000-2026 (children aged 0-17 as of 2026).
+     * Returns null if date is invalid or in the future.
+     */
+    private function dobFromIc(?string $ic): ?string
+    {
+        if (!$ic) return null;
+        $clean = str_replace(['-', ' '], '', $ic);
+        if (strlen($clean) < 6) return null;
+        $yy = (int) substr($clean, 0, 2);
+        $mm = (int) substr($clean, 2, 2);
+        $dd = (int) substr($clean, 4, 2);
+
+        // Children: YY 00-26 → 2000-2026 (ages 0-26, main use is 1-17)
+        $year = 2000 + $yy;
+
+        if (!checkdate($mm, $dd, $year)) return null;
+
+        // DOB must not be in the future
+        $dob = sprintf('%04d-%02d-%02d', $year, $mm, $dd);
+        if ($dob > now()->toDateString()) return null;
+
+        return $dob;
     }
 
     // AJAX CHECK EMAIL

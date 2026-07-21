@@ -533,6 +533,100 @@
     </div>
 
     {{-- ============================================ --}}
+    {{-- REGISTER CHILDREN --}}
+    {{-- ============================================ --}}
+    <div class="rg-card" id="childrenSection">
+        <div class="rg-section-title">
+            <i class="fas fa-child"></i> Register Children for this Family
+        </div>
+        <p style="font-size:12px;color:#64748b;margin-bottom:14px;">Add children to register under this family. You can add up to 5 children.</p>
+
+        @php $classrooms = \App\Models\Classroom::all(); @endphp
+
+        <div id="childRows">
+            <div class="child-row" style="display:grid;grid-template-columns:2fr 1fr 0.7fr 0.8fr 1fr;gap:10px;margin-bottom:10px;padding:12px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+                <div><label style="font-size:11px;font-weight:700;color:#64748b;">Full Name</label>
+                    <input type="text" name="children[0][name]" placeholder="Child name" required></div>
+                <div><label style="font-size:11px;font-weight:700;color:#64748b;">IC / MyKid</label>
+                    <input type="text" name="children[0][ic_number]" placeholder="YYMMDDXXXXXX" pattern="\d{12}" maxlength="12"
+                           title="12-digit IC number (YYMMDDXXXXXX) without dashes"
+                           oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,12);calcAge(this)"></div>
+                <div><label style="font-size:11px;font-weight:700;color:#64748b;">Age <span style="color:#94a3b8;">(auto)</span></label>
+                    <input type="number" name="children[0][age]" min="1" max="12" placeholder="Auto" readonly
+                           style="background:#f1f5f9 !important;cursor:not-allowed;"></div>
+                <div><label style="font-size:11px;font-weight:700;color:#64748b;">DOB</label>
+                    <input type="text" name="children[0][dob]" placeholder="Auto" readonly
+                           style="background:#f1f5f9 !important;cursor:not-allowed;font-size:12px;" class="dob-display"></div>
+                <div><label style="font-size:11px;font-weight:700;color:#64748b;">Classroom</label>
+                    <select name="children[0][classroom_id]" required>
+                        <option value="">Select class</option>
+                        @foreach($classrooms as $c)
+                            <option value="{{ $c->id }}">{{ $c->name }}</option>
+                        @endforeach
+                    </select></div>
+            </div>
+        </div>
+
+        <button type="button" onclick="addChildRow()" style="border:2px dashed #e2e8f0;background:none;border-radius:12px;padding:10px;width:100%;font-size:13px;font-weight:700;color:#64748b;cursor:pointer;margin-top:8px;">
+            + Add Another Child
+        </button>
+    </div>
+
+    <script>
+    let childCount = 1;
+
+    function calcAge(input) {
+        const row = input.closest('.child-row');
+        const ageInput = row.querySelector('input[name$="[age]"]');
+        const dobInput = row.querySelector('input[name$="[dob]"]');
+        if (!ageInput) return;
+
+        const ic = input.value.replace(/[^0-9]/g, '');
+        if (ic.length < 6) { ageInput.value = ''; if (dobInput) dobInput.value = ''; return; }
+
+        const yy = parseInt(ic.substring(0, 2));
+        const mm = parseInt(ic.substring(2, 4));
+        const dd = parseInt(ic.substring(4, 6));
+        const year = 2000 + yy;
+
+        // Validate date
+        const daysInMonth = new Date(year, mm, 0).getDate();
+        if (mm < 1 || mm > 12 || dd < 1 || dd > daysInMonth || year > 2026) {
+            ageInput.value = '';
+            if (dobInput) dobInput.value = 'Invalid date';
+            return;
+        }
+
+        const age = 2026 - year;
+        ageInput.value = (age >= 1 && age <= 12) ? age : '';
+        if (dobInput) dobInput.value = String(dd).padStart(2,'0') + '/' + String(mm).padStart(2,'0') + '/' + year;
+    }
+
+    function addChildRow() {
+        if (childCount >= 5) return;
+        const html = `<div class="child-row" style="display:grid;grid-template-columns:2fr 1fr 0.7fr 0.8fr 1fr;gap:10px;margin-bottom:10px;padding:12px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;position:relative;">
+            <div><input type="text" name="children[${childCount}][name]" placeholder="Child name" required></div>
+            <div><input type="text" name="children[${childCount}][ic_number]" placeholder="YYMMDDXXXXXX" pattern="\\d{12}" maxlength="12"
+                       title="12-digit IC number (YYMMDDXXXXXX) without dashes"
+                       oninput="this.value=this.value.replace(/[^0-9]/g,'').slice(0,12);calcAge(this)"></div>
+            <div><input type="number" name="children[${childCount}][age]" min="1" max="12" placeholder="Auto" readonly
+                       style="background:#f1f5f9 !important;cursor:not-allowed;"></div>
+            <div><input type="text" name="children[${childCount}][dob]" placeholder="Auto" readonly
+                       style="background:#f1f5f9 !important;cursor:not-allowed;font-size:12px;" class="dob-display"></div>
+            <div><select name="children[${childCount}][classroom_id]" required>
+                <option value="">Select class</option>
+                @foreach($classrooms as $c)
+                    <option value="{{ $c->id }}">{{ $c->name }}</option>
+                @endforeach
+            </select></div>
+            <button type="button" onclick="this.parentElement.remove();childCount--" style="position:absolute;top:4px;right:4px;background:#fee2e2;border:none;border-radius:6px;color:#dc2626;font-size:11px;font-weight:700;cursor:pointer;padding:2px 8px;">✕</button>
+        </div>`;
+        document.getElementById('childRows').insertAdjacentHTML('beforeend', html);
+        childCount++;
+    }
+    </script>
+
+    {{-- ============================================ --}}
     {{-- SPECIAL SETTINGS --}}
     {{-- ============================================ --}}
     <div class="rg-card">
