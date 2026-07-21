@@ -7,8 +7,8 @@
 
 <style>
     .profile-container {
-        max-width: 1200px;
-        margin: 0 auto;
+        width: 100%;
+        margin: 0;
     }
 
     .profile-card {
