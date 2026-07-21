@@ -60,7 +60,7 @@
             <tbody>
                 @foreach($attendance as $att)
                 @php $s = $summaries[$att->id] ?? null; @endphp
-                <tr onclick="location.href='{{ route('parent.attendance.child', \App\Helper\KioskHelper::hashId($att->child_id)) }}'">
+                <tr onclick="location.href='{{ route('parent.attendance.child', hash_id($att->child_id)) }}'">
                     <td style="font-weight:700;">{{ $att->child->name ?? 'N/A' }}</td>
                     <td><small style="color:#64748b;">{{ $att->child->classroom->name ?? '—' }}</small></td>
                     <td>{{ \Carbon\Carbon::parse($att->date)->format('d M Y') }}</td>

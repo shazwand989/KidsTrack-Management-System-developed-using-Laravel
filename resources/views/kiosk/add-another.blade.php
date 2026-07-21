@@ -814,8 +814,8 @@
         const allCheckedInIds = @json($checkedInIds ?? []);
         const availableChildren = @json(array_column($availableChildren ?? [], 'id'));
         const currentChildId = {{ isset($currentChild) ? $currentChild->id : 0 }};
-        const hashedChildId = '{{ isset($currentChild) ? \App\Helper\KioskHelper::hashId($currentChild->id) : '' }}';
-        const childHashes = @json(isset($allChildren) ? $allChildren->mapWithKeys(fn($c) => [$c->id => \App\Helper\KioskHelper::hashId($c->id)]) : []);
+        const hashedChildId = '{{ isset($currentChild) ? hash_id($currentChild->id) : '' }}';
+        const childHashes = @json(isset($allChildren) ? $allChildren->mapWithKeys(fn($c) => [$c->id => hash_id($c->id)]) : []);
 
         let selectedChildren = [];
 

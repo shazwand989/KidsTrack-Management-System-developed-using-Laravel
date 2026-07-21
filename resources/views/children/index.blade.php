@@ -508,15 +508,15 @@
                 {{-- Actions --}}
                 <td>
                     <div class="action-btns">
-                        <a href="{{ route('children.show', \App\Helper\KioskHelper::hashId($child->id)) }}"
+                        <a href="{{ route('children.show', hash_id($child->id)) }}"
                             class="act-btn view" title="View">
                             <i class="fas fa-eye"></i>
                         </a>
-                        <a href="{{ route('children.edit', \App\Helper\KioskHelper::hashId($child->id)) }}"
+                        <a href="{{ route('children.edit', hash_id($child->id)) }}"
                             class="act-btn edit" title="Edit">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <form action="{{ route('children.destroy', \App\Helper\KioskHelper::hashId($child->id)) }}"
+                        <form action="{{ route('children.destroy', hash_id($child->id)) }}"
                             method="POST" style="margin:0;">
                             @csrf
                             @method('DELETE')
