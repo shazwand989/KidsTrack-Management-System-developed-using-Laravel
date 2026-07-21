@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Child;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ParentController extends Controller
 {
@@ -127,32 +128,66 @@ class ParentController extends Controller
     public function exportCsv()
     {
         $families = $this->buildFamilies();
-
         $filename = 'loving_guardians_' . now()->format('Y-m-d_His') . '.csv';
 
-        $headers = [
-            'Content-Type'        => 'text/csv; charset=UTF-8',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
+        return response()->stream(
+            $this->exportCallback($families),
+            200,
+            ['Content-Type' => 'text/csv; charset=UTF-8', 'Content-Disposition' => "attachment; filename=\"$filename\""]
+        );
+    }
 
-        $callback = function () use ($families) {
+    /**
+     * Export all families to Excel (.xls).
+     */
+    public function exportExcel()
+    {
+        $families = $this->buildFamilies();
+        $filename = 'loving_guardians_' . now()->format('Y-m-d_His') . '.xls';
+
+        return response()->stream(
+            $this->exportCallback($families, "\t"), // tab-separated for Excel
+            200,
+            ['Content-Type' => 'application/vnd.ms-excel; charset=UTF-8', 'Content-Disposition' => "attachment; filename=\"$filename\""]
+        );
+    }
+
+    /**
+     * Export all families to PDF.
+     */
+    public function exportPdf()
+    {
+        $families = $this->buildFamilies();
+        $filename = 'loving_guardians_' . now()->format('Y-m-d_His') . '.pdf';
+
+        $pdf = Pdf::loadView('parent.exports.pdf', compact('families'))
+                  ->setPaper('a4', 'landscape');
+
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Shared CSV/Excel export callback.
+     */
+    private function exportCallback($families, string $delimiter = ','): \Closure
+    {
+        return function () use ($families, $delimiter) {
             $output = fopen('php://output', 'w');
-            // BOM for Excel UTF-8 compatibility
-            fwrite($output, "\xEF\xBB\xBF");
+            fwrite($output, "\xEF\xBB\xBF"); // BOM
 
             fputcsv($output, [
                 '#', 'Main Parent', 'Phone', 'Email', 'Role',
                 'Second Parent', 'Second Phone', 'Second Email',
                 'Guardian', 'Guardian Phone', 'Guardian Email',
                 'Children', 'Child Count', 'Verified',
-            ]);
+            ], $delimiter);
 
             $i = 1;
             foreach ($families as $family) {
-                $main    = $family['main'];
-                $second  = $family['second'];
-                $guard   = $family['guardian'];
-                $kids    = $family['children']->pluck('name')->implode(', ');
+                $main   = $family['main'];
+                $second = $family['second'];
+                $guard  = $family['guardian'];
+                $kids   = $family['children']->pluck('name')->implode(', ');
 
                 fputcsv($output, [
                     $i++,
@@ -169,13 +204,11 @@ class ParentController extends Controller
                     $kids ?: '-',
                     $family['childCount'],
                     $main->verified ? 'Yes' : 'No',
-                ]);
+                ], $delimiter);
             }
 
             fclose($output);
         };
-
-        return response()->stream($callback, 200, $headers);
     }
 
     // CREATE FORM
