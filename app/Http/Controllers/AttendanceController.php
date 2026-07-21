@@ -1479,6 +1479,8 @@ public function exportSinglePdf($id)
 
         $childrenData = $children->map(function ($c) use ($attendances) {
             $att = $attendances->get($c->id);
+            $ciTime = $att && $att->checkin_time ? date('h:i A', strtotime($att->checkin_time)) : null;
+            $coTime = $att && $att->checkout_time ? date('h:i A', strtotime($att->checkout_time)) : null;
             return [
                 'id' => $c->id,
                 'name' => $c->name,
@@ -1486,6 +1488,9 @@ public function exportSinglePdf($id)
                 'classroom' => $c->classroom->name ?? '-',
                 'initial' => strtoupper(substr($c->name, 0, 1)),
                 'checked_in' => $att && $att->checkin_time ? true : false,
+                'checked_out' => $att && $att->checkout_time ? true : false,
+                'ci_time' => $ciTime,
+                'co_time' => $coTime,
             ];
         });
 
@@ -1512,6 +1517,13 @@ public function exportSinglePdf($id)
         $today = date('Y-m-d');
         $now = date('H:i:s');
         $count = 0;
+        $results = [];
+
+        // Preload children with classrooms
+        $children = \App\Models\Child::with('classroom')
+            ->whereIn('id', $request->child_ids)
+            ->get()
+            ->keyBy('id');
 
         foreach ($request->child_ids as $childId) {
             $existing = Attendance::where('child_id', $childId)
@@ -1520,7 +1532,12 @@ public function exportSinglePdf($id)
 
             if ($existing && $existing->checkin_time) continue;
 
-            $status = 'present';
+            $child = $children[$childId] ?? null;
+            $classroom = $child->classroom ?? null;
+            $startTime = $classroom ? substr($classroom->start_time, 0, 5) : '07:00';
+            $isLate = $now > $startTime;
+            $status = $isLate ? 'late' : 'present';
+
             if ($existing) {
                 $existing->update([
                     'checkin_time' => $now, 'status' => $status,
@@ -1534,13 +1551,140 @@ public function exportSinglePdf($id)
                     'is_verified' => true,
                 ]);
             }
+
+            $results[] = [
+                'child_id'      => $childId,
+                'child_name'    => $child->name ?? 'Unknown',
+                'classroom'     => $classroom->name ?? '-',
+                'start_time'    => $startTime,
+                'is_late'       => $isLate,
+                'checkin_time'  => date('h:i A', strtotime($now)),
+            ];
             $count++;
         }
 
+        // Re-fetch children with updated attendance status
+        $allChildIds = Guardianship::where('user_id', $user->id)->pluck('child_id');
+        $allChildren = Child::whereIn('id', $allChildIds)
+            ->where('is_active', true)
+            ->with('classroom')
+            ->get();
+        $allAttendances = Attendance::whereIn('child_id', $allChildren->pluck('id'))
+            ->where('date', $today)
+            ->get()
+            ->keyBy('child_id');
+        $childrenData = $allChildren->map(function ($c) use ($allAttendances) {
+            $att = $allAttendances->get($c->id);
+            $ciTime = $att && $att->checkin_time ? date('h:i A', strtotime($att->checkin_time)) : null;
+            $coTime = $att && $att->checkout_time ? date('h:i A', strtotime($att->checkout_time)) : null;
+            return [
+                'id' => $c->id,
+                'name' => $c->name,
+                'age' => $c->age,
+                'classroom' => $c->classroom->name ?? '-',
+                'initial' => strtoupper(substr($c->name, 0, 1)),
+                'checked_in' => $att && $att->checkin_time ? true : false,
+                'checked_out' => $att && $att->checkout_time ? true : false,
+                'ci_time' => $ciTime,
+                'co_time' => $coTime,
+            ];
+        });
+
         return response()->json([
             'success' => true,
-            'count' => $count,
+            'count'   => $count,
+            'results' => $results,
+            'children' => $childrenData,
             'message' => "{$count} anak berjaya check-in!",
+        ]);
+    }
+
+    /**
+     * Bulk checkout from parent scan page.
+     */
+    public function bulkCheckoutScan(Request $request)
+    {
+        $request->validate([
+            'parent_id' => 'required|exists:users,id',
+            'child_ids' => 'required|array',
+            'child_ids.*' => 'exists:children,id',
+        ]);
+
+        $user  = User::find($request->parent_id);
+        $today = date('Y-m-d');
+        $now   = date('H:i:s');
+        $count = 0;
+        $results = [];
+
+        $children = \App\Models\Child::with('classroom')
+            ->whereIn('id', $request->child_ids)
+            ->get()
+            ->keyBy('id');
+
+        foreach ($request->child_ids as $childId) {
+            $attendance = Attendance::where('child_id', $childId)
+                ->where('date', $today)
+                ->first();
+
+            if (!$attendance || !$attendance->checkin_time) continue;
+            if ($attendance->checkout_time) continue;
+
+            $child = $children[$childId] ?? null;
+            $classroom = $child->classroom ?? null;
+            $endTime = $classroom ? substr($classroom->end_time, 0, 5) : '17:00';
+            $isEarly = $now < $endTime;
+
+            $attendance->update([
+                'checkout_time' => $now,
+                'status' => $isEarly ? 'checkout' : 'late_checkout',
+                'pickup_by' => $user->name,
+                'is_verified' => true,
+            ]);
+
+            $results[] = [
+                'child_id'      => $childId,
+                'child_name'    => $child->name ?? 'Unknown',
+                'classroom'     => $classroom->name ?? '-',
+                'checkout_time' => date('h:i A', strtotime($now)),
+                'end_time'      => $endTime,
+                'is_early'      => $isEarly,
+                'pickup_by'     => $user->name,
+            ];
+            $count++;
+        }
+
+        // Re-fetch children with updated attendance status
+        $allChildIds = Guardianship::where('user_id', $user->id)->pluck('child_id');
+        $allChildren = Child::whereIn('id', $allChildIds)
+            ->where('is_active', true)
+            ->with('classroom')
+            ->get();
+        $allAttendances = Attendance::whereIn('child_id', $allChildren->pluck('id'))
+            ->where('date', $today)
+            ->get()
+            ->keyBy('child_id');
+        $childrenData = $allChildren->map(function ($c) use ($allAttendances) {
+            $att = $allAttendances->get($c->id);
+            $ciTime = $att && $att->checkin_time ? date('h:i A', strtotime($att->checkin_time)) : null;
+            $coTime = $att && $att->checkout_time ? date('h:i A', strtotime($att->checkout_time)) : null;
+            return [
+                'id' => $c->id,
+                'name' => $c->name,
+                'age' => $c->age,
+                'classroom' => $c->classroom->name ?? '-',
+                'initial' => strtoupper(substr($c->name, 0, 1)),
+                'checked_in' => $att && $att->checkin_time ? true : false,
+                'checked_out' => $att && $att->checkout_time ? true : false,
+                'ci_time' => $ciTime,
+                'co_time' => $coTime,
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'count'   => $count,
+            'results' => $results,
+            'children' => $childrenData,
         ]);
     }
 }

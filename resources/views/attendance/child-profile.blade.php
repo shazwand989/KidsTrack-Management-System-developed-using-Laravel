@@ -393,9 +393,27 @@ async function doAction(action, id) {
         const data = await res.json();
 
         if (data.success) {
-            showResult(data.message || '✅ Berjaya!', 'success');
-            // Reload after short delay to show updated status
-            setTimeout(() => { location.reload(); }, 800);
+            // Show detailed result with late/on-time status
+            const msgDiv = document.getElementById('resultMsg');
+            const statusIcon = data.is_late ? '⏰' : '✅';
+            const statusColor = data.is_late ? '#fef3c7' : '#dcfce7';
+            const statusText = data.is_late ? 'LATE' : 'ON TIME';
+            const statusTextColor = data.is_late ? '#d97706' : '#16a34a';
+
+            msgDiv.style.display = 'block';
+            msgDiv.innerHTML = `
+                <div style="text-align:center;padding:16px;background:${statusColor};border-radius:16px;margin-bottom:12px;">
+                    <div style="font-size:32px;margin-bottom:4px;">${statusIcon}</div>
+                    <div style="font-size:18px;font-weight:800;color:${statusTextColor};">Check-in ${statusText}</div>
+                    <div style="font-size:24px;font-weight:800;color:#1e293b;font-family:monospace;margin:6px 0;">
+                        🕐 ${data.checkin_time || ''}
+                    </div>
+                    <div style="font-size:13px;color:#64748b;">${data.child_name} · ${data.child_classroom}</div>
+                    ${data.is_late ? '<div style="font-size:12px;color:#d97706;margin-top:4px;font-weight:600;">⚠ Check-in lewat dari jadual kelas</div>' : ''}
+                </div>`;
+
+            // Reload after showing result
+            setTimeout(() => { location.reload(); }, 2000);
         } else {
             showResult(data.message || '❌ Gagal', 'error');
             btnCheckin.disabled = false;

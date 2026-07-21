@@ -33,6 +33,7 @@ Route::prefix('attendance-scan')->name('attendance-scan.')->group(function () {
     Route::get('/search/results', [AttendanceController::class, 'searchResults'])->name('search.results');
     Route::post('/verify-parent', [AttendanceController::class, 'verifyParent'])->name('verify-parent');
     Route::post('/bulk-checkin', [AttendanceController::class, 'bulkCheckinScan'])->name('bulk-checkin');
+    Route::post('/bulk-checkout', [AttendanceController::class, 'bulkCheckoutScan'])->name('bulk-checkout');
     Route::post('/child/{child}/verify', [AttendanceController::class, 'verifyPhone'])->name('verify');
     Route::get('/child/{child}', [AttendanceController::class, 'childProfile'])->name('child');
     Route::post('/checkin/{child}', [AttendanceController::class, 'processCheckin'])->name('checkin.process');
