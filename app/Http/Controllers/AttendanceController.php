@@ -690,21 +690,37 @@ class AttendanceController extends Controller
         $count  = 0;
         $errors = [];
 
+        // Preload classroom schedules
+        $classrooms = \App\Models\Classroom::all()->keyBy('id');
+        $children   = \App\Models\Child::whereIn('id', array_keys($request->attendances))->get()->keyBy('id');
+
         foreach ($request->attendances as $childId => $data) {
             if (empty($data['status'])) continue;
 
+            $status = $data['status'];
+
+            // Auto-detect late: if status is 'present' but checkin time > classroom start_time
+            if ($status === 'present' && !empty($data['checkin_time'])) {
+                $child     = $children[$childId] ?? null;
+                $classroom = $child ? ($classrooms[$child->classroom_id] ?? null) : null;
+                $startTime = $classroom ? substr($classroom->start_time, 0, 5) : '07:00';
+
+                if ($data['checkin_time'] > $startTime) {
+                    $status = 'late';
+                }
+            }
+
             try {
-                // Upsert: update existing or create new
                 Attendance::updateOrCreate(
                     ['child_id' => $childId, 'date' => $date],
                     [
-                        'status'       => $data['status'],
+                        'status'       => $status,
                         'checkin_time' => $data['checkin_time'] ?? null,
                         'checkout_time'=> $data['checkout_time'] ?? null,
                         'drop_off_by'  => $data['drop_off_by'] ?? null,
                         'pickup_by'    => $data['pickup_by'] ?? null,
                         'late_reason'  => $data['late_reason'] ?? null,
-                        'is_verified'  => $data['status'] !== 'absent',
+                        'is_verified'  => $status !== 'absent',
                     ]
                 );
                 $count++;

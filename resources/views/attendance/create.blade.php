@@ -281,7 +281,11 @@
                         <span class="child-name">{{ $child->name }}</span>
                         <div class="child-meta">👶 {{ $child->age }}y</div>
                     </td>
-                    <td><span class="child-meta">{{ $child->classroom->name ?? '-' }}</span></td>
+                    <td><span class="child-meta">{{ $child->classroom->name ?? '-' }}
+                        @if($child->classroom?->start_time)
+                            · ⏰ {{ substr($child->classroom->start_time, 0, 5) }}
+                        @endif
+                    </span></td>
                     <td>
                         <span class="status-pill sp-none" id="pill-{{ $child->id }}"
                               onclick="cycleStatus({{ $child->id }})">— Tap to set —</span>
