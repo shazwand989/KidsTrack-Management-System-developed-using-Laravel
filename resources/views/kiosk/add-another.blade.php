@@ -1201,7 +1201,7 @@
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    window.location.href = '/kiosk?checkout=success&child=' + encodeURIComponent(data.child_name);
+                    window.location.reload();
                 } else {
                     alert('❌ ' + (data.message || 'Gagal checkout'));
                     btn.disabled = false;
