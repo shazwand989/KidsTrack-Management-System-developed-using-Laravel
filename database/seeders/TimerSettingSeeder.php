@@ -19,6 +19,12 @@ class TimerSettingSeeder extends Seeder
             'Jumaat (Friday)',
         ];
 
+        $this->insertTimerSettings($days);
+        $this->command->info('  ✓ timer_settings: ' . count($days));
+    }
+
+    private function insertTimerSettings(array $days): void
+    {
         foreach ($days as $day) {
             DB::table('timer_settings')->insert([
                 'day_name'        => $day,
@@ -33,7 +39,5 @@ class TimerSettingSeeder extends Seeder
                 'updated_at'      => now(),
             ]);
         }
-
-        $this->command->info('  ✓ timer_settings: ' . count($days));
     }
 }

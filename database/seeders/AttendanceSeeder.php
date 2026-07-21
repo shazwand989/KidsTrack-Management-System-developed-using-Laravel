@@ -11,44 +11,48 @@ class AttendanceSeeder extends Seeder
     {
         DB::table('attendance')->truncate();
 
-        $records = [
-            [
-                'child_id'     => 1,
-                'user_id'      => 10,
-                'date'         => '2026-07-21',
-                'status'       => 'present',
-                'checkin_time' => '07:15:00',
-                'drop_off_by'  => 'Norazila binti Mahmud',
-                'is_verified'  => 1,
-            ],
-            [
-                'child_id'     => 2,
-                'user_id'      => 10,
-                'date'         => '2026-07-21',
-                'status'       => 'present',
-                'checkin_time' => '07:15:00',
-                'drop_off_by'  => 'Norazila binti Mahmud',
-                'is_verified'  => 1,
-            ],
-            [
-                'child_id'     => 3,
-                'user_id'      => 16,
-                'date'         => '2026-07-21',
-                'status'       => 'late',
-                'checkin_time' => '08:05:00',
-                'drop_off_by'  => 'Rosnani binti Shuib',
-                'is_verified'  => 1,
-                'late_reason'  => 'Kesesakan lalu lintas',
-            ],
-        ];
+        $mainParents = DB::table('users')->where('role', 'parent1')->orderBy('id')->pluck('id')->toArray();
+        $childIds    = DB::table('children')->orderBy('id')->pluck('id')->toArray();
+        $userNames   = DB::table('users')->where('role', 'parent1')->orderBy('id')->pluck('name')->toArray();
 
-        foreach ($records as $rec) {
-            DB::table('attendance')->insert(array_merge($rec, [
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]));
+        $statuses = ['present', 'present', 'present', 'present', 'late', 'absent']; // weighted
+        $reasons  = ['Kesesakan lalu lintas', 'Kereta rosak', 'Hujan lebat', 'Anak tidak sihat'];
+
+        $count = 0;
+        // 3 days of attendance: today, yesterday, day before
+        $dates = [now()->toDateString(), now()->subDay()->toDateString(), now()->subDays(2)->toDateString()];
+
+        foreach ($childIds as $i => $childId) {
+            $parentIdx = $i % count($mainParents);
+
+            foreach ($dates as $date) {
+                $status = $statuses[array_rand($statuses)];
+                $record = [
+                    'child_id'     => $childId,
+                    'user_id'      => $mainParents[$parentIdx],
+                    'date'         => $date,
+                    'status'       => $status,
+                    'drop_off_by'  => $userNames[$parentIdx] ?? 'Ibu',
+                    'is_verified'  => $status !== 'absent' ? 1 : 0,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ];
+
+                if ($status === 'present' || $status === 'late') {
+                    $hour   = $status === 'late' ? '08' : '07';
+                    $minute = str_pad(mt_rand(0, 30), 2, '0', STR_PAD_LEFT);
+                    $record['checkin_time'] = "$hour:$minute:00";
+                }
+
+                if ($status === 'late') {
+                    $record['late_reason'] = $reasons[array_rand($reasons)];
+                }
+
+                DB::table('attendance')->insert($record);
+                $count++;
+            }
         }
 
-        $this->command->info('  ✓ attendance: ' . count($records));
+        $this->command->info('  ✓ attendance: ' . $count . ' records (3 days × ' . count($childIds) . ' children)');
     }
 }

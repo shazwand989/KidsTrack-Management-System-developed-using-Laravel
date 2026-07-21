@@ -11,7 +11,13 @@ return new class extends Migration
     {
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
 
-        // Drop FK columns from children
+        // Drop FK columns from children — drop constraints first
+        Schema::table('children', function (Blueprint $table) {
+            $this->dropForeignSafe($table, 'children_parent_id_foreign');
+            $this->dropForeignSafe($table, 'children_second_parent_id_foreign');
+            $this->dropForeignSafe($table, 'children_guardian_id_foreign');
+        });
+
         if (Schema::hasColumn('children', 'parent_id')) {
             DB::statement('ALTER TABLE children DROP COLUMN parent_id');
         }
@@ -22,7 +28,11 @@ return new class extends Migration
             DB::statement('ALTER TABLE children DROP COLUMN guardian_id');
         }
 
-        // Drop parent_id from attendance
+        // Drop FK from attendance before column
+        Schema::table('attendance', function (Blueprint $table) {
+            $this->dropForeignSafe($table, 'attendance_parent_id_foreign');
+        });
+
         if (Schema::hasColumn('attendance', 'parent_id')) {
             DB::statement('ALTER TABLE attendance DROP COLUMN parent_id');
         }
@@ -79,5 +89,21 @@ return new class extends Migration
         Schema::table('attendance', function (Blueprint $table) {
             $table->foreignId('parent_id')->nullable()->after('child_id');
         });
+    }
+
+    /**
+     * Drop a foreign key if it exists.
+     */
+    private function dropForeignSafe(Blueprint $table, string $key): void
+    {
+        $tableName = $table->getTable();
+        $foreigns  = Schema::getForeignKeys($tableName);
+
+        foreach ($foreigns as $fk) {
+            if ($fk['name'] === $key) {
+                Schema::table($tableName, fn (Blueprint $t) => $t->dropForeign($key));
+                return;
+            }
+        }
     }
 };

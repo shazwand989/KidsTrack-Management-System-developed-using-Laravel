@@ -11,35 +11,31 @@ class TeacherSeeder extends Seeder
     {
         DB::table('teachers')->truncate();
 
-        DB::table('teachers')->insert([
-            [
-                'id'           => 1,
-                'name'         => 'Hasanatun Nasuha binti Md Azlee',
-                'position'     => 'Guru Besar',
-                'age'          => 35,
-                'phone'        => '011-3345 8141',
-                'email'        => 'hasanatun@taskakids.com',
-                'classroom_id' => 1,
-                'status'       => 'active',
-                'join_date'    => '2025-01-02',
-                'created_at'   => now(),
-                'updated_at'   => now(),
-            ],
-            [
-                'id'           => 2,
-                'name'         => 'Nur Fatimah binti Azmi',
-                'position'     => 'Guru Kanan',
-                'age'          => 29,
-                'phone'        => '013-778 9901',
-                'email'        => 'fatimah@taskakids.com',
-                'classroom_id' => 2,
-                'status'       => 'active',
-                'join_date'    => '2025-03-15',
-                'created_at'   => now(),
-                'updated_at'   => now(),
-            ],
-        ]);
+        // Format: [name, position, age, phone, email, classroom_id, join_date]
+        $teachers = [
+            ['Hasanatun Nasuha binti Md Azlee', 'Guru Besar', '35', '01133458141', 'hasanatun@taskakids.com', 1, '2025-01-02'],
+            ['Nur Fatimah binti Azmi',          'Guru Kanan','29', '0137789901',  'fatimah@taskakids.com',  2, '2025-03-15'],
+        ];
 
-        $this->command->info('  ✓ teachers: 2');
+        $this->insertTeachers($teachers);
+        $this->command->info('  ✓ teachers: ' . count($teachers));
+    }
+
+    private function insertTeachers(array $teachers): void
+    {
+        foreach ($teachers as $t) {
+            DB::table('teachers')->insert([
+                'name'         => $t[0],
+                'position'     => $t[1],
+                'age'          => $t[2],
+                'phone'        => $t[3],
+                'email'        => $t[4],
+                'classroom_id' => $t[5],
+                'status'       => 'active',
+                'join_date'    => $t[6],
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+        }
     }
 }

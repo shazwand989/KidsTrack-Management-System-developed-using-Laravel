@@ -7,50 +7,89 @@ use Illuminate\Support\Facades\DB;
 
 class ChildSeeder extends Seeder
 {
+    private array $maleNames   = ['Adam','Afiq','Aiman','Amir','Arif','Danial','Faris','Hadi','Hakim','Haziq',
+                                   'Irfan','Ismail','Luqman','Mirza','Naufal','Rizqi','Syafiq','Zikri','Hariz','Imran',
+                                   'Aqil','Danish','Fikri','Hilmi','Iqbal','Rayyan','Umar','Zafran','Amsyar','Fayyadh'];
+    private array $femaleNames = ['Aina','Alia','Alya','Amira','Balqis','Damia','Dania','Farah','Hana','Intan',
+                                   'Izzah','Jannah','Maisarah','Nadia','Qistina','Sofia','Yasmin','Zahra','Zara','Amani',
+                                   'Aisyah','Aqilah','Batrisyia','Dhia','Hannah','Maryam','Naura','Safiyya','Wafiyya','Zulaikha'];
+    private array $binBinti    = ['bin', 'binti'];
+    private array $addresses   = [
+        'Kampung Batu 11, Jementah', 'Taman Gemilang, 85000 Segamat',
+        'Taman Mewah, 85000 Segamat', 'Kampung Tengah, 85200 Segamat',
+        'Kampung Paya Lebar, 85200 Segamat', 'Taman Delima, 85000 Segamat',
+        'Taman Seri Jementah, 85200 Segamat', 'Kampung Jawa, 85000 Segamat',
+        'Taman Anggerik, 43000 Kajang', 'Taman Kempas, 81200 Johor Bahru',
+    ];
+
     public function run(): void
     {
         DB::table('children')->truncate();
 
-        $children = [
-            [1, 'Adam bin Mohd Hafiz', 2, '200704-01-0123', '2024-07-04', 'Kampung Batu 11, Jementah', 1, 'Alahan makanan laut'],
-            [2, 'Aisyah binti Mohd Hafiz', 1, '200805-01-0456', '2025-08-05', 'Kampung Batu 11, Jementah', 1, null],
-            [3, 'Aqilah binti Azman', 2, '200706-01-0789', '2024-06-06', 'Taman Gemilang, 85000 Segamat', 1, 'Asma ringan'],
-            [4, 'Danish bin Farid', 2, '200708-01-0321', '2024-08-08', 'Taman Mewah, 85000 Segamat', 1, null],
-            [5, 'Damia binti Farid', 1, '200910-01-0654', '2025-10-09', 'Taman Mewah, 85000 Segamat', 1, null],
-            [6, 'Farah binti Rashid', 2, '200709-01-0987', '2024-09-09', 'Kampung Tengah, 85200 Segamat', 1, 'Lactose intolerant'],
-            [7, 'Haris bin Rashid', 1, '201001-01-0432', '2025-10-10', 'Kampung Tengah, 85200 Segamat', 1, 'Vegetarian'],
-            [8, 'Irfan bin Kamarul', 2, '200710-01-0789', '2024-10-10', 'Kampung Paya Lebar, 85200 Segamat', 1, null],
-            [9, 'Sarah binti Kamarul', 3, '200605-01-0345', '2023-05-06', 'Kampung Paya Lebar, 85200 Segamat', 2, null],
-            [10, 'Iman binti Kamarul', 3, '200608-01-0678', '2023-08-06', 'Kampung Paya Lebar, 85200 Segamat', 2, null],
-            [13, 'Afiqah', 3, '200703-14-0001', '2023-03-14', 'No. 55, Jalan Delima, Taman Delima', 2, null],
-            [14, 'Afiq', 3, '200704-14-0002', '2023-04-14', 'No. 55, Jalan Delima, Taman Delima', 2, null],
-        ];
+        // Get all main parents — each is a "family"
+        $mainParents = DB::table('users')->where('role', 'parent1')->orderBy('id')->get();
 
-        foreach ($children as $c) {
-            DB::table('children')->insert([
-                'id'              => $c[0],
-                'name'            => $c[1],
-                'age'             => $c[2],
-                'ic_number'       => $c[3],
-                'dob'             => $c[4],
-                'address'         => $c[5],
-                'classroom_id'    => $c[6],
-                'medical_notes'   => $c[7],
-                'dietary'         => $c[7] === 'Vegetarian' ? 'Vegetarian' : ($c[7] === 'Lactose intolerant' ? 'Lactose intolerant' : ($c[7] ?? null)),
-                'is_active'       => true,
-                'enrollment_date' => now(),
-                'qr_code'         => 'KID-' . str_pad($c[0], 4, '0', STR_PAD_LEFT),
-                'created_at'      => now(),
-                'updated_at'      => now(),
-            ]);
+        $counter = 1;
+        $total   = 0;
+
+        foreach ($mainParents as $parent) {
+            // Each family has 1-3 children (random)
+            $numChildren = mt_rand(1, 3);
+            $isMale      = $this->binBinti[array_rand($this->binBinti)];
+
+            for ($i = 0; $i < $numChildren; $i++) {
+                $gender = mt_rand(0, 1);
+                $firstName = $gender
+                    ? $this->femaleNames[array_rand($this->femaleNames)]
+                    : $this->maleNames[array_rand($this->maleNames)];
+                $name = $firstName . ' ' . $this->binBinti[$gender] . ' ' . $this->extractLastName($parent->name);
+
+                $age    = mt_rand(1, 4);
+                $year   = 2026 - $age;
+                $month  = str_pad(mt_rand(1, 12), 2, '0', STR_PAD_LEFT);
+                $day    = str_pad(mt_rand(1, 28), 2, '0', STR_PAD_LEFT);
+                $ic     = "$year$month$day-01-" . str_pad(mt_rand(100, 9999), 4, '0', STR_PAD_LEFT);
+                $dob    = "$year-$month-$day";
+
+                $classroomId = $age <= 2 ? 1 : ($age <= 3 ? 2 : 3);
+
+                // ~10% chance of medical note / dietary
+                $medical = null;
+                $dietary = null;
+                $roll = mt_rand(1, 100);
+                if ($roll <= 5)  { $medical = 'Asma ringan'; }
+                if ($roll > 90)  { $dietary = 'Vegetarian'; }
+                elseif ($roll > 85) { $dietary = 'Alahan makanan laut'; }
+                elseif ($roll > 80) { $dietary = 'Lactose intolerant'; }
+
+                DB::table('children')->insert([
+                    'name'            => $name,
+                    'age'             => $age,
+                    'ic_number'       => $ic,
+                    'dob'             => $dob,
+                    'address'         => $this->addresses[array_rand($this->addresses)],
+                    'classroom_id'    => $classroomId,
+                    'medical_notes'   => $medical,
+                    'dietary'         => $dietary,
+                    'is_active'       => true,
+                    'enrollment_date' => now(),
+                    'qr_code'         => 'KID-' . str_pad($counter, 4, '0', STR_PAD_LEFT),
+                    'created_at'      => now(),
+                    'updated_at'      => now(),
+                ]);
+                $counter++;
+                $total++;
+            }
         }
 
-        // Correct dietary/medical for specific children
-        DB::table('children')->where('id', 1)->update(['dietary' => 'Alahan makanan laut']);
-        DB::table('children')->where('id', 6)->update(['dietary' => 'Lactose intolerant']);
-        DB::table('children')->where('id', 7)->update(['dietary' => 'Vegetarian']);
-        DB::table('children')->where('id', 3)->update(['medical_notes' => 'Asma ringan']);
+        $this->command->info('  ✓ children: ' . $total . ' (across ' . count($mainParents) . ' families)');
+    }
 
-        $this->command->info('  ✓ children: ' . count($children));
+    private function extractLastName(string $fullName): string
+    {
+        // "Norazila binti Mahmud" → "Mahmud"
+        // "Mohd Hafiz bin Ismail" → "Ismail"
+        $parts = explode(' ', $fullName);
+        return end($parts);
     }
 }
