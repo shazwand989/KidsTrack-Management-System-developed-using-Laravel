@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Child;
 use App\Models\Attendance;
 use App\Models\TimerSetting;
+use App\Services\AttendanceSummaryService;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -14,10 +15,12 @@ use Illuminate\Support\Facades\Log;
 class AddAnotherChildController extends Controller
 {
     protected $telegram;
+    protected $summaryService;
 
-    public function __construct(TelegramService $telegram)
+    public function __construct(TelegramService $telegram, AttendanceSummaryService $summaryService)
     {
         $this->telegram = $telegram;
+        $this->summaryService = $summaryService;
     }
 
     public function showAddAnother($childId)
@@ -49,14 +52,28 @@ class AddAnotherChildController extends Controller
             $childCheckedIn = $childAttendance && $childAttendance->checkin_time;
             $childCheckedOut = $childAttendance && $childAttendance->checkout_time;
 
+            Log::info('AddAnother Debug', [
+                'child_id' => $child->id,
+                'child_name' => $child->name,
+                'user' => $user ? $user->id.'/'.$user->role : 'guest',
+                'all_children_ids' => $childIds,
+                'attendance_ids' => $attendances->keys()->toArray(),
+                'child_attendance_found' => $childAttendance ? 'YES' : 'NO',
+                'checkin_time' => $childAttendance ? $childAttendance->checkin_time : 'N/A',
+                'childCheckedIn' => $childCheckedIn ? 'YES' : 'NO',
+            ]);
+
             // Build checked-in data
             $allCheckedInData = [];
             $checkedInIds = [];
 
             if ($childCheckedIn && !$childCheckedOut) {
+                $cls = $child->classroom;
                 $allCheckedInData[] = [
                     'name' => $child->name,
-                    'classroom' => $child->classroom->name ?? '-',
+                    'classroom' => $cls->name ?? '-',
+                    'class_start' => $cls->start_time ?? null,
+                    'class_end' => $cls->end_time ?? null,
                     'check_in_time' => $childAttendance ? Carbon::parse($childAttendance->checkin_time)->format('h:i A') : '',
                     'initial' => strtoupper(substr($child->name, 0, 1)),
                     'is_current' => true
@@ -67,9 +84,12 @@ class AddAnotherChildController extends Controller
             foreach ($otherChildren as $otherChild) {
                 $att = $attendances->get($otherChild->id);
                 if ($att && $att->checkin_time && !$att->checkout_time) {
+                    $ocls = $otherChild->classroom;
                     $allCheckedInData[] = [
                         'name' => $otherChild->name,
-                        'classroom' => $otherChild->classroom->name ?? '-',
+                        'classroom' => $ocls->name ?? '-',
+                        'class_start' => $ocls->start_time ?? null,
+                        'class_end' => $ocls->end_time ?? null,
                         'check_in_time' => Carbon::parse($att->checkin_time)->format('h:i A'),
                         'initial' => strtoupper(substr($otherChild->name, 0, 1)),
                         'is_current' => false
@@ -86,10 +106,13 @@ class AddAnotherChildController extends Controller
                 $isCheckedOut = $att && $att->checkout_time;
 
                 if (!$isCheckedIn && !$isCheckedOut) {
+                    $acls = $otherChild->classroom;
                     $availableChildren[] = [
                         'id' => $otherChild->id,
                         'name' => $otherChild->name,
-                        'classroom' => $otherChild->classroom->name ?? '-',
+                        'classroom' => $acls->name ?? '-',
+                        'class_start' => $acls->start_time ?? null,
+                        'class_end' => $acls->end_time ?? null,
                         'initial' => strtoupper(substr($otherChild->name, 0, 1)),
                         'is_available' => true
                     ];
@@ -125,6 +148,12 @@ class AddAnotherChildController extends Controller
             $currentChild = $child;
             $currentChildId = $child->id;
 
+            // Build attendance summary for current child
+            $attendanceSummary = null;
+            if ($childAttendance) {
+                $attendanceSummary = $this->summaryService->getAttendanceSummary($childAttendance);
+            }
+
             return view('kiosk.add-another', compact(
                 'child',
                 'currentChild',
@@ -137,13 +166,15 @@ class AddAnotherChildController extends Controller
                 'checkedInIds',
                 'childCheckedIn',
                 'childCheckedOut',
+                'childAttendance',
+                'attendanceSummary',
                 'canCheckout',
                 'isCheckoutMode',
                 'checkoutStartTime',
                 'checkoutEndTime',
-                'allCheckedIn',      // ⭐ TAMBAH
-                'totalChildren',     // ⭐ TAMBAH
-                'checkedInCount',    // ⭐ TAMBAH
+                'allCheckedIn',
+                'totalChildren',
+                'checkedInCount',
                 'roleData'
             ));
 
@@ -302,23 +333,23 @@ class AddAnotherChildController extends Controller
         switch ($role) {
             case 'main_parent':
                 $parentId = $user->id;
-                $allChildren = $user->children()->where('is_active', true)->get();
+                $allChildren = $user->children()->with('classroom')->where('is_active', true)->get();
                 break;
 
             case 'second_parent':
                 $parentId = $user->id;
-                $allChildren = $user->children()->where('is_active', true)->get();
+                $allChildren = $user->children()->with('classroom')->where('is_active', true)->get();
                 break;
 
             case 'guardian':
                 $parentId = $user->id;
-                $allChildren = $user->children()->where('is_active', true)->get();
+                $allChildren = $user->children()->with('classroom')->where('is_active', true)->get();
                 break;
 
             case 'admin':
             default:
                 $parentId = $user->id;
-                $allChildren = Child::where('is_active', true)->get();
+                $allChildren = Child::with('classroom')->where('is_active', true)->get();
                 break;
         }
 

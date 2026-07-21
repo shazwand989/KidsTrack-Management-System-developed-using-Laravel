@@ -476,68 +476,167 @@
             $totalCheckedIn = isset($allCheckedInData) ? count($allCheckedInData) : 0;
             $totalChildren = isset($totalChildren) ? $totalChildren : 0;
             $allCheckedIn = ($totalCheckedIn > 0 && $totalCheckedIn == $totalChildren);
+            $childDone = $childCheckedIn && $childCheckedOut;
         @endphp
 
-        @if($allCheckedIn && $totalChildren > 0)
-            <h1>🎉 All Children Checked In!</h1>
-            <p class="subtitle">Semua anak telah berjaya check-in hari ini</p>
+        @if($childDone)
+            <h1>👶 Attendance Completed</h1>
+            <p class="subtitle">Rekod kehadiran untuk hari ini</p>
+        @elseif($allCheckedIn && $totalChildren > 0)
+            @if(isset($attendanceSummary) && $attendanceSummary['checkin']['status'] === 'late')
+                <h1>⚠️ Checked In Late</h1>
+                <p class="subtitle" style="color:#c62828;">{{ \App\Services\AttendanceSummaryService::formatDuration($attendanceSummary['checkin']['minutes_diff']) }} lewat dari jadual ({{ $attendanceSummary['schedule']['morning_end'] }})</p>
+            @else
+                <h1>🎉 All Checked In!</h1>
+                <p class="subtitle">Semua anak telah berjaya check-in hari ini</p>
+            @endif
         @elseif(isset($availableChildren) && count($availableChildren) > 0)
             <h1>👨‍👩‍👧 Check In Another Child</h1>
-            <p class="subtitle">Would you like to check in another child?</p>
+            <p class="subtitle">Pilih anak untuk check-in</p>
         @else
-            <h1>👶 No Children Available</h1>
-            <p class="subtitle">Semua anak telah check-in atau tiada anak lain</p>
+            <h1>👋 Check In</h1>
+            <p class="subtitle">Imbas QR Code untuk check-in anak</p>
         @endif
 
-        <!-- ============================================ -->
-        <!-- ROLE BADGE                                   -->
-        <!-- ============================================ -->
+        <!-- ROLE BADGE (compact) -->
         <div class="role-badge {{ $roleData['badge_class'] ?? 'main-parent' }}">
             {{ $roleData['badge_text'] ?? '👨‍👩‍👦 Main Parent' }}
         </div>
 
+        @if($childDone)
         <!-- ============================================ -->
-        <!-- ROLE INFO - WELCOME MESSAGE                  -->
+        <!-- COMPLETED SUMMARY (CHECK-IN + CHECK-OUT DONE) -->
         <!-- ============================================ -->
-        <div class="role-info">
-            <span class="role-icon">{{ $roleData['icon'] ?? '👨‍👩‍👦' }}</span>
-            <span>{{ $roleData['welcome'] ?? 'Welcome, Parent 👋' }}</span>
+        @php
+            $s = $attendanceSummary ?? null;
+            $cin = $s['checkin'] ?? null;
+            $cout = $s['checkout'] ?? null;
+            $sch = $s['schedule'] ?? null;
+        @endphp
+        <div style="background:#f8fafc;border-radius:16px;padding:20px;margin:10px 0;text-align:left;">
+            <!-- Child Info -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#059669,#10b981);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex-shrink:0;">{{ strtoupper(substr($currentChild->name, 0, 1)) }}</div>
+                <div>
+                    <div style="font-weight:700;font-size:15px;color:#1e293b;">{{ $currentChild->name }}</div>
+                    <div style="font-size:13px;color:#64748b;">🏫 {{ $currentChild->classroom->name ?? '-' }}</div>
+                </div>
+            </div>
+
+            <!-- Attendance Table -->
+            <table style="width:100%;border-collapse:collapse;font-size:13px;">
+                <thead>
+                    <tr style="border-bottom:2px solid #e2e8f0;">
+                        <th style="text-align:left;padding:8px 6px;color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;"></th>
+                        <th style="text-align:center;padding:8px 6px;color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;">Scheduled</th>
+                        <th style="text-align:center;padding:8px 6px;color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;">Actual</th>
+                        <th style="text-align:center;padding:8px 6px;color:#94a3b8;font-size:10px;font-weight:700;text-transform:uppercase;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Check-in Row -->
+                    <tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:10px 6px;font-weight:700;color:#1e293b;">Check-in</td>
+                        <td style="padding:10px 6px;text-align:center;color:#64748b;">{{ $sch['morning_end'] ?? '07:30' }}</td>
+                        <td style="padding:10px 6px;text-align:center;font-weight:700;color:#1e293b;">{{ $cin['time'] ?? '—' }}</td>
+                        <td style="padding:10px 6px;text-align:center;">
+                            <span style="display:inline-block;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;
+                                @if($cin['status'] === 'on_time') background:#e8f5e9;color:#2e7d32;
+                                @elseif($cin['status'] === 'late') background:#fff3e0;color:#e65100;
+                                @else background:#fce4ec;color:#c62828; @endif">
+                                @if($cin['status'] === 'on_time') 🟢 On Time
+                                @elseif($cin['status'] === 'late') 🟡 Late
+                                @else 🔴 {{ $cin['status_label'] }}
+                                @endif
+                            </span>
+                        </td>
+                    </tr>
+                    <!-- Check-out Row -->
+                    <tr>
+                        <td style="padding:10px 6px;font-weight:700;color:#1e293b;">Check-out</td>
+                        <td style="padding:10px 6px;text-align:center;color:#64748b;">{{ $sch['class_end'] ?? $sch['evening_end'] ?? '17:00' }}</td>
+                        <td style="padding:10px 6px;text-align:center;font-weight:700;color:#1e293b;">{{ $cout['time'] ?? '—' }}</td>
+                        <td style="padding:10px 6px;text-align:center;">
+                            <span style="display:inline-block;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;
+                                @if($cout['status'] === 'on_time') background:#e8f5e9;color:#2e7d32;
+                                @elseif($cout['status'] === 'early') background:#fce4ec;color:#c62828;
+                                @elseif($cout['status'] === 'late') background:#fff3e0;color:#e65100;
+                                @else background:#f3e8ff;color:#6d28d9; @endif">
+                                @if($cout['status'] === 'on_time') 🟢 On Time
+                                @elseif($cout['status'] === 'early') 🔴 Early
+                                @elseif($cout['status'] === 'late') 🟡 Late
+                                @else 🟣 {{ $cout['status_label'] }}
+                                @endif
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Class Schedule -->
+            <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:80px;background:#f0fdf4;border-radius:10px;padding:10px;text-align:center;font-size:12px;">
+                    <div style="color:#059669;font-weight:700;">🟢 Masuk</div>
+                    <div style="font-weight:800;color:#1e293b;">{{ $sch['class_start'] ? \Carbon\Carbon::parse($sch['class_start'])->format('h:i A') : '—' }}</div>
+                </div>
+                <div style="flex:1;min-width:80px;background:#f5f3ff;border-radius:10px;padding:10px;text-align:center;font-size:12px;">
+                    <div style="color:#6d28d9;font-weight:700;">🟣 Balik</div>
+                    <div style="font-weight:800;color:#1e293b;">{{ $sch['class_end'] ? \Carbon\Carbon::parse($sch['class_end'])->format('h:i A') : '—' }}</div>
+                </div>
+            </div>
+
+            <!-- Confirmation -->
+            <div style="text-align:center;margin-top:16px;padding:10px;background:#e8f5e9;border-radius:10px;color:#2e7d32;font-size:13px;font-weight:600;">
+                ✅ Attendance has been recorded successfully.
+            </div>
         </div>
 
+        @else
         <!-- ============================================ -->
-        <!-- ANAK YANG SUDAH CHECK IN                     -->
+        <!-- ANAK YANG SUDAH CHECK IN (only if any)      -->
         <!-- ============================================ -->
+        @if($totalCheckedIn > 0)
         <div class="checked-in-list-container">
             <div class="header">
                 <span class="title">✅ Already Checked In</span>
                 <span class="count-badge">{{ $totalCheckedIn }} anak</span>
             </div>
             <div class="checked-in-list-scroll">
-                @if($totalCheckedIn > 0)
-                    @foreach($allCheckedInData as $checkedChild)
-                        <div class="checked-in-item {{ isset($checkedChild['is_current']) && $checkedChild['is_current'] ? 'current' : '' }}">
-                            <div class="left">
-                                <div class="avatar-small {{ isset($checkedChild['is_current']) && $checkedChild['is_current'] ? 'current-avatar' : '' }}">
-                                    {{ $checkedChild['initial'] ?? '?' }}
-                                </div>
-                                <div>
-                                    <div class="name">{{ $checkedChild['name'] ?? 'Unknown' }}</div>
-                                    <div class="class">🏫 {{ $checkedChild['classroom'] ?? '-' }}</div>
-                                </div>
+                @foreach($allCheckedInData as $checkedChild)
+                    <div class="checked-in-item {{ isset($checkedChild['is_current']) && $checkedChild['is_current'] ? 'current' : '' }}">
+                        <div class="left">
+                            <div class="avatar-small {{ isset($checkedChild['is_current']) && $checkedChild['is_current'] ? 'current-avatar' : '' }}">
+                                {{ $checkedChild['initial'] ?? '?' }}
                             </div>
-                            <div style="display:flex; align-items:center; gap:8px;">
-                                @if(isset($checkedChild['is_current']) && $checkedChild['is_current'])
-                                    <span class="current-badge">⭐ Current</span>
-                                @endif
-                                <span class="time">✅ {{ $checkedChild['check_in_time'] ?? 'Checked In' }}</span>
+                            <div>
+                                <div class="name">{{ $checkedChild['name'] ?? 'Unknown' }}</div>
+                                <div class="class">🏫 {{ $checkedChild['classroom'] ?? '-' }}
+                                    @if(!empty($checkedChild['class_start']) && !empty($checkedChild['class_end']))
+                                        <span style="font-size:10px;color:#64748b;display:block;">
+                                            🟢 {{ \Carbon\Carbon::parse($checkedChild['class_start'])->format('h:i A') }} — 🟣 {{ \Carbon\Carbon::parse($checkedChild['class_end'])->format('h:i A') }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
-                    @endforeach
-                @else
-                    <div class="checked-in-empty">Tiada anak yang check-in hari ini</div>
-                @endif
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            @if(isset($checkedChild['is_current']) && $checkedChild['is_current'])
+                                <span class="current-badge">⭐ Current</span>
+                            @endif
+                            <div style="text-align:right;">
+                                <span class="time">✅ {{ $checkedChild['check_in_time'] ?? 'Checked In' }}</span>
+                                @if(isset($checkedChild['is_current']) && $checkedChild['is_current'] && isset($attendanceSummary) && $attendanceSummary['checkin']['status'] === 'late')
+                                    <div style="color:#c62828;font-size:11px;font-weight:700;margin-top:2px;">
+                                        ⚠️ {{ \App\Services\AttendanceSummaryService::formatDuration($attendanceSummary['checkin']['minutes_diff']) }} lewat
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
+        @endif
 
         <!-- ============================================ -->
         <!-- CURRENT CHILD (DARI QR SCAN)                 -->
@@ -550,11 +649,35 @@
                 <div class="child-name">⭐ {{ $currentChild->name }}</div>
                 <div class="child-class">🏫 {{ $currentChild->classroom->name ?? 'Tiada kelas' }}</div>
                 <div class="current-child-tag {{ $roleData['tag_class'] ?? 'main-parent-tag' }}">
-                    @if(in_array($currentChild->id, $checkedInIds ?? []))
+                    @if($childDone)
+                        ✅ Selesai (Check-in & Check-out)
+                    @elseif($childCheckedIn)
                         ✅ Already Checked In
+                        @if(isset($attendanceSummary) && $attendanceSummary['checkin']['status'] === 'late')
+                            <span style="color:#c62828;font-weight:700;display:block;margin-top:4px;">
+                                ⚠️ {{ \App\Services\AttendanceSummaryService::formatDuration($attendanceSummary['checkin']['minutes_diff']) }} lewat
+                            </span>
+                        @endif
                     @else
                         ⏳ Belum Check-in
                     @endif
+                </div>
+            </div>
+        @endif
+
+        <!-- ============================================ -->
+        <!-- CLASS SCHEDULE                               -->
+        <!-- ============================================ -->
+        @if(isset($currentChild) && $currentChild && $currentChild->classroom)
+            @php $cls = $currentChild->classroom; @endphp
+            <div style="display:flex;gap:12px;margin:10px 0;flex-wrap:wrap;">
+                <div style="flex:1;min-width:100px;background:#f0fdf4;border-radius:12px;padding:12px;text-align:center;border:2px solid #bbf7d0;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#059669;">🟢 Masuk</div>
+                    <div style="font-size:18px;font-weight:800;color:#1e293b;">{{ $cls->start_time ? \Carbon\Carbon::parse($cls->start_time)->format('h:i A') : '—' }}</div>
+                </div>
+                <div style="flex:1;min-width:100px;background:#f5f3ff;border-radius:12px;padding:12px;text-align:center;border:2px solid #ddd6fe;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6d28d9;">🟣 Balik</div>
+                    <div style="font-size:18px;font-weight:800;color:#1e293b;">{{ $cls->end_time ? \Carbon\Carbon::parse($cls->end_time)->format('h:i A') : '—' }}</div>
                 </div>
             </div>
         @endif
@@ -580,7 +703,13 @@
                             <div class="checkbox"></div>
                             <div class="details">
                                 <div class="name">{{ $availChild['name'] }}</div>
-                                <div class="class">🏫 {{ $availChild['classroom'] }}</div>
+                                <div class="class">🏫 {{ $availChild['classroom'] }}
+                                    @if(!empty($availChild['class_start']) && !empty($availChild['class_end']))
+                                        <span style="font-size:10px;color:#64748b;display:block;">
+                                            🟢 {{ \Carbon\Carbon::parse($availChild['class_start'])->format('h:i A') }} — 🟣 {{ \Carbon\Carbon::parse($availChild['class_end'])->format('h:i A') }}
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                         <span class="badge badge-available">⏳ Available</span>
@@ -603,12 +732,20 @@
             @endif
 
         @elseif($allCheckedIn && $totalChildren > 0)
-            <!-- SEMUA ANAK DAH CHECK IN -->
-            <div class="all-checked-in-message">
-                <div class="icon">🎉</div>
-                All children have been checked in!<br>
-                <small style="font-weight:400;">Thank you for completing check-in.</small>
-            </div>
+            <!-- ALL CHECKED IN - Show late warning if applicable -->
+            @if(isset($attendanceSummary) && $attendanceSummary['checkin']['status'] === 'late')
+                <div class="all-checked-in-message" style="background:#fff3e0;border-color:#f59e0b;color:#92400e;">
+                    <div class="icon">⚠️</div>
+                    Checked in {{ \App\Services\AttendanceSummaryService::formatDuration($attendanceSummary['checkin']['minutes_diff']) }} late!<br>
+                    <small style="font-weight:400;">Schedule: {{ $attendanceSummary['schedule']['morning_end'] }}</small>
+                </div>
+            @else
+                <div class="all-checked-in-message">
+                    <div class="icon">🎉</div>
+                    All children have been checked in!<br>
+                    <small style="font-weight:400;">Thank you for completing check-in.</small>
+                </div>
+            @endif
 
             <!-- BUTTON PROCEED TO CHECKOUT -->
             <button class="btn-next" onclick="proceedToCheckout()">
@@ -616,17 +753,50 @@
             </button>
 
         @else
-            <!-- Tiada anak available -->
-            <div class="no-children">
-                <span style="font-size: 32px; display: block; margin-bottom: 10px;">👶</span>
-                Tiada anak lain yang berdaftar.
+            <!-- No other children - show check-in/attendance for current child -->
+            @if(!$allCheckedIn)
+                @if(isset($currentChild) && !$childCheckedIn)
+                    <!-- Child NOT checked in yet → show check-in button -->
+                    <button class="btn-checkin" onclick="checkinCurrentChild()" style="margin-top:10px;">
+                        ✅ Check In {{ $currentChild->name }}
+                    </button>
+                @elseif(isset($currentChild) && $childCheckedIn && !$childCheckedOut)
+                    <!-- Child checked in but not checked out → show status -->
+                    <div class="checked-in-list-container" style="margin-top:15px;">
+                        <div class="header">
+                            <span class="title">✅ Checked In Today</span>
+                        </div>
+                        <div class="checked-in-item" style="padding:10px;">
+                            <div class="left">
+                                <div class="avatar-small">{{ strtoupper(substr($currentChild->name, 0, 1)) }}</div>
+                                <div>
+                                    <div class="name">{{ $currentChild->name }}</div>
+                                    <div class="class">🏫 {{ $currentChild->classroom->name ?? '-' }}</div>
+                                </div>
+                            </div>
+                            <span class="time" style="color:#059669;font-weight:600;">
+                                ✅ {{ $childAttendance ? \Carbon\Carbon::parse($childAttendance->checkin_time)->format('h:i A') : 'Checked In' }}
+                            </span>
+                        </div>
+                    </div>
+                    <button class="btn-next-secondary" onclick="proceedToCheckout()" style="margin-top:15px;">
+                        ➡️ Proceed to Check Out
+                    </button>
+                @endif
+            @endif
+
+            @if(!$allCheckedIn)
+            <div class="no-children" style="padding:10px 0;">
+                <span style="color:#6b7280;font-size:13px;">Hanya anak ini sahaja yang berdaftar.</span>
             </div>
+            @endif
 
             @if($totalCheckedIn > 0 && isset($currentChild))
                 <button class="btn-next" onclick="proceedToCheckinPage()">
                     ➡️ Proceed to Check Out ({{ $totalCheckedIn }} checked in)
                 </button>
             @endif
+        @endif
         @endif
 
         <!-- ============================================ -->
@@ -644,6 +814,8 @@
         const allCheckedInIds = @json($checkedInIds ?? []);
         const availableChildren = @json(array_column($availableChildren ?? [], 'id'));
         const currentChildId = {{ isset($currentChild) ? $currentChild->id : 0 }};
+        const hashedChildId = '{{ isset($currentChild) ? \App\Helper\KioskHelper::hashId($currentChild->id) : '' }}';
+        const childHashes = @json(isset($allChildren) ? $allChildren->mapWithKeys(fn($c) => [$c->id => \App\Helper\KioskHelper::hashId($c->id)]) : []);
 
         let selectedChildren = [];
 
@@ -653,6 +825,13 @@
         console.log('  - Checked In IDs:', allCheckedInIds);
         console.log('  - Available Children:', availableChildren);
         console.log('  - Available Count:', availableChildren.length);
+
+        // ============================================
+        // CHECKIN CURRENT CHILD (when no other children)
+        // ============================================
+        function checkinCurrentChild() {
+            window.location.href = '/kiosk/checkin-page/' + hashedChildId + '?parent_id=' + parentId;
+        }
 
         // ============================================
         // TOGGLE SELECT ALL
@@ -799,7 +978,7 @@
             if (selectedChildren.length === 1) {
                 const childId = selectedChildren[0];
                 console.log('  - Single child selected, redirect to check-in page:', childId);
-                window.location.href = '/kiosk/checkin-page/' + childId + '?parent_id=' + parentId;
+                window.location.href = '/kiosk/checkin-page/' + (childHashes[childId] || childId) + '?parent_id=' + parentId;
                 return;
             }
 
@@ -993,7 +1172,7 @@
             console.log('  - Parent ID:', parentId);
 
             if (currentChildId > 0) {
-                window.location.href = '/kiosk/checkin-page/' + currentChildId + '?parent_id=' + parentId;
+                window.location.href = '/kiosk/checkin-page/' + hashedChildId + '?parent_id=' + parentId;
             } else {
                 console.log('  - ⚠️ No current child, redirect to checkout');
                 window.location.href = '/kiosk/checkout-landing?parent_id=' + parentId;
@@ -1004,9 +1183,36 @@
         // PROCEED TO CHECKOUT (TERUS)
         // ============================================
         function proceedToCheckout() {
-            console.log('✅ proceedToCheckout() called');
-            console.log('  - Parent ID:', parentId);
-            window.location.href = '/kiosk/checkout-landing?parent_id=' + parentId;
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = '⏳ Processing...';
+
+            fetch('/kiosk/direct-checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    child_id: currentChildId,
+                    parent_id: parentId
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = '/kiosk?checkout=success&child=' + encodeURIComponent(data.child_name);
+                } else {
+                    alert('❌ ' + (data.message || 'Gagal checkout'));
+                    btn.disabled = false;
+                    btn.textContent = '➡️ Proceed to Check Out';
+                }
+            })
+            .catch(err => {
+                alert('❌ Ralat: ' + err.message);
+                btn.disabled = false;
+                btn.textContent = '➡️ Proceed to Check Out';
+            });
         }
 
         // ============================================

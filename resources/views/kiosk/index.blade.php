@@ -635,7 +635,7 @@
         }
 
         // ============================================
-        // ON SCAN SUCCESS - TANPA GPS!
+        // ON SCAN SUCCESS
         // ============================================
         function onScanSuccess(decodedText, decodedResult) {
             if (isProcessing) return;
@@ -653,8 +653,7 @@
             
             showScanning(true);
             
-            // 🔥 TERUS CHECK ACCESS - TANPA GPS!
-            checkAccessOnly(decodedText);
+            checkAccess(decodedText);
         }
 
         function onScanError(errorMessage) {
@@ -662,12 +661,12 @@
         }
 
         // ============================================
-        // CHECK ACCESS ONLY - NO GPS!
+        // CHECK ACCESS
         // ============================================
-        function checkAccessOnly(qrData) {
-            console.log('📤 Sending to server (NO GPS):', { qr_code: qrData });
+        function checkAccess(qrData) {
+            console.log('📤 Sending to server:', { qr_code: qrData });
             
-            fetch('/kiosk/check-gps', {
+            fetch('/kiosk/check-access', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -675,10 +674,7 @@
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                 },
                 body: JSON.stringify({
-                    qr_code: qrData,
-                    latitude: 0,
-                    longitude: 0,
-                    bypass_gps: true
+                    qr_code: qrData
                 })
             })
             .then(response => {
@@ -783,8 +779,7 @@
                             statusDiv.style.color = '#16a34a';
                             showScanning(true);
                             
-                            // 🔥 TERUS CHECK ACCESS - TANPA GPS!
-                            checkAccessOnly(code.data);
+                            checkAccess(code.data);
                         } else {
                             statusDiv.textContent = '❌ Tiada QR Code dikesan. Sila cuba gambar lain.';
                             statusDiv.style.color = '#dc2626';
@@ -833,8 +828,7 @@
             const qrData = 'SIMULATED-' + parentId;
             showScanning(true);
             
-            // 🔥 TERUS CHECK ACCESS - TANPA GPS!
-            checkAccessOnly(qrData);
+            checkAccess(qrData);
         }
 
         function showScanning(show) {

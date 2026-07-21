@@ -10,6 +10,20 @@ use App\Http\Controllers\QRScanController;
 use App\Http\Controllers\HolidayController;
 
 // ============================================
+// GLOBAL BINDING: {child} accepts hashed OR plain ID
+// ============================================
+Route::bind('child', function ($value) {
+    $id = \App\Helper\KioskHelper::decodeId($value);
+    if ($id) {
+        return \App\Models\Child::findOrFail($id);
+    }
+    if (is_numeric($value)) {
+        return \App\Models\Child::findOrFail($value);
+    }
+    abort(404);
+});
+
+// ============================================
 // SIMULATION CLOCK API
 // ============================================
 Route::get('/api/simulation-time', function () {
@@ -93,8 +107,9 @@ Route::get('/get-timer-settings', [QRScanController::class, 'getTimerSettings'])
 // KIOSK ROUTES (PUBLIC - USED BY PARENTS/GUARDIANS)
 // ============================================
 Route::prefix('kiosk')->name('kiosk.')->group(function () {
+
     Route::get('/', [QRScanController::class, 'kiosk'])->name('index');
-    Route::post('/check-gps', [QRScanController::class, 'checkGPS'])->name('check.gps');
+    Route::post('/check-access', [QRScanController::class, 'checkAccess'])->name('check.access');
     Route::get('/confirm-child/{child}', [QRScanController::class, 'confirmChild'])->name('confirm.child');
 
     // Add another child
@@ -125,6 +140,7 @@ Route::prefix('kiosk')->name('kiosk.')->group(function () {
     Route::get('/checkout/{child}', fn ($childId) => redirect()->route('kiosk.checkin.page', $childId))->name('checkout');
     Route::post('/confirm-checkin', [QRScanController::class, 'confirmCheckin'])->name('confirm.checkin');
     Route::post('/confirm-checkout', [QRScanController::class, 'confirmCheckout'])->name('confirm.checkout');
+    Route::post('/direct-checkout', [QRScanController::class, 'directCheckout'])->name('direct.checkout');
     Route::get('/child-profile/{child}', [QRScanController::class, 'showChildProfile'])->name('child.profile');
 
     // Timer settings

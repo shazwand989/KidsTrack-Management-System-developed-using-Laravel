@@ -868,33 +868,30 @@
             // 🔥🔥🔥 AMBIL TIMER SETTING DARI DATABASE 🔥🔥🔥
             $timerSetting = \App\Models\TimerSetting::where('day_name', 'like', '%' . $now->format('l') . '%')->first();
 
-            $canCheckout = false;
-            $checkoutMessage = '⏰ Checkout Belum Tersedia';
-            $checkoutInfoClass = '';
+            // Allow checkout anytime after check-in
+            $canCheckout = $hasCheckin && !$hasCheckout;
+            $checkoutMessage = '✅ Sedia untuk check-out';
+            $checkoutInfoClass = 'active';
             $isLateCheckout = false;
 
-            if ($timerSetting) {
+            if ($timerSetting && $hasCheckin) {
                 $currentTimeInt = (int) $now->format('Hi');
                 $eveningStartInt = (int) str_replace(':', '', $timerSetting->evening_start);
                 $eveningEndInt = (int) str_replace(':', '', $timerSetting->evening_end);
 
-                // 🔥🔥🔥 LOGIK CHECKOUT - IKUT DATABASE 🔥🔥🔥
-                if ($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt) {
-                    // 🔥 Dalam evening slot → ON TIME CHECKOUT
-                    $canCheckout = true;
-                    $checkoutMessage = '✅ Waktu checkout: ' . date('H:i', strtotime($timerSetting->evening_start)) . ' - ' . date('H:i', strtotime($timerSetting->evening_end));
+                if ($currentTimeInt < $eveningStartInt) {
+                    // Early checkout (before evening slot)
+                    $checkoutMessage = '🔵 Checkout awal (sebelum ' . date('H:i', strtotime($timerSetting->evening_start)) . ')';
                     $checkoutInfoClass = 'active';
-                } else if ($currentTimeInt < $eveningStartInt) {
-                    // 🔥 Belum sampai evening slot → TAK BOLEH CHECKOUT
-                    $canCheckout = false;
-                    $checkoutMessage = '🕐 Checkout bermula pada ' . date('H:i', strtotime($timerSetting->evening_start));
-                    $checkoutInfoClass = '';
-                } else {
-                    // 🔥 Lepas evening slot → LATE CHECKOUT (BOLEH!)
-                    $canCheckout = true;
+                } elseif ($currentTimeInt > $eveningEndInt) {
+                    // Late checkout
                     $isLateCheckout = true;
                     $checkoutMessage = '⏰ Late Checkout (Melebihi waktu operasi)';
                     $checkoutInfoClass = 'active late';
+                } else {
+                    // On-time checkout
+                    $checkoutMessage = '✅ Waktu checkout: ' . date('H:i', strtotime($timerSetting->evening_start)) . ' - ' . date('H:i', strtotime($timerSetting->evening_end));
+                    $checkoutInfoClass = 'active';
                 }
             }
         @endphp
@@ -1067,22 +1064,26 @@
             console.log('🔍 Checking checkout - currentTime:', currentTime, 'eveningStart:', eveningStartInt, 'eveningEnd:', eveningEndInt);
             console.log('🔍 hasCheckin:', hasCheckin, 'hasCheckout:', hasCheckout);
 
-            // 🔥🔥🔥 TETAPKAN canCheckout 🔥🔥🔥
+            // 🔥🔥🔥 TETAPKAN canCheckout — BOLEH CHECKOUT BILA-BILA SELEPAS CHECKIN 🔥🔥🔥
             if (hasCheckout) {
                 canCheckout = false;
                 console.log('❌ canCheckout = FALSE (Sudah checkout)');
-            } else if (currentTime >= eveningStartInt && currentTime <= eveningEndInt) {
+            } else if (hasCheckin) {
+                // Allow checkout anytime after check-in
                 canCheckout = true;
-                isLateCheckout = false;
-                console.log('✅ canCheckout = TRUE (Dalam evening slot)');
-            } else if (currentTime < eveningStartInt) {
-                canCheckout = false;
-                isLateCheckout = false;
-                console.log('❌ canCheckout = FALSE (Belum sampai evening slot)');
+                if (currentTime >= eveningStartInt && currentTime <= eveningEndInt) {
+                    isLateCheckout = false;
+                    console.log('✅ canCheckout = TRUE (On-time checkout)');
+                } else if (currentTime > eveningEndInt) {
+                    isLateCheckout = true;
+                    console.log('✅ canCheckout = TRUE (Late Checkout)');
+                } else {
+                    isLateCheckout = false;
+                    console.log('✅ canCheckout = TRUE (Early Checkout)');
+                }
             } else {
-                canCheckout = true;
-                isLateCheckout = true;
-                console.log('✅ canCheckout = TRUE (Late Checkout - lepas evening slot)');
+                canCheckout = false;
+                console.log('❌ canCheckout = FALSE (Belum check-in)');
             }
 
             // 🔥 UPDATE UI BUTTON CHECKOUT

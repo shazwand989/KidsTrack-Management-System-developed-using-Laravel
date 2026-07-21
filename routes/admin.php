@@ -29,6 +29,20 @@ use App\Models\LecturerGroup;
 use App\Models\StudentTimetable;
 
 // ============================================
+// BINDING: {child} accepts hashed OR plain ID
+// ============================================
+Route::bind('child', function ($value) {
+    $id = \App\Helper\KioskHelper::decodeId($value);
+    if ($id) {
+        return \App\Models\Child::findOrFail($id);
+    }
+    if (is_numeric($value)) {
+        return \App\Models\Child::findOrFail($value);
+    }
+    abort(404);
+});
+
+// ============================================
 // ADMIN / TEACHER ROUTES
 // ============================================
 Route::middleware(['auth'])->group(function () {

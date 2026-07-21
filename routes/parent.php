@@ -3,6 +3,20 @@
 use Illuminate\Support\Facades\Route;
 
 // ============================================
+// BINDING: {child} accepts hashed OR plain ID
+// ============================================
+Route::bind('child', function ($value) {
+    $id = \App\Helper\KioskHelper::decodeId($value);
+    if ($id) {
+        return \App\Models\Child::findOrFail($id);
+    }
+    if (is_numeric($value)) {
+        return \App\Models\Child::findOrFail($value);
+    }
+    abort(404);
+});
+
+// ============================================
 // PARENT / GUARDIAN ROUTES
 // ============================================
 Route::middleware(['auth'])->prefix('parent')->name('parent.')->group(function () {

@@ -173,17 +173,32 @@ class QRScanController extends Controller
     // ============================================
     // STEP 1: CHECK QR CODE
     // ============================================
-    public function checkGPS(Request $request)
+    public function checkAccess(Request $request)
     {
         try {
             $qrData = $request->qr_code;
 
-            $child = Child::where('qr_code', $qrData)->first();
+            Log::info('checkAccess received QR', [
+                'qr_raw' => $qrData,
+                'qr_length' => strlen($qrData),
+                'qr_hex' => bin2hex($qrData),
+            ]);
+
+            // Handle simulated QR codes (SIMULATED-{parentId})
+            if (str_starts_with($qrData, 'SIMULATED-')) {
+                $parentId = (int) substr($qrData, strlen('SIMULATED-'));
+                $child = Child::whereHas('parent', fn($q) => $q->where('users.id', $parentId))
+                    ->orWhereHas('secondParent', fn($q) => $q->where('users.id', $parentId))
+                    ->first();
+            } else {
+                $child = Child::where('qr_code', $qrData)->first();
+            }
+
             if (!$child) {
                 return response()->json([
                     'success' => false,
                     'message' => '❌ QR Code tidak sah!'
-                ], 404);
+                ], 200);
             }
 
             $slot = $this->getCurrentSlot();
@@ -223,7 +238,7 @@ class QRScanController extends Controller
                     return response()->json([
                         'success' => false,
                         'message' => '❌ Anda tidak mempunyai akses ke anak ini!'
-                    ], 403);
+                    ], 200);
                 }
             }
 
@@ -245,11 +260,11 @@ class QRScanController extends Controller
                 'has_checkin' => $hasCheckin,
                 'has_checkout' => $hasCheckout,
                 'is_late' => $isLate,
-                'redirect' => route('kiosk.confirm.child', $child->id)
+                'redirect' => route('kiosk.confirm.child', \App\Helper\KioskHelper::hashId($child->id))
             ]);
 
         } catch (\Exception $e) {
-            Log::error('checkGPS Error: ' . $e->getMessage());
+            Log::error('checkAccess Error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Ralat sistem: ' . $e->getMessage()
@@ -309,8 +324,7 @@ class QRScanController extends Controller
             }
 
             // ➡️ REDIRECT KE AddAnotherChildController
-            return redirect()->route('kiosk.add.another', $childId);
-
+            return redirect()->route('kiosk.add.another', \App\Helper\KioskHelper::hashId($childId));
         } catch (\Exception $e) {
             Log::error('confirmChild Error: ' . $e->getMessage());
             return redirect()->route('kiosk.add.another', $childId)
@@ -892,7 +906,7 @@ class QRScanController extends Controller
         if (!$child) {
             abort(404, 'QR Code tidak dijumpai');
         }
-        return redirect()->route('kiosk.checkin.page', $child->id);
+        return redirect()->route('kiosk.checkin.page', \App\Helper\KioskHelper::hashId($child->id));
     }
 
     public function confirmCheckin(Request $request)
@@ -955,6 +969,64 @@ class QRScanController extends Controller
 
         return redirect()->route('kiosk.index')
             ->with('success', 'Check-out berjaya!');
+    }
+
+    /**
+     * Direct checkout from add-another page — returns JSON.
+     */
+    public function directCheckout(Request $request)
+    {
+        $childId = $request->child_id;
+        $parentId = $request->parent_id;
+
+        if (!$childId || !$parentId) {
+            $parentId = $parentId ?: 1;
+            $childId = $childId ?: $request->route('child');
+        }
+
+        if (!$childId) {
+            return response()->json(['success' => false, 'message' => 'Child ID required'], 400);
+        }
+
+        $child = Child::find($childId);
+        if (!$child) {
+            return response()->json(['success' => false, 'message' => 'Child not found'], 404);
+        }
+
+        $now = Carbon::now('Asia/Kuala_Lumpur');
+        $today = $now->toDateString();
+
+        $attendance = Attendance::where('child_id', $child->id)
+            ->whereDate('date', $today)
+            ->first();
+
+        if (!$attendance || !$attendance->checkin_time) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anak belum check-in hari ini!'
+            ]);
+        }
+
+        if ($attendance->checkout_time) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anak sudah check-out pada ' . Carbon::parse($attendance->checkout_time)->format('h:i A')
+            ]);
+        }
+
+        // Process checkout
+        $attendance->update([
+            'checkout_time' => $now->format('H:i:s'),
+            'status' => 'checkout',
+            'pickup_by' => 'Parent ID: ' . $parentId,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ Check-out berjaya!',
+            'child_name' => $child->name,
+            'checkout_time' => $now->format('h:i A'),
+        ]);
     }
 
     public function processQR(Request $request)

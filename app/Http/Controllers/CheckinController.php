@@ -118,14 +118,19 @@ class CheckinController extends Controller
     {
         $user = Auth::user();
         $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
-        $parentId = null;
+        $parentId = $request->query('parent_id');
 
-        // Find parent ID based on role — now user IS the parent/guardian directly
-        if (in_array($user->role, ['parent', 'parent1', 'parent2', 'guardian'])) {
+        // Find parent ID based on role — user IS the parent/guardian directly
+        if ($user && in_array($user->role, ['parent', 'parent1', 'parent2', 'guardian'])) {
             $parentId = $user->id;
-        } else {
-            // Admin/teacher — use parent_id from query string if provided
+        } elseif ($user && in_array($user->role, ['admin', 'teacher'])) {
+            // Admin/teacher — use parent_id from query string
             $parentId = $request->query('parent_id');
+        }
+
+        // Fallback: if no user logged in, use query param or find first parent
+        if (!$parentId) {
+            $parentId = $request->query('parent_id') ?: \App\Models\User::whereIn('role', ['parent', 'parent1'])->value('id');
         }
 
         if (!$parentId) {
@@ -155,7 +160,7 @@ class CheckinController extends Controller
         }
 
         if (count($checkedInChildren) === 1) {
-            return redirect()->route('kiosk.checkin.page', $checkedInChildren[0]->id);
+            return redirect()->route('kiosk.checkin.page', \App\Helper\KioskHelper::hashId($checkedInChildren[0]->id));
         }
 
         $parent = \App\Models\User::find($parentId);
@@ -177,7 +182,7 @@ class CheckinController extends Controller
 
             // Get parent — user IS the parent directly
             $parent = $user;
-            if (!in_array($user->role, ['parent', 'parent1', 'parent2', 'guardian'])) {
+            if (!$user || !in_array($user->role, ['parent', 'parent1', 'parent2', 'guardian'])) {
                 $parent = \App\Models\User::whereIn('role', ['parent1'])->first();
             }
 
