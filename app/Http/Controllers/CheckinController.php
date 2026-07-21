@@ -170,10 +170,10 @@ class CheckinController extends Controller
         ]);
     }
 
-    public function showCheckinPage($childId)
+    public function showCheckinPage(Child $child)
     {
         try {
-            $child = Child::with(['parent', 'classroom'])->findOrFail($childId);
+            $child->load(['parent', 'classroom']);
             $user = Auth::user();
 
             $now = Carbon::now('Asia/Kuala_Lumpur');

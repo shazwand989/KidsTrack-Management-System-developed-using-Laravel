@@ -307,10 +307,10 @@ class QRScanController extends Controller
     // ============================================
     // STEP 2: CONFIRM CHILD - REDIRECT KE ADD ANOTHER
     // ============================================
-    public function confirmChild($childId)
+    public function confirmChild(Child $child)
     {
         try {
-            $child = Child::with(['parent', 'classroom'])->findOrFail($childId);
+            $child->load(['parent', 'classroom']);
             /** @var User|null $user */
             $user = Auth::user();
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
@@ -356,10 +356,10 @@ class QRScanController extends Controller
             }
 
             // ➡️ REDIRECT KE AddAnotherChildController
-            return redirect()->route('kiosk.add.another', hash_id($childId));
+            return redirect()->route('kiosk.add.another', hash_id($child->id));
         } catch (\Exception $e) {
             Log::error('confirmChild Error: ' . $e->getMessage());
-            return redirect()->route('kiosk.add.another', $childId)
+            return redirect()->route('kiosk.add.another', hash_id($child->id))
                 ->with('error', 'Gagal check-in: ' . $e->getMessage());
         }
     }
@@ -482,10 +482,11 @@ class QRScanController extends Controller
                 'action' => 'required|in:checkin,checkout'
             ]);
 
+            $child = Child::find($request->child_id);
+
             $slot = $this->getCurrentSlot($child);
             $timerInfo = $this->getTimerSlotInfo($child);
 
-            $child = Child::find($request->child_id);
             $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
             $now = Carbon::now('Asia/Kuala_Lumpur');
 

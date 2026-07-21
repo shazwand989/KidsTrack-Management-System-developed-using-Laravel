@@ -23,10 +23,10 @@ class AddAnotherChildController extends Controller
         $this->summaryService = $summaryService;
     }
 
-    public function showAddAnother($childId)
+    public function showAddAnother(Child $child)
     {
         try {
-            $child = Child::with(['parent', 'classroom'])->findOrFail($childId);
+            $child->load(['parent', 'classroom']);
             $user = Auth::user();
             $now = Carbon::now('Asia/Kuala_Lumpur');
             $today = $now->toDateString();
