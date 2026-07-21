@@ -698,7 +698,7 @@
                 <div class="seat-card {{ $displayStatus }}" 
                      data-name="{{ strtolower($child->name) }}"
                      data-status="{{ $attStatus }}"
-                     onclick="window.location='{{ route('children.show', $child->id) }}'">
+                     onclick="window.location='{{ route('children.show', \App\Helper\KioskHelper::hashId($child->id)) }}'">
                     
                     <span class="badge-status {{ $badgeClass }}">{{ $badgeLabel }}</span>
                     

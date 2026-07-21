@@ -425,7 +425,7 @@
     <div class="rg-breadcrumb">
         <a href="{{ route('children.index') }}">👶 Children</a>
         <span class="sep">›</span>
-        <a href="{{ route('children.show', $child->id) }}">{{ $child->name }}</a>
+        <a href="{{ route('children.show', \App\Helper\KioskHelper::hashId($child->id)) }}">{{ $child->name }}</a>
         <span class="sep">›</span>
         <strong>Edit Child</strong>
     </div>
@@ -449,7 +449,7 @@
     </div>
     @endif
 
-    <form action="{{ route('children.update', $child->id) }}" method="POST" enctype="multipart/form-data">
+    <form action="{{ route('children.update', \App\Helper\KioskHelper::hashId($child->id)) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
 
@@ -722,17 +722,17 @@
 
     {{-- ACTION BUTTONS --}}
     <div class="rg-actions">
-        <form action="{{ route('children.update', $child->id) }}" method="POST">
+        <form action="{{ route('children.update', \App\Helper\KioskHelper::hashId($child->id)) }}" method="POST">
             @csrf
             @method('PUT')
             <button type="submit" class="btn-update">
                 <span>💾</span> Update Child
             </button>
         </form>
-        <a href="{{ route('children.show', $child->id) }}" class="btn-cancel">
+        <a href="{{ route('children.show', \App\Helper\KioskHelper::hashId($child->id)) }}" class="btn-cancel">
             <span>✖️</span> Cancel
         </a>
-        <form action="{{ route('children.destroy', $child->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{ $child->name }}? This action cannot be undone.')">
+        <form action="{{ route('children.destroy', \App\Helper\KioskHelper::hashId($child->id)) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{ $child->name }}? This action cannot be undone.')">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn-delete">

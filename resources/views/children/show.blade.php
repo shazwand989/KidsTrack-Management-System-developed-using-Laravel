@@ -528,7 +528,7 @@
                 </div>
 
                 <div class="profile-header-actions">
-                    <a href="{{ route('children.edit', $child->id) }}" class="btn-edit">
+                    <a href="{{ route('children.edit', \App\Helper\KioskHelper::hashId($child->id)) }}" class="btn-edit">
                         <i class="fas fa-edit"></i> Edit Profile
                     </a>
                     <a href="{{ route('children.index') }}" class="btn-back">

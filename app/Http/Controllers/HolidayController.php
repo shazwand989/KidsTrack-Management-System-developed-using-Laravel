@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Helpers\HolidayHelper;
+use App\Helper\HolidayHelper;
 use Illuminate\Http\Request;
 
 class HolidayController extends Controller
