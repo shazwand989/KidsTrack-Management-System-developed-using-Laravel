@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Traits\Auditable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Child extends Model
 {
+    use Auditable, SoftDeletes;
     protected $fillable = [
         'name', 'age', 'ic_number', 'dob', 'address', 'photo',
         'classroom_id', 'medical_notes', 'dietary',

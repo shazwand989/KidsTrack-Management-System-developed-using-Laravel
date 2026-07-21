@@ -108,6 +108,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/qr-code', fn () => view('admin.qr-code'))->name('qr.code');
 
     // ============================================
+    // AUDIT LOG
+    // ============================================
+    Route::get('/audit-log', function () {
+        $logs = \App\Models\AuditLog::with('user')->latest()->paginate(20);
+        return view('admin.audit-log', compact('logs'));
+    })->name('audit.log');
+
+    // ============================================
     // SCAN QR - PROTECTED
     // ============================================
     Route::post('/scan-qr/process', [QRScanController::class, 'processQR'])->name('scan.qr.process');
