@@ -554,7 +554,6 @@
 
             document.getElementById('timerInfoContent').innerHTML = html;
         }
-        }
 
         // ============================================
         // POPUP
