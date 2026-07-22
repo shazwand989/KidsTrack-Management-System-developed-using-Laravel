@@ -832,8 +832,10 @@ class QRScanController extends Controller
             $attendance->update(['status' => 'penalty_pending']);
         }
 
-        // Send Telegram notification
-        $this->sendTelegramNotification($child, $parentId, 'checkout');
+        // Send Telegram notification with late detection
+        $classEnd = $child->classroom->end_time ?? '17:00';
+        $isLateCheckout = $now->format('H:i:s') > $classEnd;
+        $this->sendTelegramNotification($child, $parentId, 'checkout', $isLateCheckout);
 
         $response = [
             'success' => true,

@@ -1136,10 +1136,8 @@ public function exportSinglePdf(int $id)
             ? '⚠️ Check-in lewat! (' . date('h:i A', strtotime($now)) . ')'
             : '✅ Check-in berjaya! (' . date('h:i A', strtotime($now)) . ')';
 
-        // Send Telegram notification if late
-        if ($isLate) {
-            $this->sendLateNotification($child, 'check-in', $now, $morningEnd);
-        }
+        // Send Telegram notification
+        $this->sendLateNotification($child, 'check-in', $now, $morningEnd, $isLate);
 
         return response()->json(['success' => true, 'message' => $message, 'late' => $isLate]);
     }
@@ -1176,10 +1174,8 @@ public function exportSinglePdf(int $id)
             ? '⚠️ Check-out lewat! (' . date('h:i A', strtotime($now)) . ')'
             : '✅ Check-out berjaya! (' . date('h:i A', strtotime($now)) . ')';
 
-        // Send Telegram notification if late checkout
-        if ($isLateCheckout) {
-            $this->sendLateNotification($child, 'check-out', $now, $eveningEnd);
-        }
+        // Send Telegram notification
+        $this->sendLateNotification($child, 'check-out', $now, $eveningEnd, $isLateCheckout);
 
         return response()->json(['success' => true, 'message' => $message, 'late' => $isLateCheckout]);
     }
@@ -1187,21 +1183,23 @@ public function exportSinglePdf(int $id)
     /**
      * Send Telegram notification for late check-in/checkout
      */
-    private function sendLateNotification(Child $child, string $type, string $actualTime, string $deadline)
+    private function sendLateNotification(Child $child, string $type, string $actualTime, string $deadline, bool $isLate = true)
     {
         try {
             $telegram = new TelegramService();
             $parent = $child->parent;
-            $user = $parent; // Parent IS the user now
+            $user = $parent;
 
-            $icon = $type === 'check-in' ? '⏰' : '📤';
-            $message = "{$icon} <b>Late {$type} Notification</b>\n\n"
+            $statusIcon = $isLate ? '⚠️' : '✅';
+            $statusText = $isLate ? "Late {$type}" : "On-Time {$type}";
+            $icon = $type === 'check-in' ? '📥' : '📤';
+            $message = "{$icon} <b>{$statusIcon} {$statusText} Notification</b>\n\n"
                 . "👶 <b>Child:</b> {$child->name}\n"
                 . "🏫 <b>Class:</b> " . ($child->classroom->name ?? 'N/A') . "\n"
                 . "🕐 <b>Time:</b> " . date('h:i A', strtotime($actualTime)) . "\n"
-                . "⏳ <b>Deadline:</b> " . date('h:i A', strtotime($deadline)) . "\n"
+                . "⏳ <b>Schedule:</b> " . date('h:i A', strtotime($deadline)) . "\n"
                 . "👤 <b>Parent:</b> " . ($parent->name ?? 'N/A') . "\n\n"
-                . "<i>Please take note. - KIDSTRACK SAFECARE</i>";
+                . "<i>📍 kidstrack-management-system.shazwan-danial.com</i>";
 
             // 1. Send to admin
             $adminChatId = env('TELEGRAM_ADMIN_CHAT_ID');

@@ -434,7 +434,10 @@ class AddAnotherChildController extends Controller
                     'time' => $now->format('h:i A')
                 ];
 
-                $this->sendTelegramNotification($child, $request->parent_id, 'checkin');
+                // Late detection per child via classroom schedule
+                $classStart = $child->classroom->start_time ?? '08:00';
+                $isLate = $now->format('H:i:s') > $classStart;
+                $this->sendTelegramNotification($child, $request->parent_id, 'checkin', $isLate);
             }
 
             return response()->json([
@@ -513,7 +516,10 @@ class AddAnotherChildController extends Controller
                     'time' => $now->format('h:i A')
                 ];
 
-                $this->sendTelegramNotification($child, $request->parent_id, 'checkout');
+                // Late/early detection per child via classroom schedule
+                $classEnd = $child->classroom->end_time ?? '17:00';
+                $isLate = $now->format('H:i:s') > $classEnd;
+                $this->sendTelegramNotification($child, $request->parent_id, 'checkout', $isLate);
             }
 
             return response()->json([
@@ -533,12 +539,14 @@ class AddAnotherChildController extends Controller
         }
     }
 
-    private function sendTelegramNotification(\App\Models\Child $child, int $parentId, string $action): void
+    private function sendTelegramNotification(\App\Models\Child $child, int $parentId, string $action, bool $isLate = false): void
     {
         $parent = \App\Models\User::find($parentId);
         $now = Carbon::now('Asia/Kuala_Lumpur');
         $classroom = $child->classroom->name ?? 'No class';
 
+        $statusIcon = $isLate ? '⚠️' : '✅';
+        $statusText = $isLate ? 'LATE' : 'ON TIME';
         $actionLabel = $action == 'checkin' ? '📥 CHECK-IN' : '📤 CHECK-OUT';
 
         $message = "<b>🧸 KidsTrack — {$actionLabel}</b>\n\n";
@@ -546,7 +554,7 @@ class AddAnotherChildController extends Controller
         $message .= "<b>🏫 Class:</b> {$classroom}\n";
         $message .= "<b>⏰ Time:</b> " . $now->format('h:i A') . "\n";
         $message .= "<b>📅 Date:</b> " . $now->format('d M Y, l') . "\n";
-        $message .= "<b>📊 Status:</b> ✅ Completed\n";
+        $message .= "<b>📊 Status:</b> {$statusIcon} {$statusText}\n";
         $message .= "\n<i>📍 kidstrack-management-system.shazwan-danial.com</i>";
 
         // Send to parent
