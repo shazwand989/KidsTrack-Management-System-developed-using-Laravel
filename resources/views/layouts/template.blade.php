@@ -401,13 +401,12 @@
       <ul class="navbar-nav">
 
         <!-- ============================================ -->
-        <!-- MAIN SECTION -->
+        <!-- MAIN -->
         <!-- ============================================ -->
         <li class="nav-item">
           <span class="section-header">MAIN</span>
         </li>
 
-        <!-- Dashboard -->
         <li class="nav-item">
           <a class="nav-link text-dark @if(request()->routeIs('dashboard')) active @endif" href="{{ url('/dashboard') }}">
             <i class="material-symbols-rounded opacity-5">dashboard</i>
@@ -415,7 +414,20 @@
           </a>
         </li>
 
-        <!-- Little Blossoms (Children) -->
+        <li class="nav-item">
+          <a class="nav-link text-dark @if(request()->routeIs('kiosk.index')) active @endif" href="{{ route('kiosk.index') }}" target="_blank">
+            <i class="material-symbols-rounded opacity-5">qr_code_scanner</i>
+            <span class="nav-link-text ms-1">Kiosk</span>
+          </a>
+        </li>
+
+        <!-- ============================================ -->
+        <!-- MANAGEMENT -->
+        <!-- ============================================ -->
+        <li class="nav-item mt-3">
+          <span class="section-header">MANAGEMENT</span>
+        </li>
+
         <li class="nav-item">
           <a class="nav-link text-dark @if(request()->routeIs('children.*')) active @endif" href="{{ route('children.index') }}">
             <i class="material-symbols-rounded opacity-5">child_care</i>
@@ -423,17 +435,6 @@
           </a>
         </li>
 
-        <!-- ============================================ -->
-<!-- TAMBAH: KIOSK -->
-<!-- ============================================ -->
-<li class="nav-item">
-  <a class="nav-link text-dark @if(request()->routeIs('kiosk.index')) active @endif" href="{{ route('kiosk.index') }}" target="_blank">
-    <i class="material-symbols-rounded opacity-5">qr_code_scanner</i>
-    <span class="nav-link-text ms-1">Kiosk</span>
-  </a>
-</li>
-
-        <!-- Loving Guardians (Parents) -->
         <li class="nav-item">
           <a class="nav-link text-dark @if(request()->routeIs('parents.*')) active @endif" href="{{ route('parents.index') }}">
             <i class="material-symbols-rounded opacity-5">family_restroom</i>
@@ -441,8 +442,6 @@
           </a>
         </li>
 
-        
-        <!-- Nurturing Team (Teachers) -->
         <li class="nav-item">
           <a class="nav-link text-dark @if(request()->routeIs('teachers.*')) active @endif" href="{{ route('teachers.index') }}">
             <i class="material-symbols-rounded opacity-5">school</i>
@@ -450,7 +449,6 @@
           </a>
         </li>
 
-        <!-- Classrooms -->
         <li class="nav-item">
           <a class="nav-link text-dark @if(request()->routeIs('classrooms.*')) active @endif" href="{{ route('classrooms.index') }}">
             <i class="material-symbols-rounded opacity-5">meeting_room</i>
@@ -458,62 +456,75 @@
           </a>
         </li>
 
-        <!-- Attendance -->
-<li class="nav-item">
-    <a class="nav-link text-dark @if(request()->routeIs('attendance.index') || request()->routeIs('attendance.*') && !request()->routeIs('attendance.calendar*')) active @endif" href="{{ route('attendance.index') }}">
-    <i class="material-symbols-rounded opacity-5">fact_check</i>
-        <span class="nav-link-text ms-1">Attendance</span>
-    </a>
-</li>
+        <!-- ============================================ -->
+        <!-- ATTENDANCE -->
+        <!-- ============================================ -->
+        <li class="nav-item mt-3">
+          <span class="section-header">ATTENDANCE</span>
+        </li>
 
-<!-- Attendance Calendar -->
-<li class="nav-item">
-    <a class="nav-link text-dark @if(request()->routeIs('attendance.calendar*')) active @endif" href="{{ route('attendance.calendar') }}">
-    <i class="material-symbols-rounded opacity-5">calendar_month</i>
-        <span class="nav-link-text ms-1">Calendar</span>
-    </a>
-</li>
+        <li class="nav-item">
+          <a class="nav-link text-dark @if(request()->routeIs('attendance.index') || (request()->routeIs('attendance.*') && !request()->routeIs('attendance.calendar*'))) active @endif" href="{{ route('attendance.index') }}">
+            <i class="material-symbols-rounded opacity-5">fact_check</i>
+            <span class="nav-link-text ms-1">Attendance</span>
+          </a>
+        </li>
 
-<!-- Attendance Reports -->
-<li class="nav-item">
-    <a class="nav-link text-dark @if(request()->routeIs('reports.*')) active @endif" href="{{ route('reports.class') }}">
-    <i class="material-symbols-rounded opacity-5">assessment</i>
-        <span class="nav-link-text ms-1">Reports</span>
-    </a>
-</li>
+        <li class="nav-item">
+          <a class="nav-link text-dark @if(request()->routeIs('attendance.calendar*')) active @endif" href="{{ route('attendance.calendar') }}">
+            <i class="material-symbols-rounded opacity-5">calendar_month</i>
+            <span class="nav-link-text ms-1">Calendar</span>
+          </a>
+        </li>
 
-<!-- Audit Trail -->
-<li class="nav-item">
-    <a class="nav-link text-dark @if(request()->routeIs('audit.*')) active @endif" href="{{ route('audit.log') }}">
-    <i class="material-symbols-rounded opacity-5">history</i>
-        <span class="nav-link-text ms-1">Audit Trail</span>
-    </a>
-</li>
+        <li class="nav-item">
+          <a class="nav-link text-dark @if(request()->routeIs('reports.*')) active @endif" href="{{ route('reports.class') }}">
+            <i class="material-symbols-rounded opacity-5">assessment</i>
+            <span class="nav-link-text ms-1">Reports</span>
+          </a>
+        </li>
 
-<!-- Fine Dashboard -->
-<li class="nav-item">
-    <a class="nav-link text-dark @if(request()->routeIs('penalties.fines')) active @endif" href="{{ route('penalties.fines') }}">
-    <i class="material-symbols-rounded opacity-5">payments</i>
-        <span class="nav-link-text ms-1">Fine</span>
-    </a>
-</li>
+        <!-- ============================================ -->
+        <!-- FINANCE -->
+        <!-- ============================================ -->
+        <li class="nav-item mt-3">
+          <span class="section-header">FINANCE</span>
+        </li>
 
-<!-- Penalty Settings -->
-<li class="nav-item">
-    <a class="nav-link text-dark @if(request()->routeIs('penalties.settings')) active @endif" href="{{ route('penalties.settings') }}">
-    <i class="material-symbols-rounded opacity-5">settings</i>
-        <span class="nav-link-text ms-1">Penalty Settings</span>
-    </a>
-</li>
+        <li class="nav-item">
+          <a class="nav-link text-dark @if(request()->routeIs('penalties.fines')) active @endif" href="{{ route('penalties.fines') }}">
+            <i class="material-symbols-rounded opacity-5">payments</i>
+            <span class="nav-link-text ms-1">Fine</span>
+          </a>
+        </li>
 
-{{-- Dalam layouts/template.blade.php - tambah dalam OPERATIONS section --}}
-<!-- QR Code -->
-<li class="nav-item">
-    <a class="nav-link text-dark @if(request()->routeIs('qr.code')) active @endif" href="{{ route('qr.code') }}">
-    <i class="material-symbols-rounded opacity-5">qr_code_2</i>
-        <span class="nav-link-text ms-1">QR Code</span>
-    </a>
-</li>
+        <li class="nav-item">
+          <a class="nav-link text-dark @if(request()->routeIs('penalties.settings')) active @endif" href="{{ route('penalties.settings') }}">
+            <i class="material-symbols-rounded opacity-5">settings</i>
+            <span class="nav-link-text ms-1">Penalty Settings</span>
+          </a>
+        </li>
+
+        <!-- ============================================ -->
+        <!-- SYSTEM -->
+        <!-- ============================================ -->
+        <li class="nav-item mt-3">
+          <span class="section-header">SYSTEM</span>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link text-dark @if(request()->routeIs('audit.*')) active @endif" href="{{ route('audit.log') }}">
+            <i class="material-symbols-rounded opacity-5">history</i>
+            <span class="nav-link-text ms-1">Audit Trail</span>
+          </a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link text-dark @if(request()->routeIs('qr.code')) active @endif" href="{{ route('qr.code') }}">
+            <i class="material-symbols-rounded opacity-5">qr_code_2</i>
+            <span class="nav-link-text ms-1">QR Code</span>
+          </a>
+        </li>
 
       </ul>
     </div>
