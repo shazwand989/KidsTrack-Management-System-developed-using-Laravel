@@ -705,7 +705,7 @@
                     <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                         {{-- CHECK-IN STATUS BADGE --}}
                         <span class="status-badge {{ $checkinBadgeClass }}">
-                            {{ $checkinBadgeIcon }} {{ $checkinBadgeText }}
+                            {!! $checkinBadgeIcon !!} {{ $checkinBadgeText }}
                             @if($status == 'late' && $attendance->late_reason)
                                 <span style="font-size:9px; opacity:0.7;">({{ $attendance->late_reason }})</span>
                             @endif
@@ -713,7 +713,7 @@
                         {{-- CHECK-OUT STATUS BADGE (only if checked out) --}}
                         @if($hasCheckout)
                             <span class="status-badge {{ $checkoutBadgeClass }}">
-                                {{ $checkoutBadgeIcon }} {{ $checkoutBadgeText }}
+                                {!! $checkoutBadgeIcon !!} {{ $checkoutBadgeText }}
                             </span>
                         @endif
                     </div>

@@ -498,10 +498,10 @@
                 info.innerHTML = '<div style="font-weight:800;font-size:15px;color:#1e293b;">' + name + '</div><div style="font-size:12px;color:#94a3b8;"><i class="fas fa-phone"></i> ' + phone + ' · ✉️ ' + email + '</div>';
             }
 
-            msg.style.color = '#16a34a'; msg.textContent = '<i class="fas fa-check-circle"></i> Updated!';
+            msg.style.color = '#16a34a'; msg.innerHTML = '<i class="fas fa-check-circle"></i> Updated!';
             setTimeout(() => { document.getElementById('edit-member-' + role).style.display = 'none'; msg.style.display = 'none'; }, 800);
         } catch(e) {
-            msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> Error.';
+            msg.style.color = '#dc2626'; msg.innerHTML = '<i class="fas fa-times-circle"></i> Error.';
         }
     }
 
@@ -533,13 +533,13 @@
             });
             const data = await res.json();
             if (res.ok && data.success) {
-                msg.style.color = '#16a34a'; msg.textContent = '<i class="fas fa-check-circle"></i> ' + label + ' registered & linked! Reloading...';
+                msg.style.color = '#16a34a'; msg.innerHTML = '<i class="fas fa-check-circle"></i> ' + label + ' registered & linked! Reloading...';
                 setTimeout(() => location.reload(), 800);
             } else {
-                msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> ' + (data.message || 'Failed.');
+                msg.style.color = '#dc2626'; msg.innerHTML = '<i class="fas fa-times-circle"></i> ' + (data.message || 'Failed.');
             }
         } catch(e) {
-            msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> Network error.';
+            msg.style.color = '#dc2626'; msg.innerHTML = '<i class="fas fa-times-circle"></i> Network error.';
         }
     }
 
@@ -598,10 +598,10 @@
                 }
             }
 
-            msg.style.color = '#16a34a'; msg.textContent = '<i class="fas fa-check-circle"></i> Saved!';
+            msg.style.color = '#16a34a'; msg.innerHTML = '<i class="fas fa-check-circle"></i> Saved!';
             setTimeout(() => { document.getElementById('edit-form-' + childId).style.display = 'none'; msg.style.display = 'none'; }, 1000);
         } catch(e) {
-            msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> Error saving.';
+            msg.style.color = '#dc2626'; msg.innerHTML = '<i class="fas fa-times-circle"></i> Error saving.';
         }
     }
 
@@ -661,13 +661,13 @@
             const data = await res.json();
             if (res.ok && data.child_id) {
                 // Success — reload to show new child in list
-                msg.style.color = '#16a34a'; msg.textContent = '<i class="fas fa-check-circle"></i> Child registered & linked! Reloading...';
+                msg.style.color = '#16a34a'; msg.innerHTML = '<i class="fas fa-check-circle"></i> Child registered & linked! Reloading...';
                 setTimeout(() => location.reload(), 800);
             } else {
-                msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> ' + (data.message || 'Registration failed.');
+                msg.style.color = '#dc2626'; msg.innerHTML = '<i class="fas fa-times-circle"></i> ' + (data.message || 'Registration failed.');
             }
         } catch(e) {
-            msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> Network error.';
+            msg.style.color = '#dc2626'; msg.innerHTML = '<i class="fas fa-times-circle"></i> Network error.';
         }
     }
 </script>

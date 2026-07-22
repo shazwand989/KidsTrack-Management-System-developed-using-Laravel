@@ -587,7 +587,7 @@
             const statusDiv = document.getElementById('scannerStatus');
             
             if (isScanning) {
-                statusDiv.textContent = '<i class="fas fa-check-circle"></i> Kamera sudah aktif';
+                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Kamera sudah aktif';
                 return;
             }
 

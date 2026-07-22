@@ -374,7 +374,7 @@
                         }
                     @endphp
                     <span class="status-badge-large {{ $badgeClass }}">
-                        {{ $badgeIcon }} {{ $badgeText }}
+                        {!! $badgeIcon !!} {{ $badgeText }}
                     </span>
                 </span>
             </div>
