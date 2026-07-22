@@ -291,6 +291,17 @@ class ParentController extends Controller
             ]);
         }
 
+        // Normalize children DOB from d/m/Y to Y-m-d before validation
+        if ($request->has('children')) {
+            $children = $request->input('children');
+            foreach ($children as $i => $child) {
+                if (!empty($child['dob']) && preg_match('#^\d{2}/\d{2}/\d{4}$#', $child['dob'])) {
+                    $children[$i]['dob'] = \Carbon\Carbon::createFromFormat('d/m/Y', $child['dob'])->format('Y-m-d');
+                }
+            }
+            $request->merge(['children' => $children]);
+        }
+
         $request->validate($rules);
 
         $role = $request->input('role', 'parent1');
