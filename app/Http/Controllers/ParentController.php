@@ -261,6 +261,16 @@ class ParentController extends Controller
             'child_ids.*' => 'exists:children,id',
         ];
 
+        // Add children validation
+        $rules = array_merge($rules, [
+            'children' => 'nullable|array',
+            'children.*.name' => 'nullable|string|max:255',
+            'children.*.ic_number' => 'nullable|string|unique:children,ic_number',
+            'children.*.classroom_id' => 'nullable|exists:classrooms,id',
+            'children.*.age' => 'nullable|integer|min:0|max:17',
+            'children.*.dob' => 'nullable|date',
+        ]);
+
         // Add second parent & guardian rules for full form
         if (!$isJson) {
             $rules = array_merge($rules, [

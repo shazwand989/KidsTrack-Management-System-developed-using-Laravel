@@ -156,12 +156,39 @@ class ChildController extends Controller
 
     public function edit(Child $child)
     {
+        $child->load(['classroom', 'guardianships.user']);
+
+        // Extract parents from guardianships
+        $mainParent = $child->guardianships->where('relationship', 'main_parent')->first()?->user;
+        $secondParent = $child->guardianships->where('relationship', 'second_parent')->first()?->user;
+        $guardian = $child->guardianships->where('relationship', 'guardian')->first()?->user;
+
         $classrooms = Classroom::all();
         $parents = \App\Models\User::whereIn('role', ['parent1'])->get();
-        $secondParents = \App\Models\User::whereIn('role', ['parent2'])->get();
-        $guardians = \App\Models\User::whereIn('role', ['guardian'])->get();
 
-        return view('children.edit', compact('child', 'classrooms', 'parents', 'secondParents', 'guardians'));
+        // Build family mapping: main_parent_id => { second_parent, guardian }
+        $familyMap = [];
+        foreach ($parents as $p) {
+            $childIds = \App\Models\Guardianship::where('user_id', $p->id)
+                ->where('relationship', 'main_parent')->pluck('child_id');
+            if ($childIds->isEmpty()) continue;
+            $firstChildId = $childIds->first();
+            $sp = \App\Models\Guardianship::where('child_id', $firstChildId)
+                ->where('relationship', 'second_parent')->first();
+            $g = \App\Models\Guardianship::where('child_id', $firstChildId)
+                ->where('relationship', 'guardian')->first();
+            $spUser = $sp ? \App\Models\User::find($sp->user_id) : null;
+            $gUser = $g ? \App\Models\User::find($g->user_id) : null;
+            $familyMap[$p->id] = [
+                'second_parent' => $spUser ? ['id' => $spUser->id, 'name' => $spUser->name, 'phone' => $spUser->phone_number, 'photo' => $spUser->photo] : null,
+                'guardian' => $gUser ? ['id' => $gUser->id, 'name' => $gUser->name, 'phone' => $gUser->phone_number, 'photo' => $gUser->photo] : null,
+            ];
+        }
+
+        return view('children.edit', compact(
+            'child', 'classrooms', 'parents',
+            'mainParent', 'secondParent', 'guardian', 'familyMap'
+        ));
     }
 
     public function update(Request $request, Child $child)

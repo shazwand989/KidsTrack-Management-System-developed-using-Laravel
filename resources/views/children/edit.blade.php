@@ -417,8 +417,6 @@
     <div class="debug-box" style="display:none;">
         <strong><i class="fas fa-search"></i> Family Links:</strong><br>
         Main Parent: {{ $child->parent?->name ?? 'None' }} (ID: {{ $child->parent?->id ?? 'N/A' }})<br>
-        Second Parent: {{ $child->secondParent?->name ?? 'None' }} (ID: {{ $child->secondParent?->id ?? 'N/A' }})<br>
-        Guardian: {{ $child->guardian?->name ?? 'None' }} (ID: {{ $child->guardian?->id ?? 'N/A' }})
     </div>
 
     {{-- Breadcrumb --}}
@@ -549,21 +547,21 @@
             <div class="guardian-select" id="parentSelect">
                 <div class="guardian-preview" onclick="toggleDropdown('parentDropdown')">
                     <div class="guardian-avatar" id="parentAvatar">
-                        @if($child->parent && $child->parent->photo)
-                            <img src="{{ asset('storage/'.$child->parent->photo) }}" alt="">
-                        @elseif($child->parent)
-                            <span>{{ strtoupper(substr($child->parent->name, 0, 1)) }}</span>
+                        @if($mainParent && $mainParent->photo)
+                            <img src="{{ asset('storage/'.$mainParent->photo) }}" alt="">
+                        @elseif($mainParent)
+                            <span>{{ strtoupper(substr($mainParent->name, 0, 1)) }}</span>
                         @else
                             <span><i class="fas fa-user"></i></span>
                         @endif
                     </div>
                     <div class="guardian-info">
                         <div class="guardian-name" id="parentName">
-                            {{ $child->parent->name ?? '-- Select Main Parent --' }}
+                            {{ $mainParent->name ?? '-- Select Main Parent --' }}
                         </div>
                         <div class="guardian-detail" id="parentDetail">
-                            @if($child->parent)
-                                <span><i class="fas fa-phone"></i> {{ $child->parent->phone_number }}</span>
+                            @if($mainParent)
+                                <span><i class="fas fa-phone"></i> {{ $mainParent->phone_number }}</span>
                                 <span class="guardian-badge">Main Parent</span>
                             @else
                                 <span><i class="fas fa-phone"></i> Click to select</span>
@@ -598,7 +596,7 @@
                     @endforeach
                 </div>
             </div>
-            <input type="hidden" name="parent_id" id="parent_id" value="{{ old('parent_id', $child->parent?->id) }}">
+            <input type="hidden" name="parent_id" id="parent_id" value="{{ old('parent_id', $mainParent?->id) }}">
             @error('parent_id')<span class="invalid-msg">{{ $message }}</span>@enderror
         </div>
 
@@ -608,21 +606,21 @@
             <div class="guardian-select" id="secondParentSelect">
                 <div class="guardian-preview" onclick="toggleDropdown('secondParentDropdown')">
                     <div class="guardian-avatar" id="secondParentAvatar">
-                        @if($child->secondParent && $child->secondParent->photo)
-                            <img src="{{ asset('storage/'.$child->secondParent->photo) }}" alt="">
-                        @elseif($child->secondParent)
-                            <span>{{ strtoupper(substr($child->secondParent->name, 0, 1)) }}</span>
+                        @if($secondParent && $secondParent->photo)
+                            <img src="{{ asset('storage/'.$secondParent->photo) }}" alt="">
+                        @elseif($secondParent)
+                            <span>{{ strtoupper(substr($secondParent->name, 0, 1)) }}</span>
                         @else
                             <span><i class="fas fa-user"></i></span>
                         @endif
                     </div>
                     <div class="guardian-info">
                         <div class="guardian-name" id="secondParentName">
-                            {{ $child->secondParent->name ?? '-- Select Main Parent First --' }}
+                            {{ $secondParent->name ?? '-- Select Main Parent First --' }}
                         </div>
                         <div class="guardian-detail" id="secondParentDetail">
-                            @if($child->secondParent)
-                                <span><i class="fas fa-phone"></i> {{ $child->secondParent->phone_number }}</span>
+                            @if($secondParent)
+                                <span><i class="fas fa-phone"></i> {{ $secondParent->phone_number }}</span>
                                 <span class="guardian-badge">Second Parent</span>
                             @else
                                 <span><i class="fas fa-phone"></i> Please select main parent first</span>
@@ -643,7 +641,7 @@
                 </div>
             </div>
             <!-- 🔥 Hidden input untuk simpan parent_id (BUKAN second_parents.id!) -->
-            <input type="hidden" name="second_parent_id" id="second_parent_id" value="{{ old('second_parent_id', $child->secondParent?->id) }}">
+            <input type="hidden" name="second_parent_id" id="second_parent_id" value="{{ old('second_parent_id', $secondParent?->id) }}">
             <div class="text-muted" id="secondParentHint"><i class="fas fa-lightbulb"></i> Pilih Main Parent dahulu untuk melihat Second Parent yang berkaitan.</div>
         </div>
 
@@ -653,21 +651,21 @@
             <div class="guardian-select" id="guardianSelect">
                 <div class="guardian-preview" onclick="toggleDropdown('guardianDropdown')">
                     <div class="guardian-avatar" id="guardianAvatar">
-                        @if($child->guardian && $child->guardian->photo)
-                            <img src="{{ asset('storage/'.$child->guardian->photo) }}" alt="">
-                        @elseif($child->guardian)
-                            <span>{{ strtoupper(substr($child->guardian->name, 0, 1)) }}</span>
+                        @if($guardian && $guardian->photo)
+                            <img src="{{ asset('storage/'.$guardian->photo) }}" alt="">
+                        @elseif($guardian)
+                            <span>{{ strtoupper(substr($guardian->name, 0, 1)) }}</span>
                         @else
                             <span><i class="fas fa-shield-alt"></i></span>
                         @endif
                     </div>
                     <div class="guardian-info">
                         <div class="guardian-name" id="guardianName">
-                            {{ $child->guardian->name ?? '-- Select Main Parent First --' }}
+                            {{ $guardian->name ?? '-- Select Main Parent First --' }}
                         </div>
                         <div class="guardian-detail" id="guardianDetail">
-                            @if($child->guardian)
-                                <span><i class="fas fa-phone"></i> {{ $child->guardian->phone_number }}</span>
+                            @if($guardian)
+                                <span><i class="fas fa-phone"></i> {{ $guardian->phone_number }}</span>
                                 <span class="guardian-badge">Guardian</span>
                             @else
                                 <span><i class="fas fa-phone"></i> Please select main parent first</span>
@@ -687,7 +685,7 @@
                     <div id="guardianList"></div>
                 </div>
             </div>
-            <input type="hidden" name="guardian_id" id="guardian_id" value="{{ old('guardian_id', $child->guardian?->id) }}">
+            <input type="hidden" name="guardian_id" id="guardian_id" value="{{ old('guardian_id', $guardian?->id) }}">
             <div class="text-muted" id="guardianHint"><i class="fas fa-lightbulb"></i> Pilih Main Parent dahulu untuk melihat Guardian yang berkaitan.</div>
         </div>
     </div>
@@ -747,38 +745,18 @@
 </div>
 
 <script>
-    // ============================================
-    // DATA DARI PHP
-    // ============================================
-    const allSecondParents = @json($secondParents);
-    const allGuardians = @json($guardians);
+    const familyMap = @json($familyMap);
 
-    // ============================================
-    // DEBUG: CHECK DATA
-    // ============================================
-    console.log('=== DEBUG DATA EDIT ===');
-    console.log('All Second Parents:', allSecondParents);
-    console.log('All Guardians:', allGuardians);
-    console.log('Second Parents Count:', allSecondParents.length);
-    console.log('Guardians Count:', allGuardians.length);
-
-    // ============================================
-    // PHOTO PREVIEW
-    // ============================================
+    // Photo preview
     document.getElementById('childPhoto').addEventListener('change', function() {
         if (this.files && this.files[0]) {
             const reader = new FileReader();
-            reader.onload = e => {
-                const circle = document.getElementById('photoCircle');
-                circle.innerHTML = `<img src="${e.target.result}">`;
-            };
+            reader.onload = e => { document.getElementById('photoCircle').innerHTML = `<img src="${e.target.result}">`; };
             reader.readAsDataURL(this.files[0]);
         }
     });
 
-    // ============================================
-    // CLASSROOM SELECTION
-    // ============================================
+    // Classroom selection
     document.querySelectorAll('.classroom-option').forEach(option => {
         option.addEventListener('click', function() {
             document.querySelectorAll('.classroom-option').forEach(o => o.classList.remove('selected'));
@@ -787,248 +765,78 @@
         });
     });
 
-    // ============================================
-    // DROPDOWN TOGGLE
-    // ============================================
+    // Dropdown toggle
     function toggleDropdown(dropdownId) {
-        document.querySelectorAll('.guardian-dropdown-list').forEach(dropdown => {
-            if (dropdown.id !== dropdownId) {
-                dropdown.style.display = 'none';
-            }
-        });
-        const dropdown = document.getElementById(dropdownId);
-        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        document.querySelectorAll('.guardian-dropdown-list').forEach(d => { if (d.id !== dropdownId) d.style.display = 'none'; });
+        const dd = document.getElementById(dropdownId);
+        dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
     }
-
     document.addEventListener('click', function(e) {
         if (!e.target.closest('.guardian-select')) {
-            document.querySelectorAll('.guardian-dropdown-list').forEach(dropdown => {
-                dropdown.style.display = 'none';
-            });
+            document.querySelectorAll('.guardian-dropdown-list').forEach(d => d.style.display = 'none');
         }
     });
 
-    // ============================================
-    // SELECT MAIN PARENT
-    // ============================================
+    // Select Main Parent — auto-fills Second Parent & Guardian from familyMap
     function selectParent(id, name, phone, photo, parentId) {
         document.getElementById('parent_id').value = id;
         document.getElementById('parentName').innerHTML = name;
         document.getElementById('parentDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${phone}</span><span class="guardian-badge">Main Parent</span>`;
-
-        const avatarDiv = document.getElementById('parentAvatar');
-        if (photo) {
-            avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
-        } else {
-            avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
-        }
+        document.getElementById('parentAvatar').innerHTML = photo ? `<img src="/storage/${photo}" alt="">` : `<span>${name.charAt(0).toUpperCase()}</span>`;
         document.getElementById('parentDropdown').style.display = 'none';
 
-        console.log('Selected Parent ID:', parentId);
-        populateSecondParents(parentId);
-        populateGuardians(parentId);
-    }
-
-    // ============================================
-    // POPULATE SECOND PARENTS
-    // ============================================
-    function populateSecondParents(parentId) {
-        const listContainer = document.getElementById('secondParentList');
-        const hint = document.getElementById('secondParentHint');
-
-        console.log('Populating Second Parents for Parent ID:', parentId);
-
-        const filtered = allSecondParents.filter(sp => sp.parent_id == parentId);
-
-        console.log('Filtered Second Parents:', filtered);
-
-        if (filtered.length > 0) {
-            let html = '';
-            filtered.forEach(sp => {
-                const photoHtml = sp.photo ? `<img src="/storage/${sp.photo}" alt="">` : `<span>${sp.name.charAt(0).toUpperCase()}</span>`;
-                const phone = sp.phone || '-';
-                html += `
-                    <div class="guardian-option" onclick="selectSecondParent(${sp.id}, '${sp.name}', '${phone}', '${sp.photo || ''}')">
-                        <div class="option-avatar">${photoHtml}</div>
-                        <div class="option-info">
-                            <div class="option-name">${sp.name}</div>
-                            <div class="option-detail"><i class="fas fa-phone"></i> ${phone}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            listContainer.innerHTML = html;
-            hint.innerHTML = '<i class="fas fa-check-circle"></i> ' + filtered.length + ' Second Parent(s) available for this Main Parent.';
-        } else {
-            listContainer.innerHTML = `
-                <div class="guardian-option" style="cursor:default; opacity:0.6;">
-                    <div class="option-info">
-                        <div class="option-name">No Second Parent registered</div>
-                        <div class="option-detail">Add second parent in Parent Management</div>
-                    </div>
-                </div>
-            `;
-            hint.innerHTML = '<i class="fas fa-lightbulb"></i> No Second Parent found for this Main Parent.';
-        }
-
-        // Reset second parent selection if current selection doesn't belong to this parent
-        const currentSecondParentId = document.getElementById('second_parent_id').value;
-        const stillValid = filtered.some(sp => sp.parent_id == currentSecondParentId);
-        if (!stillValid && currentSecondParentId) {
-            document.getElementById('second_parent_id').value = '';
-            document.getElementById('secondParentName').innerHTML = '-- Select Second Parent --';
-            document.getElementById('secondParentDetail').innerHTML = '<span><i class="fas fa-phone"></i> Click to select</span>';
-            document.getElementById('secondParentAvatar').innerHTML = '<span><i class="fas fa-user"></i></span>';
-        }
-    }
-
-    // ============================================
-    // POPULATE GUARDIANS
-    // ============================================
-    function populateGuardians(parentId) {
-        const listContainer = document.getElementById('guardianList');
-        const hint = document.getElementById('guardianHint');
-
-        console.log('Populating Guardians for Parent ID:', parentId);
-
-        const filtered = allGuardians.filter(g => g.parent_id == parentId);
-
-        console.log('Filtered Guardians:', filtered);
-
-        if (filtered.length > 0) {
-            let html = '';
-            filtered.forEach(g => {
-                const photoHtml = g.photo ? `<img src="/storage/${g.photo}" alt="">` : `<span>${g.name.charAt(0).toUpperCase()}</span>`;
-                const phone = g.phone || '-';
-                html += `
-                    <div class="guardian-option" onclick="selectGuardian(${g.id}, '${g.name}', '${phone}', '${g.photo || ''}')">
-                        <div class="option-avatar">${photoHtml}</div>
-                        <div class="option-info">
-                            <div class="option-name">${g.name}</div>
-                            <div class="option-detail"><i class="fas fa-phone"></i> ${phone}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            listContainer.innerHTML = html;
-            hint.innerHTML = '<i class="fas fa-check-circle"></i> ' + filtered.length + ' Guardian(s) available for this Main Parent.';
-        } else {
-            listContainer.innerHTML = `
-                <div class="guardian-option" style="cursor:default; opacity:0.6;">
-                    <div class="option-info">
-                        <div class="option-name">No Guardian registered</div>
-                        <div class="option-detail">Add guardian in Guardian Management</div>
-                    </div>
-                </div>
-            `;
-            hint.innerHTML = '<i class="fas fa-lightbulb"></i> No Guardian found for this Main Parent.';
-        }
-
-        // Reset guardian selection if current selection doesn't belong to this parent
-        const currentGuardianId = document.getElementById('guardian_id').value;
-        const stillValid = filtered.some(g => g.id == currentGuardianId);
-        if (!stillValid && currentGuardianId) {
-            document.getElementById('guardian_id').value = '';
-            document.getElementById('guardianName').innerHTML = '-- Select Guardian --';
-            document.getElementById('guardianDetail').innerHTML = '<span><i class="fas fa-phone"></i> Click to select</span>';
-            document.getElementById('guardianAvatar').innerHTML = '<span><i class="fas fa-shield-alt"></i></span>';
-        }
-    }
-
- // ============================================
-// 🔥🔥🔥 SELECT SECOND PARENT - FIXED! 🔥🔥🔥
-// ============================================
-function selectSecondParent(id, name, phone, photo) {
-    // Cari second parent dalam allSecondParents
-    const sp = allSecondParents.find(item => item.id == id);
-
-    if (sp) {
-        // 🔥🔥🔥 GUNA sp.parent_id (BUKAN sp.id!) 🔥🔥🔥
-        document.getElementById('second_parent_id').value = sp.parent_id;
-        console.log('<i class="fas fa-check-circle"></i> Second Parent selected:', {
-            id: sp.id,
-            parent_id: sp.parent_id,
-            name: sp.name
-        });
-    } else {
-        document.getElementById('second_parent_id').value = '';
-    }
-
-    if (id === '' || !sp) {
-        document.getElementById('secondParentName').innerHTML = '-- None / Skip --';
-        document.getElementById('secondParentDetail').innerHTML = '<span><i class="fas fa-phone"></i> No second parent selected</span>';
-        document.getElementById('secondParentAvatar').innerHTML = '<span><i class="fas fa-user"></i></span>';
-    } else {
-        document.getElementById('secondParentName').innerHTML = name;
-        document.getElementById('secondParentDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${phone}</span><span class="guardian-badge">Second Parent</span>`;
-        const avatarDiv = document.getElementById('secondParentAvatar');
-        if (photo) {
-            avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
-        } else {
-            avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
-        }
-    }
-    document.getElementById('secondParentDropdown').style.display = 'none';
-}
-
-    // ============================================
-    // SELECT GUARDIAN
-    // ============================================
-    function selectGuardian(id, name, phone, photo) {
-        document.getElementById('guardian_id').value = id;
-        if (id === '') {
-            document.getElementById('guardianName').innerHTML = '-- None / Skip --';
-            document.getElementById('guardianDetail').innerHTML = '<span><i class="fas fa-phone"></i> No guardian selected</span>';
-            document.getElementById('guardianAvatar').innerHTML = '<span><i class="fas fa-shield-alt"></i></span>';
-        } else {
-            document.getElementById('guardianName').innerHTML = name;
-            document.getElementById('guardianDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${phone}</span><span class="guardian-badge">Guardian</span>`;
-            const avatarDiv = document.getElementById('guardianAvatar');
-            if (photo) {
-                avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
-            } else {
-                avatarDiv.innerHTML = `<span>${name.charAt(0).toUpperCase()}</span>`;
-            }
-        }
-        document.getElementById('guardianDropdown').style.display = 'none';
-    }
-
-    // ============================================
-    // INITIALIZE - Auto populate on page load
-    // ============================================
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get current parent ID
-        const currentParentId = document.getElementById('parent_id').value;
-
-        if (currentParentId) {
-            console.log('Initializing with Parent ID:', currentParentId);
-
-            // Get parent name from dropdown
-            const parentOption = document.querySelector(`#parentDropdown .guardian-option[onclick*="selectParent(${currentParentId}"]`);
-            if (parentOption) {
-                const name = parentOption.querySelector('.option-name').textContent;
-                const phone = parentOption.querySelector('.option-detail')?.textContent?.replace('<i class="fas fa-phone"></i> ', '') || '-';
-                const photo = parentOption.querySelector('.option-avatar img')?.getAttribute('src')?.replace('/storage/', '') || '';
-                selectParent(currentParentId, name, phone, photo, currentParentId);
-            } else {
-                // If option not found, just populate
-                populateSecondParents(currentParentId);
-                populateGuardians(currentParentId);
-            }
-        }
-
-        // 🔥 Check if second parent is already selected and display correctly
-        const secondParentId = document.getElementById('second_parent_id').value;
-        if (secondParentId) {
-            const sp = allSecondParents.find(item => item.parent_id == secondParentId);
-            if (sp) {
+        const family = familyMap[id];
+        if (family) {
+            // Second Parent
+            if (family.second_parent) {
+                const sp = family.second_parent;
+                document.getElementById('second_parent_id').value = sp.id;
                 document.getElementById('secondParentName').innerHTML = sp.name;
-                document.getElementById('secondParentDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${sp.phone || '-'}</span><span class="guardian-badge">Second Parent</span>`;
-                const avatarDiv = document.getElementById('secondParentAvatar');
-                if (sp.photo) {
-                    avatarDiv.innerHTML = `<img src="/storage/${sp.photo}" alt="">`;
-                } else {
-                    avatarDiv.innerHTML = `<span>${sp.name.charAt(0).toUpperCase()}</span>`;
+                document.getElementById('secondParentDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${sp.phone||'-'}</span><span class="guardian-badge">Second Parent</span>`;
+                document.getElementById('secondParentAvatar').innerHTML = sp.photo ? `<img src="/storage/${sp.photo}" alt="">` : `<span>${sp.name.charAt(0).toUpperCase()}</span>`;
+                document.getElementById('secondParentHint').innerHTML = '<i class="fas fa-check-circle"></i> Auto-filled from family';
+            } else {
+                document.getElementById('second_parent_id').value = '';
+                document.getElementById('secondParentName').innerHTML = '-- None --';
+                document.getElementById('secondParentDetail').innerHTML = '<span>No second parent in family</span>';
+                document.getElementById('secondParentAvatar').innerHTML = '<span><i class="fas fa-user"></i></span>';
+                document.getElementById('secondParentHint').innerHTML = 'No second parent for this family.';
+            }
+            // Guardian
+            if (family.guardian) {
+                const g = family.guardian;
+                document.getElementById('guardian_id').value = g.id;
+                document.getElementById('guardianName').innerHTML = g.name;
+                document.getElementById('guardianDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${g.phone||'-'}</span><span class="guardian-badge">Guardian</span>`;
+                document.getElementById('guardianAvatar').innerHTML = g.photo ? `<img src="/storage/${g.photo}" alt="">` : `<span>${g.name.charAt(0).toUpperCase()}</span>`;
+                document.getElementById('guardianHint').innerHTML = '<i class="fas fa-check-circle"></i> Auto-filled from family';
+            } else {
+                document.getElementById('guardian_id').value = '';
+                document.getElementById('guardianName').innerHTML = '-- None --';
+                document.getElementById('guardianDetail').innerHTML = '<span>No guardian in family</span>';
+                document.getElementById('guardianAvatar').innerHTML = '<span><i class="fas fa-shield-alt"></i></span>';
+                document.getElementById('guardianHint').innerHTML = 'No guardian for this family.';
+            }
+        }
+    }
+
+    // On page load: if parent already selected, trigger auto-fill
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentParentId = document.getElementById('parent_id').value;
+        if (currentParentId) {
+            const family = familyMap[currentParentId];
+            if (family) {
+                if (family.second_parent) {
+                    const sp = family.second_parent;
+                    document.getElementById('secondParentName').innerHTML = sp.name;
+                    document.getElementById('secondParentDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${sp.phone||'-'}</span><span class="guardian-badge">Second Parent</span>`;
+                    document.getElementById('secondParentAvatar').innerHTML = sp.photo ? `<img src="/storage/${sp.photo}" alt="">` : `<span>${sp.name.charAt(0).toUpperCase()}</span>`;
+                }
+                if (family.guardian) {
+                    const g = family.guardian;
+                    document.getElementById('guardianName').innerHTML = g.name;
+                    document.getElementById('guardianDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${g.phone||'-'}</span><span class="guardian-badge">Guardian</span>`;
+                    document.getElementById('guardianAvatar').innerHTML = g.photo ? `<img src="/storage/${g.photo}" alt="">` : `<span>${g.name.charAt(0).toUpperCase()}</span>`;
                 }
             }
         }
