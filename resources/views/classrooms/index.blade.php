@@ -437,7 +437,7 @@
                 <th>Classroom</th>
                 <th>Teacher</th>
                 <th>Age Group</th>
-                <th>⏰ Schedule</th>
+                <th> Schedule</th>
                 <th>Students</th>
                 <th>Capacity</th>
                 <th>Status</th>
@@ -564,7 +564,7 @@
 
     @if($classrooms->count() > 0)
     <div class="table-footer">
-        <span>ℹ️</span>
+        <span><i class="fas fa-info-circle"></i></span>
         <span>Click any row to view seatmap and details</span>
         <span>{{ $classrooms->count() }} total classrooms</span>
     </div>

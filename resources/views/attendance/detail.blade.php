@@ -14,7 +14,7 @@
 
         <div class="stats">
             <div class="stat"><span class="num" style="color:#16a34a;">{{ $present }}</span> <i class="fas fa-check-circle"></i> Present</div>
-            <div class="stat"><span class="num" style="color:#dc2626;">{{ $late }}</span> ⏰ Late</div>
+            <div class="stat"><span class="num" style="color:#dc2626;">{{ $late }}</span>  Late</div>
             <div class="stat"><span class="num" style="color:#2563eb;">{{ $checkout }}</span> <i class="fas fa-hand-wave"></i> Checkout</div>
             <div class="stat"><span class="num" style="color:#d97706;">{{ $absent }}</span> <i class="fas fa-times-circle"></i> Absent</div>
         </div>
@@ -39,7 +39,7 @@
                             @if($att->status == 'present' || $att->status == 'checkin')
                                 <span style="color:#16a34a;"><i class="fas fa-check-circle"></i> Present</span>
                             @elseif($att->status == 'late')
-                                <span style="color:#dc2626;">⏰ Late</span>
+                                <span style="color:#dc2626;"> Late</span>
                             @elseif($att->status == 'checkout')
                                 <span style="color:#2563eb;"><i class="fas fa-hand-wave"></i> Checkout</span>
                             @else

@@ -390,7 +390,7 @@
         <option value="Assistant Teacher">📖 Assistant Teacher</option>
         <option value="Nursery Teacher">🍼 Nursery Teacher</option>
         <option value="Kindergarten Teacher">🎨 Kindergarten Teacher</option>
-        <option value="Trainee Teacher">📝 Trainee Teacher</option>
+        <option value="Trainee Teacher"><i class="fas fa-edit"></i> Trainee Teacher</option>
     </select>
     <select class="filter-select" id="filterStatus">
         <option value="">All Status</option>
@@ -534,7 +534,7 @@
 
     @if($teachers->count() > 0)
     <div class="table-footer">
-        <span>ℹ️</span>
+        <span><i class="fas fa-info-circle"></i></span>
         <span>Click any row to view full profile</span>
         <span>{{ $total }} total teachers</span>
     </div>

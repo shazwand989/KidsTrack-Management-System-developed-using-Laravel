@@ -551,7 +551,7 @@
                         <h3>Personal Information</h3>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📛</span> Full Name</div>
+                        <div class="info-label"><span><i class="fas fa-id-badge"></i></span> Full Name</div>
                         <div class="info-value">{{ $child->name }}</div>
                     </div>
                     <div class="info-row">
@@ -564,7 +564,7 @@
                     </div>
                     @if($child->dob)
                     <div class="info-row">
-                        <div class="info-label"><span>🎂</span> Date of Birth</div>
+                        <div class="info-label"><span><i class="fas fa-birthday-cake"></i></span> Date of Birth</div>
                         <div class="info-value">{{ \Carbon\Carbon::parse($child->dob)->format('d M Y') }}</div>
                     </div>
                     @endif
@@ -573,7 +573,7 @@
                 {{-- Address Information --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>🏠</span>
+                        <span><i class="fas fa-home"></i></span>
                         <h3>Address</h3>
                     </div>
                     <div class="info-row">
@@ -607,7 +607,7 @@
                 {{-- Enrollment Details --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>📝</span>
+                        <span><i class="fas fa-edit"></i></span>
                         <h3>Enrollment Details</h3>
                     </div>
                     <div class="info-row">
@@ -619,11 +619,11 @@
                         <div class="info-value">{{ $child->created_at->format('d M Y, h:i A') }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>🔄</span> Last Updated</div>
+                        <div class="info-label"><span><i class="fas fa-sync-alt"></i></span> Last Updated</div>
                         <div class="info-value">{{ $child->updated_at->format('d M Y, h:i A') }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>⚙️</span> Status</div>
+                        <div class="info-label"><span><i class="fas fa-cog"></i></span> Status</div>
                         <div class="info-value">{{ $child->is_active ? 'Active' : 'Inactive' }}</div>
                     </div>
                 </div>
@@ -679,7 +679,7 @@
                 @else
                 <div class="parent-card" style="background: #f8fafc;">
                     <div class="parent-avatar">
-                        <span>➖</span>
+                        <span><i class="fas fa-minus"></i></span>
                     </div>
                     <div class="parent-details">
                         <div class="parent-name empty-text">No second parent registered</div>
@@ -711,7 +711,7 @@
                 @else
                 <div class="parent-card" style="background: #f8fafc;">
                     <div class="parent-avatar">
-                        <span>🛡️</span>
+                        <span><i class="fas fa-shield-alt"></i></span>
                     </div>
                     <div class="parent-details">
                         <div class="parent-name empty-text">No guardian registered</div>
@@ -724,7 +724,7 @@
             {{-- QR CODE SECTION --}}
             <div class="info-card" style="margin-bottom: 20px;">
                 <div class="info-card-header">
-                    <span>📱</span>
+                    <span><i class="fas fa-mobile-alt"></i></span>
                     <h3>QR Code</h3>
                 </div>
 
@@ -738,7 +738,7 @@
                             </div>
                         @else
                             <div style="padding: 30px; text-align: center; color: #9ca3af;">
-                                <div style="font-size: 40px;">📱</div>
+                                <div style="font-size: 40px;"><i class="fas fa-mobile-alt"></i></div>
                                 <p style="margin: 10px 0;">No QR Code generated</p>
                                 <a href="{{ route('child.qr.generate', $child->id) }}" class="btn-qr btn-primary">
                                     Generate QR Code
@@ -769,10 +769,10 @@
                                 <i class="fas fa-search"></i> View Full QR
                             </a>
                             <button onclick="printQR()" class="btn-qr btn-secondary">
-                                🖨️ Print QR
+                                <i class="fas fa-print"></i> Print QR
                             </button>
                             <a href="{{ route('child.qr.generate', $child->id) }}" class="btn-qr btn-warning">
-                                🔄 Regenerate QR
+                                <i class="fas fa-sync-alt"></i> Regenerate QR
                             </a>
                         </div>
                     </div>
@@ -783,7 +783,7 @@
             @if($child->medical_notes || $child->dietary)
             <div class="additional-section">
                 <div class="additional-title">
-                    <span>📝</span> Additional Information
+                    <span><i class="fas fa-edit"></i></span> Additional Information
                 </div>
 
                 @if($child->medical_notes)

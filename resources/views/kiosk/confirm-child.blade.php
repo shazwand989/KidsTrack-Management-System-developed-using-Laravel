@@ -619,7 +619,7 @@
             $roleLabel = '👫 Second Parent';
             $roleBadgeClass = 'role-badge-second';
         } elseif ($isGuardian) {
-            $roleLabel = '🛡️ Guardian';
+            $roleLabel = '<i class="fas fa-shield-alt"></i> Guardian';
             $roleBadgeClass = 'role-badge-guardian';
         } elseif (in_array($userRole, ['admin', 'teacher'])) {
             $roleLabel = '👑 Admin/Teacher';
@@ -649,9 +649,9 @@
             if ($isBirthday) {
                 $headerClass = 'checkout-birthday';
                 $iconBig = '<i class="fas fa-party-horn"></i>';
-                $badgeText = '🎂 Birthday Check-Out!';
+                $badgeText = '<i class="fas fa-birthday-cake"></i> Birthday Check-Out!';
                 $greetingText = "Happy Birthday, {$child->name}!";
-                $subText = "Time to go home and celebrate! 🎂";
+                $subText = "Time to go home and celebrate! <i class="fas fa-birthday-cake"></i>";
                 $buttonClass = 'birthday-btn';
             } else {
                 $headerClass = 'checkout-mode';
@@ -671,7 +671,7 @@
             } elseif ($isBirthday) {
                 $headerClass = 'birthday-mode';
                 $iconBig = '<i class="fas fa-party-horn"></i>';
-                $badgeText = '🎂 Birthday!';
+                $badgeText = '<i class="fas fa-birthday-cake"></i> Birthday!';
                 $greetingText = "Happy Birthday, {$child->name}!";
                 $subText = $birthdayMessage;
                 $buttonClass = 'birthday-btn';
@@ -756,33 +756,33 @@
             } elseif ($isOutsideSlot) {
                 if ($isMainParent) {
                     $headerClass = 'main-parent';
-                    $iconBig = '⏰';
+                    $iconBig = '';
                     $badgeText = $roleLabel . ' • Outside Hours';
                     $greetingText = "Hi, {$parentName}!";
                     $subText = "Outside hours • Still allowed";
                 } elseif ($isSecondParent) {
                     $headerClass = 'second-parent';
-                    $iconBig = '⏰';
+                    $iconBig = '';
                     $badgeText = $roleLabel . ' • Outside Hours';
                     $greetingText = "Hi, {$parentName}!";
                     $subText = "Second Parent • Outside hours";
                     $buttonClass = 'second-parent-btn';
                 } elseif ($isGuardian) {
                     $headerClass = 'guardian-mode';
-                    $iconBig = '⏰';
+                    $iconBig = '';
                     $badgeText = $roleLabel . ' • Outside Hours';
                     $greetingText = "Hi, {$parentName}!";
                     $subText = "Guardian • Outside hours";
                     $buttonClass = 'guardian-btn';
                 } elseif (in_array($userRole, ['admin', 'teacher'])) {
                     $headerClass = 'admin-mode';
-                    $iconBig = '⏰';
+                    $iconBig = '';
                     $badgeText = $roleLabel . ' • Outside Hours';
                     $greetingText = "Welcome, {$parentName}!";
                     $subText = "Admin • Outside hours";
                 } else {
                     $headerClass = 'outside-hours';
-                    $iconBig = '⏰';
+                    $iconBig = '';
                     $badgeText = 'Outside Hours';
                     $greetingText = "Hi!";
                     $subText = "Outside operation hours • Still allowed";
@@ -805,7 +805,7 @@
                 
             } elseif ($isGuardian) {
                 $headerClass = 'guardian-mode';
-                $iconBig = '🛡️';
+                $iconBig = '<i class="fas fa-shield-alt"></i>';
                 $badgeText = $roleLabel;
                 $greetingText = "Hi, {$parentName}!";
                 $subText = 'Status: Registered Guardian';
@@ -856,16 +856,16 @@
             <p class="sub-text">{{ $subText }}</p>
             
             @if($isBirthday && !$isCheckoutMode)
-                <div class="birthday-text">🎂 {{ $birthdayMessage }}</div>
+                <div class="birthday-text"><i class="fas fa-birthday-cake"></i> {{ $birthdayMessage }}</div>
             @endif
             
             @if($isBirthday && $isCheckoutMode)
-                <div class="birthday-text">🎂 Happy Birthday, {{ $child->name }}! Have a wonderful celebration at home! <i class="fas fa-party-horn"></i></div>
+                <div class="birthday-text"><i class="fas fa-birthday-cake"></i> Happy Birthday, {{ $child->name }}! Have a wonderful celebration at home! <i class="fas fa-party-horn"></i></div>
             @endif
             
             @if($isCheckoutMode && !$isBirthday)
                 <div class="checkout-welcome">
-                    <i class="fas fa-clock"></i> Checked in at {{ $checkinTime }} • Time to go home! 🏠
+                    <i class="fas fa-clock"></i> Checked in at {{ $checkinTime }} • Time to go home! <i class="fas fa-home"></i>
                 </div>
             @endif
         </div>
@@ -895,7 +895,7 @@
                         <span class="status-badge checked-out"><i class="fas fa-check-circle"></i> Checked Out</span>
                     </div>
                     <div style="margin-top: 12px; padding: 10px; background: #f0fdf4; border-radius: 8px; color: #166534; font-weight: 600;">
-                        🏠 Safe & Sound • {{ $checkoutTime }}
+                        <i class="fas fa-home"></i> Safe & Sound • {{ $checkoutTime }}
                     </div>
                 </div>
                 
@@ -903,7 +903,7 @@
                 <div class="timer-display-box">
                     <div class="timer-title">⏱️ Waktu Operasi Hari Ini ({{ $timerSetting->day_name }})</div>
                     <div class="timer-row">
-                        <span class="label">🌅 Morning</span>
+                        <span class="label"> Morning</span>
                         <span class="time">{{ $morningStart }} - {{ $morningEnd }}</span>
                     </div>
                     <div class="timer-row">
@@ -947,7 +947,7 @@
                 <div class="timer-display-box {{ $timerBoxClass }}">
                     <div class="timer-title">⏱️ Waktu Operasi Hari Ini ({{ $timerSetting->day_name }})</div>
                     <div class="timer-row">
-                        <span class="label">🌅 Morning (Check-in)</span>
+                        <span class="label"> Morning (Check-in)</span>
                         <span class="time">{{ $morningStart }} - {{ $morningEnd }}</span>
                     </div>
                     <div class="timer-row">

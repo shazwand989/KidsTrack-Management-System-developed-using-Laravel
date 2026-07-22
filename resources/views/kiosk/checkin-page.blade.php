@@ -784,7 +784,7 @@
                     <i class="fas fa-calendar-alt"></i> {{ \Carbon\Carbon::parse($selectedDate ?? now())->format('d/m/Y') }} ({{ $now->format('l') }})
                 </div>
                 <div class="timer-row">
-                    <span class="slot-label">🌅 Morning (Check-in)</span>
+                    <span class="slot-label"> Morning (Check-in)</span>
                     <span class="slot-time">{{ $timerSetting->morning_start }} - {{ $timerSetting->morning_end }}</span>
                     <span class="slot-status active"> Aktif</span>
                 </div>
@@ -886,7 +886,7 @@
                 } elseif ($currentTimeInt > $eveningEndInt) {
                     // Late checkout
                     $isLateCheckout = true;
-                    $checkoutMessage = '⏰ Late Checkout (Melebihi waktu operasi)';
+                    $checkoutMessage = ' Late Checkout (Melebihi waktu operasi)';
                     $checkoutInfoClass = 'active late';
                 } else {
                     // On-time checkout
@@ -910,7 +910,7 @@
 
         <div class="checkout-info active" id="checkoutInfo">
             @if($isLateCheckout)
-            ⏰ Late Checkout (Melebihi waktu operasi)
+             Late Checkout (Melebihi waktu operasi)
             @else
             <i class="fas fa-check-circle"></i> Sedia untuk check-out
             @endif
@@ -919,9 +919,9 @@
         @else
 
         @if($isLate)
-        <div class="status-badge late">⏰ Late Check-in</div>
+        <div class="status-badge late"> Late Check-in</div>
         <div class="late-reason-section show" id="lateReasonSection">
-            <label>📝 Sila pilih sebab anda lewat:</label>
+            <label><i class="fas fa-edit"></i> Sila pilih sebab anda lewat:</label>
             <select id="lateReasonSelect">
                 <option value="">-- Pilih Sebab --</option>
                 <option value="Kesesakan lalu lintas">🚗 Kesesakan lalu lintas</option>
@@ -929,7 +929,7 @@
                 <option value="Kecemasan">🚨 Kecemasan</option>
                 <option value="Cuaca buruk">🌧️ Cuaca buruk</option>
                 <option value="Kenderaan rosak">🔧 Kenderaan rosak</option>
-                <option value="Lain-lain">📝 Lain-lain</option>
+                <option value="Lain-lain"><i class="fas fa-edit"></i> Lain-lain</option>
             </select>
             <textarea id="lateReasonDetail" placeholder="Sila nyatakan sebab lain (jika ada)..."></textarea>
         </div>
@@ -976,7 +976,7 @@
                     👍 Terima Kasih
                 </button>
                 <button class="popup-btn-secondary" onclick="goToKiosk()">
-                    🏠 Kembali ke Kiosk
+                    <i class="fas fa-home"></i> Kembali ke Kiosk
                 </button>
             </div>
         </div>
@@ -1047,7 +1047,7 @@
         // Update checkout info with actual timer values
         const checkoutInfoEl = document.getElementById('checkoutInfo');
         if (checkoutInfoEl && !hasCheckin) {
-            checkoutInfoEl.textContent = '🌅 Check-in: ' + morningStartTime + ' - ' + morningEndTime + ' | 🌙 Check-out: ' + eveningStart + ' - ' + eveningEnd;
+            checkoutInfoEl.textContent = ' Check-in: ' + morningStartTime + ' - ' + morningEndTime + ' | 🌙 Check-out: ' + eveningStart + ' - ' + eveningEnd;
         }
 
         // ============================================
@@ -1119,7 +1119,7 @@
                 }
                 if (checkoutInfo) {
                     if (isLateCheckout) {
-                        checkoutInfo.textContent = '⏰ Late Checkout (Melebihi waktu operasi)';
+                        checkoutInfo.textContent = ' Late Checkout (Melebihi waktu operasi)';
                         checkoutInfo.className = 'checkout-info active late';
                     } else {
                         checkoutInfo.textContent = '<i class="fas fa-check-circle"></i> Waktu checkout: ' + eveningStart + ' - ' + eveningEnd;
@@ -1268,7 +1268,7 @@
                     <i class="fas fa-calendar-alt"></i> ${selectedDate} (${selectedDay})
                 </div>
                 <div class="timer-row">
-                    <span class="slot-label">🌅 Morning (Check-in)</span>
+                    <span class="slot-label"> Morning (Check-in)</span>
                     <span class="slot-time">${morningStart} - ${morningEnd}</span>
                     <span class="slot-status ${getStatusClass(morningStatus)}">${getStatusLabel(morningStatus)}</span>
                 </div>
@@ -1306,7 +1306,7 @@
             if (!currentSlot) {
                 container.innerHTML = `
                     <div class="current-slot-box outside">
-                        ⏰ Late Check-in Available
+                         Late Check-in Available
                     </div>
                 `;
                 return;
@@ -1390,7 +1390,7 @@
                 const isLateCheck = currentTime > endTime;
 
                 if (isLateCheck) {
-                    updateCheckinStatus('late', '⏰ Check-in Late!', 'Melebihi waktu yang ditetapkan');
+                    updateCheckinStatus('late', ' Check-in Late!', 'Melebihi waktu yang ditetapkan');
                     showWarning('<i class="fas fa-exclamation-triangle"></i> Anda check-in lewat! Sila beri alasan.');
                     document.getElementById('lateReasonSection')?.classList.add('show');
                     isLate = true;
@@ -1404,14 +1404,14 @@
                 document.getElementById('btnCheckinAll')?.removeAttribute('disabled');
 
             } else if (isEvening) {
-                updateCheckinStatus('closed', '⏰ Waktu Check-in Tamat', 'Sila scan untuk check-out');
+                updateCheckinStatus('closed', ' Waktu Check-in Tamat', 'Sila scan untuk check-out');
                 showWarning('Waktu check-in telah tamat. Sila check-out.');
                 document.getElementById('btnCheckin')?.setAttribute('disabled', 'disabled');
                 document.getElementById('btnCheckinAll')?.setAttribute('disabled', 'disabled');
 
             } else {
                 // 🔥 OUTSIDE ANY SLOT → ALLOW LATE CHECK-IN
-                updateCheckinStatus('late', '⏰ Check-in Late!', 'Di luar waktu operasi — late check-in dibenarkan');
+                updateCheckinStatus('late', ' Check-in Late!', 'Di luar waktu operasi — late check-in dibenarkan');
                 showWarning('<i class="fas fa-exclamation-triangle"></i> Anda check-in lewat! Di luar waktu operasi.');
                 document.getElementById('lateReasonSection')?.classList.add('show');
                 isLate = true;
@@ -1438,7 +1438,7 @@
                 statusText.textContent = text;
             } else if (type === 'late') {
                 box.classList.add('late');
-                icon.textContent = '⏰';
+                icon.textContent = '';
                 statusText.className = 'status-text late';
                 statusText.textContent = text;
             } else {
@@ -1484,7 +1484,7 @@
                     return;
                 }
                 if (!canCheckout) {
-                    alert('⏰ Checkout belum boleh! Tunggu waktu evening slot.');
+                    alert(' Checkout belum boleh! Tunggu waktu evening slot.');
                     return;
                 }
             }
@@ -1625,7 +1625,7 @@
             let html = `
                 <div class="result-stats">
                     <span class="stat checked"><i class="fas fa-check-circle"></i> ${data.checked_count || 0} Checked In</span>
-                    ${data.late_count > 0 ? `<span class="stat late">⏰ ${data.late_count} Late</span>` : ''}
+                    ${data.late_count > 0 ? `<span class="stat late"> ${data.late_count} Late</span>` : ''}
                     ${data.already_count > 0 ? `<span class="stat already">📌 ${data.already_count} Already</span>` : ''}
                 </div>
             `;
@@ -1638,7 +1638,7 @@
                         statusText = '<i class="fas fa-check-circle"></i> Checked In';
                         statusClass = 'checked_in';
                     } else if (item.status === 'late') {
-                        statusText = '⏰ Late';
+                        statusText = ' Late';
                         statusClass = 'late';
                     } else if (item.status === 'already_checked') {
                         statusText = '📌 Already Checked';
@@ -1705,7 +1705,7 @@
             renderCheckedInList();
 
             if (data.is_late) {
-                popupStatus.textContent = '⏰ Late';
+                popupStatus.textContent = ' Late';
                 popupStatus.className = 'popup-status late';
             } else {
                 if (data.is_auto) {

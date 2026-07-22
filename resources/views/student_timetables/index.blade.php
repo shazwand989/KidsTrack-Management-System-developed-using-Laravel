@@ -428,7 +428,7 @@
                         @elseif($rel === 'father')
                             <span>👨</span> Father
                         @elseif($rel === 'guardian')
-                            <span>🛡️</span> Guardian
+                            <span><i class="fas fa-shield-alt"></i></span> Guardian
                         @else
                             <span><i class="fas fa-user"></i></span> {{ ucfirst($rel) ?: 'Other' }}
                         @endif
@@ -470,7 +470,7 @@
                         </span>
                     @else
                         <span class="status-badge unverified">
-                            <span>⏰</span> Unverified
+                            <span></span> Unverified
                         </span>
                     @endif
                 </td>
@@ -478,7 +478,7 @@
                 {{-- QR --}}
                 <td>
                     <span class="qr-badge">
-                        <span>📱</span> QR-{{ str_pad($parent->id, 4, '0', STR_PAD_LEFT) }}
+                        <span><i class="fas fa-mobile-alt"></i></span> QR-{{ str_pad($parent->id, 4, '0', STR_PAD_LEFT) }}
                     </span>
                 </td>
 
@@ -524,7 +524,7 @@
 
     @if($parents->count() > 0)
     <div class="table-footer">
-        <span>ℹ️</span>
+        <span><i class="fas fa-info-circle"></i></span>
         Click any row to view full profile &nbsp;·&nbsp; {{ $total }} total records
     </div>
     @endif

@@ -230,7 +230,7 @@
     <div class="quick-actions">
         <button class="qa-btn qa-present" onclick="setAll('present')"><i class="fas fa-check-circle"></i> Mark All Present</button>
         <button class="qa-btn qa-absent" onclick="setAll('absent')"><i class="fas fa-times-circle"></i> Mark All Absent</button>
-        <button class="qa-btn qa-clear" onclick="setAll(null)">🔄 Clear All</button>
+        <button class="qa-btn qa-clear" onclick="setAll(null)"><i class="fas fa-sync-alt"></i> Clear All</button>
         <span style="flex:1;"></span>
         <span class="counter-badge" id="counterBadge">0 / {{ $children->count() }} marked</span>
     </div>
@@ -283,7 +283,7 @@
                     </td>
                     <td><span class="child-meta">{{ $child->classroom->name ?? '-' }}
                         @if($child->classroom?->start_time)
-                            · ⏰ {{ substr($child->classroom->start_time, 0, 5) }}
+                            ·  {{ substr($child->classroom->start_time, 0, 5) }}
                         @endif
                     </span></td>
                     <td>

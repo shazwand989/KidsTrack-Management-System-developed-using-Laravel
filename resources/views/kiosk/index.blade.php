@@ -533,9 +533,9 @@
             function getLabel(status) {
                 const map = { 
                     'active': ' Aktif', 
-                    'info': 'ℹ️ Info' 
+                    'info': '<i class="fas fa-info-circle"></i> Info' 
                 };
-                return map[status] || 'ℹ️';
+                return map[status] || '<i class="fas fa-info-circle"></i>';
             }
 
             function getClass(status) {
@@ -548,7 +548,7 @@
 
             document.getElementById('timerInfoContent').innerHTML = `
                 <div class="timer-row">
-                    <span class="slot-label">🌅 Morning</span>
+                    <span class="slot-label"> Morning</span>
                     <span class="slot-time">${morningStart} - ${morningEnd}</span>
                     <span class="slot-status ${getClass(morningStatus)}">${getLabel(morningStatus)}</span>
                 </div>
@@ -700,7 +700,7 @@
                             detail = 'QR Code tidak dikenali.';
                             footer = 'Sila imbas QR Code yang sah.';
                         } else if (data.message.includes('waktu')) {
-                            title = '⏰ Di Luar Waktu Operasi!';
+                            title = ' Di Luar Waktu Operasi!';
                             detail = 'Sila scan dalam waktu yang ditetapkan.';
                             footer = 'Semak waktu operasi di atas.';
                         } else {

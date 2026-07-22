@@ -404,9 +404,9 @@
     <select class="filter-select" id="filterNursery">
         <option value="">All Nursery Types</option>
         <option value="full_day"><i class="fas fa-sun"></i> Full Day</option>
-        <option value="half_day">🌅 Half Day</option>
-        <option value="afternoon">🌤️ Afternoon Care</option>
-        <option value="flexible">⏰ Flexible Hours</option>
+        <option value="half_day"> Half Day</option>
+        <option value="afternoon"> Afternoon Care</option>
+        <option value="flexible"> Flexible Hours</option>
         <option value="weekend"><i class="fas fa-calendar-alt"></i> Weekend Only</option>
         <option value="trial"><i class="fas fa-bullseye"></i> Trial Class</option>
     </select>
@@ -468,9 +468,9 @@
                     @php
                         $nurseryLabels = [
                             'full_day' => '<i class="fas fa-sun"></i> Full Day',
-                            'half_day' => '🌅 Half Day',
-                            'afternoon' => '🌤️ Afternoon',
-                            'flexible' => '⏰ Flexible',
+                            'half_day' => ' Half Day',
+                            'afternoon' => ' Afternoon',
+                            'flexible' => ' Flexible',
                             'weekend' => '<i class="fas fa-calendar-alt"></i> Weekend',
                             'trial' => '<i class="fas fa-bullseye"></i> Trial'
                         ];
@@ -547,7 +547,7 @@
 
     @if($children->count() > 0)
     <div class="table-footer">
-        <span>ℹ️</span>
+        <span><i class="fas fa-info-circle"></i></span>
         <span>Click any row to view full profile</span>
         <span>{{ $total }} total children</span>
     </div>

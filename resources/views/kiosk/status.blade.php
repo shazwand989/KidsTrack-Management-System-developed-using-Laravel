@@ -426,7 +426,7 @@
         } elseif ($isBirthday) {
             $headerClass = 'birthday-mode';
             $iconBig = '<i class="fas fa-party-horn"></i>';
-            $badgeText = '🎂 Hari Lahir!';
+            $badgeText = '<i class="fas fa-birthday-cake"></i> Hari Lahir!';
             $greetingText = "Selamat Hari Lahir, {$child->name}!";
             $subText = $birthdayMessage;
         } elseif ($isWeekend) {
@@ -437,7 +437,7 @@
             $subText = 'Semoga hari anda ceria! ✨';
         } elseif ($isMainParent) {
             $headerClass = 'main-parent';
-            $iconBig = $timeMode == 'morning' ? '☀️' : ($timeMode == 'afternoon' ? '🌤️' : '🌙');
+            $iconBig = $timeMode == 'morning' ? '☀️' : ($timeMode == 'afternoon' ? '' : '🌙');
             $badgeText = $timeStatus == 'already_checkout' ? '<i class="fas fa-check-circle"></i> Selesai' : ($timeStatus == 'already_checkin' ? '<i class="fas fa-check-circle"></i> Checked In' : '📌 Status');
             $greetingText = "Status Kehadiran";
             $subText = $child->name;
@@ -467,7 +467,7 @@
             <p class="sub-text">{{ $subText }}</p>
             
             @if($isBirthday)
-                <div class="birthday-text">🎂 {{ $birthdayMessage }}</div>
+                <div class="birthday-text"><i class="fas fa-birthday-cake"></i> {{ $birthdayMessage }}</div>
             @endif
         </div>
         
@@ -516,7 +516,7 @@
                             @elseif($timeStatus == 'checkin_on_time')
                                 <span style="color:#16a34a;"><i class="fas fa-check-circle"></i> Check-in (On-Time)</span>
                             @elseif($timeStatus == 'checkin_late')
-                                <span style="color:#d97706;">⏰ Check-in (Late)</span>
+                                <span style="color:#d97706;"> Check-in (Late)</span>
                             @else
                                 <span style="color:#991b1b;">🚫 Taska ditutup</span>
                             @endif
@@ -544,7 +544,7 @@
                 @elseif($timeStatus == 'checkin_on_time')
                     <div class="badge-status on-time"><i class="fas fa-check-circle"></i> On Time</div>
                 @elseif($timeStatus == 'checkin_late')
-                    <div class="badge-status late">⏰ Late</div>
+                    <div class="badge-status late"> Late</div>
                 @else
                     <div class="badge-status closed">🚫 Ditutup</div>
                 @endif
@@ -690,7 +690,7 @@
             let html = `
                 <div class="result-stats">
                     <span class="stat checked"><i class="fas fa-check-circle"></i> ${data.checked_count || 0} Checked In</span>
-                    ${data.late_count > 0 ? `<span class="stat late">⏰ ${data.late_count} Late</span>` : ''}
+                    ${data.late_count > 0 ? `<span class="stat late"> ${data.late_count} Late</span>` : ''}
                     ${data.already_count > 0 ? `<span class="stat already">📌 ${data.already_count} Already</span>` : ''}
                 </div>
             `;
@@ -703,7 +703,7 @@
                         statusText = '<i class="fas fa-check-circle"></i> Checked In';
                         statusClass = 'checked_in';
                     } else if (item.status === 'late') {
-                        statusText = '⏰ Late';
+                        statusText = ' Late';
                         statusClass = 'late';
                     } else if (item.status === 'already_checked') {
                         statusText = '📌 Already Checked';

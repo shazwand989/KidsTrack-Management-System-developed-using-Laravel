@@ -94,7 +94,7 @@
         </div>
 
         <div class="card">
-            <h3>🌅 Morning Check-in Window</h3>
+            <h3> Morning Check-in Window</h3>
             <p class="desc">Time range when morning check-in is allowed.</p>
 
             <div class="time-row">

@@ -193,7 +193,7 @@
             <div class="success-badge {{ $isLate ? 'late' : 'on-time' }}">
                 @if($todayAttendance)
                     @if($isLate)
-                        ⏰ Late Check-in
+                         Late Check-in
                     @else
                         <i class="fas fa-check-circle"></i> Check-in Berjaya
                     @endif
@@ -209,7 +209,7 @@
             </div>
 
             <div class="info-box">
-                <div class="label">⏰ Masa Check-in</div>
+                <div class="label"> Masa Check-in</div>
                 <div class="value">
                     @if($todayAttendance && $todayAttendance->checkin_time)
                         {{ \Carbon\Carbon::parse($todayAttendance->checkin_time)->format('h:i A') }}
@@ -221,7 +221,7 @@
 
             @if($todayAttendance && $todayAttendance->status == 'late' && $todayAttendance->late_reason)
                 <div class="info-box">
-                    <div class="label">📝 Sebab Lewat</div>
+                    <div class="label"><i class="fas fa-edit"></i> Sebab Lewat</div>
                     <div class="value">{{ $todayAttendance->late_reason }}</div>
                 </div>
             @endif
@@ -240,7 +240,7 @@
 
             {{-- Buttons --}}
             <button class="btn-done" onclick="window.location.href='{{ route('kiosk.index') }}'">
-                🏠 Kembali ke Kiosk
+                <i class="fas fa-home"></i> Kembali ke Kiosk
             </button>
             
             <button class="btn-kiosk" onclick="window.location.href='{{ route('kiosk.index') }}'">

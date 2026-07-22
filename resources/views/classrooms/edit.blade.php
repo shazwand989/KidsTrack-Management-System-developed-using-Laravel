@@ -267,7 +267,7 @@
 
     {{-- Info Note --}}
     <div class="info-note">
-        <span>ℹ️</span>
+        <span><i class="fas fa-info-circle"></i></span>
         Editing classroom information. Changes will affect all children in this class.
     </div>
 
@@ -357,7 +357,7 @@
     {{-- Schedule --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>⏰</span> Class Schedule
+            <span></span> Class Schedule
         </div>
 
         <div class="rg-2col">
@@ -416,7 +416,7 @@
     {{-- Description --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>📝</span> Description
+            <span><i class="fas fa-edit"></i></span> Description
         </div>
 
         <div>

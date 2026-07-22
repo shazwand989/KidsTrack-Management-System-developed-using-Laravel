@@ -508,7 +508,7 @@
             <i class="fas fa-download"></i> Export CSV
         </a>
         <a href="{{ route('attendance.create') }}" class="btn-take no-print">
-            <span>📝</span> Take Attendance
+            <span><i class="fas fa-edit"></i></span> Take Attendance
         </a>
     </div>
 </div>
@@ -544,7 +544,7 @@
     </div>
     <div class="col-3">
         <div class="stat-card" style="border-left-color: #d97706;">
-            <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><span>⏰</span></div>
+            <div class="stat-icon" style="background: #fef3c7; color: #d97706;"><span></span></div>
             <div>
                 <div class="stat-num">{{ $stats['late'] ?? 0 }}</div>
                 <div class="stat-label">Late</div>
@@ -576,7 +576,7 @@
         <option value="checkin" {{ request('status') == 'checkin' ? 'selected' : '' }}><i class="fas fa-check-circle"></i> Check-in</option>
         <option value="present" {{ request('status') == 'present' ? 'selected' : '' }}><i class="fas fa-check-circle"></i> Present</option>
         <option value="checkout" {{ request('status') == 'checkout' ? 'selected' : '' }}><i class="fas fa-upload"></i> Check-out</option>
-        <option value="late" {{ request('status') == 'late' ? 'selected' : '' }}>⏰ Late</option>
+        <option value="late" {{ request('status') == 'late' ? 'selected' : '' }}> Late</option>
         <option value="absent" {{ request('status') == 'absent' ? 'selected' : '' }}><i class="fas fa-times-circle"></i> Absent</option>
     </select>
 
@@ -655,7 +655,7 @@
                     $checkinBadgeText = 'Check-in';
                 } elseif ($status == 'late') {
                     $checkinBadgeClass = 'late';
-                    $checkinBadgeIcon = '⏰';
+                    $checkinBadgeIcon = '';
                     $checkinBadgeText = 'Late';
                 }
 
@@ -722,8 +722,36 @@
                 <td>{{ $attendance->checkin_time ? \Carbon\Carbon::parse($attendance->checkin_time)->format('h:i A') : '-' }}</td>
                 <td>{{ $attendance->checkout_time ? \Carbon\Carbon::parse($attendance->checkout_time)->format('h:i A') : '-' }}</td>
 
-                <td>{{ $dropOff ?? '-' }}</td>
-                <td>{{ $pickup ?? '-' }}</td>
+                <td>
+                    @php
+                        $parentObj = null;
+                        if (preg_match('/\d+/', $attendance->drop_off_by ?? '', $m)) {
+                            $parentObj = \App\Models\User::find((int)$m[0]);
+                        }
+                    @endphp
+                    @if($parentObj)
+                        <a href="{{ route('parents.show', $parentObj->id) }}" style="color:#6d28d9;font-weight:600;text-decoration:none;">
+                            <i class="fas fa-user"></i> {{ $parentObj->name }}
+                        </a>
+                    @else
+                        {{ $attendance->drop_off_by ?? '-' }}
+                    @endif
+                </td>
+                <td>
+                    @php
+                        $pickupObj = null;
+                        if (preg_match('/\d+/', $attendance->pickup_by ?? '', $m)) {
+                            $pickupObj = \App\Models\User::find((int)$m[0]);
+                        }
+                    @endphp
+                    @if($pickupObj)
+                        <a href="{{ route('parents.show', $pickupObj->id) }}" style="color:#6d28d9;font-weight:600;text-decoration:none;">
+                            <i class="fas fa-user"></i> {{ $pickupObj->name }}
+                        </a>
+                    @else
+                        {{ $attendance->pickup_by ?? '-' }}
+                    @endif
+                </td>
 
                 {{-- 🔥 ACTION BUTTONS - TAMBAH VIEW --}}
                 <td class="no-print">
@@ -755,7 +783,7 @@
                         <div class="empty-icon"><i class="fas fa-clipboard-list"></i></div>
                         <h5>No attendance records found</h5>
                         <p>Start by taking attendance for today.</p>
-                        <a href="{{ route('attendance.create') }}">📝 Take Attendance</a>
+                        <a href="{{ route('attendance.create') }}"><i class="fas fa-edit"></i> Take Attendance</a>
                     </div>
                 </td>
             </tr>
@@ -765,7 +793,7 @@
 
     @if($attendances->count() > 0)
     <div class="table-footer">
-        <span>ℹ️</span>
+        <span><i class="fas fa-info-circle"></i></span>
         <span>Click any row to view details</span>
         <span>{{ $stats['total'] ?? 0 }} total records</span>
     </div>

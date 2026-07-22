@@ -438,7 +438,7 @@
                         <h3>Main Parent Information</h3>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📛</span> Full Name</div>
+                        <div class="info-label"><span><i class="fas fa-id-badge"></i></span> Full Name</div>
                         <div class="info-value">{{ $parent->name }}</div>
                     </div>
                     <div class="info-row">
@@ -454,7 +454,7 @@
                         <div class="info-value">{{ $parent->phone_number ?? '-' }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>🏠</span> Home Address</div>
+                        <div class="info-label"><span><i class="fas fa-home"></i></span> Home Address</div>
                         <div class="info-value">{{ $parent->address ?? '-' }}</div>
                     </div>
                 </div>
@@ -557,7 +557,7 @@
                 {{-- SETTINGS CARD --}}
                 <div class="right-card">
                     <div class="right-card-header">
-                        <span>⚙️</span>
+                        <span><i class="fas fa-cog"></i></span>
                         <h3>Settings</h3>
                     </div>
                     <div class="settings-row">
@@ -581,7 +581,7 @@
                 {{-- QUICK INFO CARD --}}
                 <div class="right-card">
                     <div class="right-card-header">
-                        <span>ℹ️</span>
+                        <span><i class="fas fa-info-circle"></i></span>
                         <h3>Quick Info</h3>
                     </div>
                     <div class="settings-row">
@@ -593,7 +593,7 @@
                         <span class="settings-label">{{ $parent->created_at->format('d M Y') }}</span>
                     </div>
                     <div class="settings-row">
-                        <span class="settings-label">🔄 Last Updated:</span>
+                        <span class="settings-label"><i class="fas fa-sync-alt"></i> Last Updated:</span>
                         <span class="settings-label">{{ $parent->updated_at->format('d M Y') }}</span>
                     </div>
                 </div>

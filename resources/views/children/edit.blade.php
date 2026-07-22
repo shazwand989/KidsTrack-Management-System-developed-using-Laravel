@@ -633,7 +633,7 @@
                 </div>
                 <div class="guardian-dropdown-list" id="secondParentDropdown">
                     <div class="guardian-option" onclick="selectSecondParent('', '-- None --', '', '')">
-                        <div class="option-avatar"><span>➖</span></div>
+                        <div class="option-avatar"><span><i class="fas fa-minus"></i></span></div>
                         <div class="option-info">
                             <div class="option-name">-- None / Skip --</div>
                         </div>
@@ -644,7 +644,7 @@
             </div>
             <!-- 🔥 Hidden input untuk simpan parent_id (BUKAN second_parents.id!) -->
             <input type="hidden" name="second_parent_id" id="second_parent_id" value="{{ old('second_parent_id', $child->secondParent?->id) }}">
-            <div class="text-muted" id="secondParentHint">💡 Pilih Main Parent dahulu untuk melihat Second Parent yang berkaitan.</div>
+            <div class="text-muted" id="secondParentHint"><i class="fas fa-lightbulb"></i> Pilih Main Parent dahulu untuk melihat Second Parent yang berkaitan.</div>
         </div>
 
         {{-- Guardian - AUTO FILL --}}
@@ -658,7 +658,7 @@
                         @elseif($child->guardian)
                             <span>{{ strtoupper(substr($child->guardian->name, 0, 1)) }}</span>
                         @else
-                            <span>🛡️</span>
+                            <span><i class="fas fa-shield-alt"></i></span>
                         @endif
                     </div>
                     <div class="guardian-info">
@@ -678,7 +678,7 @@
                 </div>
                 <div class="guardian-dropdown-list" id="guardianDropdown">
                     <div class="guardian-option" onclick="selectGuardian('', '-- None --', '', '')">
-                        <div class="option-avatar"><span>➖</span></div>
+                        <div class="option-avatar"><span><i class="fas fa-minus"></i></span></div>
                         <div class="option-info">
                             <div class="option-name">-- None / Skip --</div>
                         </div>
@@ -688,14 +688,14 @@
                 </div>
             </div>
             <input type="hidden" name="guardian_id" id="guardian_id" value="{{ old('guardian_id', $child->guardian?->id) }}">
-            <div class="text-muted" id="guardianHint">💡 Pilih Main Parent dahulu untuk melihat Guardian yang berkaitan.</div>
+            <div class="text-muted" id="guardianHint"><i class="fas fa-lightbulb"></i> Pilih Main Parent dahulu untuk melihat Guardian yang berkaitan.</div>
         </div>
     </div>
 
     {{-- ADDITIONAL INFORMATION --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>📝</span> Additional Information
+            <span><i class="fas fa-edit"></i></span> Additional Information
         </div>
 
         <div class="rg-group">
@@ -868,7 +868,7 @@
                     </div>
                 </div>
             `;
-            hint.innerHTML = '💡 No Second Parent found for this Main Parent.';
+            hint.innerHTML = '<i class="fas fa-lightbulb"></i> No Second Parent found for this Main Parent.';
         }
 
         // Reset second parent selection if current selection doesn't belong to this parent
@@ -921,7 +921,7 @@
                     </div>
                 </div>
             `;
-            hint.innerHTML = '💡 No Guardian found for this Main Parent.';
+            hint.innerHTML = '<i class="fas fa-lightbulb"></i> No Guardian found for this Main Parent.';
         }
 
         // Reset guardian selection if current selection doesn't belong to this parent
@@ -931,7 +931,7 @@
             document.getElementById('guardian_id').value = '';
             document.getElementById('guardianName').innerHTML = '-- Select Guardian --';
             document.getElementById('guardianDetail').innerHTML = '<span><i class="fas fa-phone"></i> Click to select</span>';
-            document.getElementById('guardianAvatar').innerHTML = '<span>🛡️</span>';
+            document.getElementById('guardianAvatar').innerHTML = '<span><i class="fas fa-shield-alt"></i></span>';
         }
     }
 
@@ -979,7 +979,7 @@ function selectSecondParent(id, name, phone, photo) {
         if (id === '') {
             document.getElementById('guardianName').innerHTML = '-- None / Skip --';
             document.getElementById('guardianDetail').innerHTML = '<span><i class="fas fa-phone"></i> No guardian selected</span>';
-            document.getElementById('guardianAvatar').innerHTML = '<span>🛡️</span>';
+            document.getElementById('guardianAvatar').innerHTML = '<span><i class="fas fa-shield-alt"></i></span>';
         } else {
             document.getElementById('guardianName').innerHTML = name;
             document.getElementById('guardianDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${phone}</span><span class="guardian-badge">Guardian</span>`;

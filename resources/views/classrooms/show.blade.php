@@ -514,7 +514,7 @@
                     <span><i class="fas fa-school"></i></span> {{ $classroom->name }}
                 </h1>
                 <div class="code">
-                    <span>📛 Code: {{ $classroom->code }}</span>
+                    <span><i class="fas fa-id-badge"></i> Code: {{ $classroom->code }}</span>
                     <span>👥 Capacity: {{ $classroom->capacity }} children</span>
                     <span><i class="fas fa-chart-bar"></i> Enrollment: {{ $children->count() }}/{{ $classroom->capacity }}</span>
                     <div class="progress-bar" style="width: 150px;">
@@ -551,7 +551,7 @@
             <div class="stat-label">Checked Out</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">⏰</div>
+            <div class="stat-icon"></div>
             <div class="stat-number" style="color:#d97706;">{{ $stats['total_absent'] }}</div>
             <div class="stat-label">Belum Hadir</div>
         </div>
@@ -580,7 +580,7 @@
                 <div class="info-value">{{ $classroom->min_age }} - {{ $classroom->max_age }} years</div>
             </div>
             <div class="info-row">
-                <div class="info-label"><span>⚙️</span> Status</div>
+                <div class="info-label"><span><i class="fas fa-cog"></i></span> Status</div>
                 <div class="info-value">
                     @if($classroom->status == 'active')
                         <span style="color:#16a34a;"><i class="fas fa-check-circle"></i> Active</span>
@@ -593,7 +593,7 @@
 
         <div class="info-card">
             <div class="info-card-title">
-                <span>⏰</span> Schedule & Teacher
+                <span></span> Schedule & Teacher
             </div>
             <div class="info-row">
                 <div class="info-label"><span>🕐</span> Start Time</div>
@@ -615,7 +615,7 @@
                 </div>
             </div>
             <div class="info-row">
-                <div class="info-label"><span>📝</span> Description</div>
+                <div class="info-label"><span><i class="fas fa-edit"></i></span> Description</div>
                 <div class="info-value">{{ $classroom->description ?? 'No description' }}</div>
             </div>
         </div>
@@ -649,7 +649,7 @@
                 <button class="filter-btn active active-all" data-filter="all" onclick="setFilter('all', this)"><i class="fas fa-clipboard-list"></i> Semua</button>
                 <button class="filter-btn" data-filter="checkin" onclick="setFilter('checkin', this)"><i class="fas fa-check-circle"></i> Checked In</button>
                 <button class="filter-btn" data-filter="checkout" onclick="setFilter('checkout', this)"><i class="fas fa-upload"></i> Checked Out</button>
-                <button class="filter-btn" data-filter="absent" onclick="setFilter('absent', this)">⏰ Belum Hadir</button>
+                <button class="filter-btn" data-filter="absent" onclick="setFilter('absent', this)"> Belum Hadir</button>
             </div>
         </div>
 
@@ -682,7 +682,7 @@
                         } elseif ($att->checkin_time) {
                             $attStatus = in_array($att->status, ['late']) ? 'late' : 'checkin';
                             $displayStatus = 'checkin';
-                            $badgeLabel = $attStatus == 'late' ? '⏰ Late' : '<i class="fas fa-check-circle"></i> Checked In';
+                            $badgeLabel = $attStatus == 'late' ? ' Late' : '<i class="fas fa-check-circle"></i> Checked In';
                             $badgeClass = $attStatus == 'late' ? 'late' : 'checkin';
                             $checkinTime = $att->checkin_time;
                             $lateReason = $att->late_reason ?? null;
@@ -690,7 +690,7 @@
                         } else {
                             $attStatus = 'absent';
                             $displayStatus = 'absent';
-                            $badgeLabel = '⏰ Absent';
+                            $badgeLabel = ' Absent';
                             $badgeClass = 'absent';
                         }
                     }
@@ -726,7 +726,7 @@
                             <i class="fas fa-check-circle"></i>
                             <span style="color:#16a34a; font-weight:600;">
                                 @if($attStatus == 'late')
-                                    ⏰ Late Check-in
+                                     Late Check-in
                                 @else
                                     Checked In
                                 @endif
@@ -735,10 +735,10 @@
                                 🕐 {{ $checkinTime ? date('h:i A', strtotime($checkinTime)) : '' }}
                             </span>
                             @if($lateReason)
-                                <span class="reason">📝 {{ $lateReason }}</span>
+                                <span class="reason"><i class="fas fa-edit"></i> {{ $lateReason }}</span>
                             @endif
                         @else
-                            <span>⏰</span>
+                            <span></span>
                             <span style="color:#d97706; font-weight:600;">Belum Hadir</span>
                         @endif
                     </div>

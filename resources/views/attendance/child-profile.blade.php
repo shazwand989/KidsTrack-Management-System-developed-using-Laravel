@@ -249,7 +249,7 @@
             <form action="{{ route('attendance-scan.verify', $child->id) }}" method="POST">
                 @csrf
                 <div class="phone-input-wrap">
-                    <span style="font-size:20px">📱</span>
+                    <span style="font-size:20px"><i class="fas fa-mobile-alt"></i></span>
                     <input
                         type="tel"
                         name="phone"
@@ -293,7 +293,7 @@
                     @endif
 
                 @elseif($status == 'late')
-                    <div class="status-badge status-late">⏰ Check-in Lambat!</div>
+                    <div class="status-badge status-late"> Check-in Lambat!</div>
                     <div class="time-info">
                         <i class="fas fa-calendar-alt"></i> Check-in: {{ $checkinTime ? date('h:i A', strtotime($checkinTime)) : '-' }}
                     </div>
@@ -311,7 +311,7 @@
                     @endif
 
                 @elseif($status == 'late_checkout')
-                    <div class="status-badge status-late">⏰ Check-out Lambat!</div>
+                    <div class="status-badge status-late"> Check-out Lambat!</div>
                     <div class="time-info">
                         <i class="fas fa-calendar-alt"></i> Check-out: {{ $checkoutTime ? date('h:i A', strtotime($checkoutTime)) : '-' }}
                     </div>
@@ -320,7 +320,7 @@
                     @endif
 
                 @else
-                    <div class="status-badge status-pending">⏰ Belum Check In</div>
+                    <div class="status-badge status-pending"> Belum Check In</div>
                     <div class="time-info">Sila check in untuk mulakan hari</div>
                 @endif
             </div>
@@ -346,7 +346,7 @@
         </div>
 
         <div class="info-note">
-            <p>⏰ Check-in: 7:00 AM - 12:00 PM | Check-out: 12:00 PM - 8:00 PM</p>
+            <p> Check-in: 7:00 AM - 12:00 PM | Check-out: 12:00 PM - 8:00 PM</p>
         </div>
 
         @endif {{-- end verified --}}
@@ -395,7 +395,7 @@ async function doAction(action, id) {
         if (data.success) {
             // Show detailed result with late/on-time status
             const msgDiv = document.getElementById('resultMsg');
-            const statusIcon = data.is_late ? '⏰' : '<i class="fas fa-check-circle"></i>';
+            const statusIcon = data.is_late ? '' : '<i class="fas fa-check-circle"></i>';
             const statusColor = data.is_late ? '#fef3c7' : '#dcfce7';
             const statusText = data.is_late ? 'LATE' : 'ON TIME';
             const statusTextColor = data.is_late ? '#d97706' : '#16a34a';

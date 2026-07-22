@@ -63,7 +63,7 @@
     {{-- Header --}}
     <table class="header-table">
         <tr>
-            <td><span class="title">🛡️ Loving Guardians — SAFECARE</span></td>
+            <td><span class="title"><i class="fas fa-shield-alt"></i> Loving Guardians — SAFECARE</span></td>
             <td align="right" class="subtitle">Exported: {{ now()->format('d M Y, h:i A') }}</td>
         </tr>
         <tr><td colspan="2" class="subtitle">{{ $families->count() }} families · {{ $families->sum('childCount') }} children</td></tr>

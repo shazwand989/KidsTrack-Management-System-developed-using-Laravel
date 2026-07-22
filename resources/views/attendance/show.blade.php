@@ -369,7 +369,7 @@
                             $badgeText = 'Check-out';
                         } elseif ($status == 'late') {
                             $badgeClass = 'late';
-                            $badgeIcon = '⏰';
+                            $badgeIcon = '';
                             $badgeText = 'Late';
                         }
                     @endphp
@@ -385,18 +385,18 @@
             </div>
 
             <div class="detail-row">
-                <span class="label">⏰ Check-in Time</span>
+                <span class="label"> Check-in Time</span>
                 <span class="value">{{ $attendance->checkin_time ? \Carbon\Carbon::parse($attendance->checkin_time)->format('h:i A') : '-' }}</span>
             </div>
 
             <div class="detail-row">
-                <span class="label">⏰ Check-out Time</span>
+                <span class="label"> Check-out Time</span>
                 <span class="value">{{ $attendance->checkout_time ? \Carbon\Carbon::parse($attendance->checkout_time)->format('h:i A') : '-' }}</span>
             </div>
 
             @if($attendance->is_late)
             <div class="detail-row" style="background:#fef3c7; padding:10px 12px; border-radius:8px; margin-top:8px;">
-                <span class="label">⏰ Late Reason</span>
+                <span class="label"> Late Reason</span>
                 <span class="value" style="color:#d97706; font-size:13px;">{{ $attendance->late_reason ?? 'No reason provided' }}</span>
             </div>
             @endif
@@ -457,12 +457,12 @@
             </div>
 
             <div class="detail-row">
-                <span class="label">📝 Created At</span>
+                <span class="label"><i class="fas fa-edit"></i> Created At</span>
                 <span class="value" style="font-size:12px; color:#94a3b8;">{{ $attendance->created_at ? \Carbon\Carbon::parse($attendance->created_at)->format('d M Y h:i A') : '-' }}</span>
             </div>
 
             <div class="detail-row">
-                <span class="label">🔄 Updated At</span>
+                <span class="label"><i class="fas fa-sync-alt"></i> Updated At</span>
                 <span class="value" style="font-size:12px; color:#94a3b8;">{{ $attendance->updated_at ? \Carbon\Carbon::parse($attendance->updated_at)->format('d M Y h:i A') : '-' }}</span>
             </div>
         </div>

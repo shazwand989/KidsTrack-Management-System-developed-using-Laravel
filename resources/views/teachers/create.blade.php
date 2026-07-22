@@ -294,7 +294,7 @@
                             <option value="Nursery Teacher" {{ old('position') == 'Nursery Teacher' ? 'selected' : '' }}>🍼 Nursery Teacher</option>
                             <option value="Kindergarten Teacher" {{ old('position') == 'Kindergarten Teacher' ? 'selected' : '' }}>🎨 Kindergarten Teacher</option>
                             <option value="Special Needs Teacher" {{ old('position') == 'Special Needs Teacher' ? 'selected' : '' }}>💙 Special Needs Teacher</option>
-                            <option value="Trainee Teacher" {{ old('position') == 'Trainee Teacher' ? 'selected' : '' }}>📝 Trainee Teacher</option>
+                            <option value="Trainee Teacher" {{ old('position') == 'Trainee Teacher' ? 'selected' : '' }}><i class="fas fa-edit"></i> Trainee Teacher</option>
                         </select>
                         @error('position')<span class="invalid-msg">{{ $message }}</span>@enderror
                     </div>

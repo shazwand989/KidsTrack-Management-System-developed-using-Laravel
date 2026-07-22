@@ -411,7 +411,7 @@ class AddAnotherChildController extends Controller
                         'checkin_time' => $now->format('H:i:s'),
                         'status' => 'present',
                         'status_note' => '✅ Check-in via Add Another',
-                        'drop_off_by' => 'Parent ID: ' . $request->parent_id,
+                        'drop_off_by' => \App\Models\User::find($request->parent_id)->name ?? 'Parent',
                         'is_verified' => true
                     ]);
                 } else {
@@ -422,7 +422,7 @@ class AddAnotherChildController extends Controller
                         'checkin_time' => $now->format('H:i:s'),
                         'status' => 'present',
                         'status_note' => '✅ Check-in via Add Another',
-                        'drop_off_by' => 'Parent ID: ' . $request->parent_id,
+                        'drop_off_by' => \App\Models\User::find($request->parent_id)->name ?? 'Parent',
                         'is_verified' => true
                     ]);
                 }
@@ -503,7 +503,7 @@ class AddAnotherChildController extends Controller
                     'checkout_time' => $now->format('H:i:s'),
                     'status' => 'checkout',
                     'status_note' => '✅ Check-out via Add Another',
-                    'pickup_by' => 'Parent ID: ' . $request->parent_id,
+                    'pickup_by' => \App\Models\User::find($request->parent_id)->name ?? 'Parent',
                 ]);
 
                 $checkoutCount++;

@@ -67,7 +67,7 @@
 
     <div class="info-row">
         <div class="info-card">
-            <div class="info-label">🌅 Morning Window</div>
+            <div class="info-label"> Morning Window</div>
             <div class="info-value">
                 {{ $clock ? substr($clock->morning_start, 0, 5) : '--:--' }}
                 –
@@ -86,7 +86,7 @@
 
     <div style="text-align:center;">
         <a href="{{ route('simulation.setting') }}" class="btn-settings">
-            ⚙️ Simulation Settings
+            <i class="fas fa-cog"></i> Simulation Settings
         </a>
     </div>
 

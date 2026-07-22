@@ -837,7 +837,7 @@
         // TOGGLE SELECT ALL
         // ============================================
         function toggleSelectAll() {
-            console.log('🔄 toggleSelectAll() called');
+            console.log('<i class="fas fa-sync-alt"></i> toggleSelectAll() called');
             const selectAll = document.getElementById('selectAll');
             if (!selectAll) {
                 console.log('  - <i class="fas fa-exclamation-triangle"></i> selectAll element not found');
@@ -887,7 +887,7 @@
         // TOGGLE CHILD
         // ============================================
         function toggleChild(element) {
-            console.log('🔄 toggleChild() called');
+            console.log('<i class="fas fa-sync-alt"></i> toggleChild() called');
             const id = parseInt(element.dataset.id);
             console.log('  - Child ID:', id);
 
@@ -1060,7 +1060,7 @@
             if (data.results && data.results.length > 0) {
                 data.results.forEach(item => {
                     const statusIcon = item.status === 'checked_in' ? '<i class="fas fa-check-circle"></i>' :
-                                      item.status === 'late' ? '⏰' : '📌';
+                                      item.status === 'late' ? '' : '📌';
                     const statusText = item.status === 'checked_in' ? 'Checked In' :
                                       item.status === 'late' ? 'Late' : 'Already';
                     const borderColor = item.status === 'checked_in' ? '#22c55e' :
@@ -1250,7 +1250,7 @@
         // AUTO REFRESH SETIAP 30 SAAT
         // ============================================
         setTimeout(function() {
-            console.log('🔄 Auto refresh');
+            console.log('<i class="fas fa-sync-alt"></i> Auto refresh');
             location.reload();
         }, 30000);
 

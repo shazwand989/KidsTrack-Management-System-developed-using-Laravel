@@ -539,7 +539,7 @@ class QRScanController extends Controller
                         'status' => $status,
                         'status_note' => $statusNote,
                         'late_reason' => $isLate ? $request->late_reason : null,
-                        'drop_off_by' => 'Parent ID: ' . $request->parent_id,
+                        'drop_off_by' => \App\Models\User::find($request->parent_id)->name ?? 'Parent',
                         'is_verified' => true
                     ]);
                 } else {
@@ -551,7 +551,7 @@ class QRScanController extends Controller
                         'status' => $status,
                         'status_note' => $statusNote,
                         'late_reason' => $isLate ? $request->late_reason : null,
-                        'drop_off_by' => 'Parent ID: ' . $request->parent_id,
+                        'drop_off_by' => \App\Models\User::find($request->parent_id)->name ?? 'Parent',
                         'is_verified' => true
                     ]);
                 }
@@ -617,7 +617,7 @@ class QRScanController extends Controller
                     'checkout_time' => $now->format('H:i:s'),
                     'status' => $status,
                     'status_note' => $statusNote,
-                    'pickup_by' => 'Parent ID: ' . $request->parent_id,
+                    'pickup_by' => \App\Models\User::find($request->parent_id)->name ?? 'Parent',
                 ]);
 
                 $this->sendTelegramNotification($child, $request->parent_id, 'checkout', $isLateCheckout);
@@ -965,14 +965,14 @@ class QRScanController extends Controller
                 'date' => $today,
                 'checkin_time' => Carbon::now('Asia/Kuala_Lumpur')->format('H:i:s'),
                 'status' => 'present',
-                'drop_off_by' => 'Parent ID: ' . $request->parent_id,
+                'drop_off_by' => \App\Models\User::find($request->parent_id)->name ?? 'Parent',
                 'is_verified' => true
             ]);
         } else {
             $attendance->update([
                 'checkin_time' => Carbon::now('Asia/Kuala_Lumpur')->format('H:i:s'),
                 'status' => 'present',
-                'drop_off_by' => 'Parent ID: ' . $request->parent_id,
+                'drop_off_by' => \App\Models\User::find($request->parent_id)->name ?? 'Parent',
             ]);
         }
 
@@ -998,7 +998,7 @@ class QRScanController extends Controller
             $attendance->update([
                 'checkout_time' => Carbon::now('Asia/Kuala_Lumpur')->format('H:i:s'),
                 'status' => 'checkout',
-                'pickup_by' => 'Parent ID: ' . $request->parent_id,
+                'pickup_by' => \App\Models\User::find($request->parent_id)->name ?? 'Parent',
             ]);
         }
 
@@ -1053,7 +1053,7 @@ class QRScanController extends Controller
         $attendance->update([
             'checkout_time' => $now->format('H:i:s'),
             'status' => 'checkout',
-            'pickup_by' => 'Parent ID: ' . $parentId,
+            'pickup_by' => \App\Models\User::find($parentId)->name ?? 'Parent',
         ]);
 
         // Send Telegram notification
@@ -1118,7 +1118,7 @@ class QRScanController extends Controller
                     'date' => $today,
                     'checkin_time' => Carbon::now('Asia/Kuala_Lumpur')->format('H:i:s'),
                     'status' => 'present',
-                    'drop_off_by' => 'Parent ID: ' . $parent->id,
+                    'drop_off_by' => $parent->name ?? 'Parent',
                     'is_verified' => true
                 ]);
             }
@@ -1127,7 +1127,7 @@ class QRScanController extends Controller
                 $attendance->update([
                     'checkout_time' => Carbon::now('Asia/Kuala_Lumpur')->format('H:i:s'),
                     'status' => 'checkout',
-                    'pickup_by' => 'Parent ID: ' . $parent->id,
+                    'pickup_by' => $parent->name ?? 'Parent',
                 ]);
             }
         }
@@ -1315,7 +1315,7 @@ class QRScanController extends Controller
             $attendance->update([
                 'status' => 'checkout',
                 'checkout_time' => Carbon::now('Asia/Kuala_Lumpur')->format('H:i:s'),
-                'pickup_by' => 'Parent ID: ' . $parentId,
+                'pickup_by' => \App\Models\User::find($parentId)->name ?? 'Parent',
             ]);
         }
     }

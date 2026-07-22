@@ -21,7 +21,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🛡️ Loving Guardians — SAFECARE</h1>
+        <h1><i class="fas fa-shield-alt"></i> Loving Guardians — SAFECARE</h1>
         <p>Exported on {{ now()->format('d M Y, h:i A') }} · {{ $families->count() }} families</p>
     </div>
 

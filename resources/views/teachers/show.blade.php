@@ -363,7 +363,7 @@
                         <h3>Personal Information</h3>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📛</span> Full Name</div>
+                        <div class="info-label"><span><i class="fas fa-id-badge"></i></span> Full Name</div>
                         <div class="info-value">{{ $teacher->name }}</div>
                     </div>
                     <div class="info-row">
@@ -383,7 +383,7 @@
                         <h3>Contact Information</h3>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📱</span> Phone Number</div>
+                        <div class="info-label"><span><i class="fas fa-mobile-alt"></i></span> Phone Number</div>
                         <div class="info-value">{{ $teacher->phone ?? '-' }}</div>
                     </div>
                     <div class="info-row">
@@ -407,7 +407,7 @@
                         <div class="info-value">{{ $teacher->nursery_class ?? 'Not assigned' }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>⚙️</span> Status</div>
+                        <div class="info-label"><span><i class="fas fa-cog"></i></span> Status</div>
                         <div class="info-value">
                             <span class="status-badge {{ $teacher->status_color }}" style="font-size: 11px;">
                                 {{ $teacher->status_badge }}
@@ -431,7 +431,7 @@
                         <div class="info-value">{{ $teacher->join_date ? $teacher->join_date->format('d M Y') : 'Not set' }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>🔄</span> Registered On</div>
+                        <div class="info-label"><span><i class="fas fa-sync-alt"></i></span> Registered On</div>
                         <div class="info-value">{{ $teacher->created_at->format('d M Y, h:i A') }}</div>
                     </div>
                     <div class="info-row">

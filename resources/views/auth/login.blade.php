@@ -252,7 +252,7 @@
                     Parent
                 </button>
                 <button type="button" class="role-btn" data-role="guardian">
-                    <span class="icon">🛡️</span>
+                    <span class="icon"><i class="fas fa-shield-alt"></i></span>
                     Guardian
                 </button>
                 <button type="button" class="role-btn" data-role="admin">

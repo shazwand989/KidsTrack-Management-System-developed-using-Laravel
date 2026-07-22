@@ -83,7 +83,7 @@
 
 <div class="qr-container">
     <div class="qr-card">
-        <h2>📱 QR Code Check-in / Check-out</h2>
+        <h2><i class="fas fa-mobile-alt"></i> QR Code Check-in / Check-out</h2>
         <p>Scan QR code ini untuk check in / check out</p>
 @php
     $scanUrl = rtrim(config('app.url'), '/') . '/attendance-scan/search';
