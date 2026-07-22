@@ -868,7 +868,7 @@
             // Use classroom schedule for checkout timing
             $classEnd = $child->classroom->end_time ?? '17:00';
             $classEndInt = (int) str_replace(':', '', substr($classEnd, 0, 5));
-            
+
             $canCheckout = $hasCheckin && !$hasCheckout;
             $checkoutMessage = '<i class="fas fa-check-circle"></i> Sedia untuk check-out';
             $checkoutInfoClass = 'active';
