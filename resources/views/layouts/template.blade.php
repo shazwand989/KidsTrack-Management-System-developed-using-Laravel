@@ -474,6 +474,22 @@
     </a>
 </li>
 
+<!-- Attendance Reports -->
+<li class="nav-item">
+    <a class="nav-link text-dark @if(request()->routeIs('reports.*')) active @endif" href="{{ route('reports.class') }}">
+    <i class="material-symbols-rounded opacity-5">assessment</i>
+        <span class="nav-link-text ms-1">Reports</span>
+    </a>
+</li>
+
+<!-- Audit Trail -->
+<li class="nav-item">
+    <a class="nav-link text-dark @if(request()->routeIs('audit.*')) active @endif" href="{{ route('audit.log') }}">
+    <i class="material-symbols-rounded opacity-5">history</i>
+        <span class="nav-link-text ms-1">Audit Trail</span>
+    </a>
+</li>
+
 {{-- Dalam layouts/template.blade.php - tambah dalam OPERATIONS section --}}
 <!-- QR Code -->
 <li class="nav-item">

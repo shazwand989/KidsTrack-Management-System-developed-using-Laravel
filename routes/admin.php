@@ -117,6 +117,20 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('attendance', AttendanceController::class);
 
     // ============================================
+    // ATTENDANCE REPORTS
+    // ============================================
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::get('/class', [\App\Http\Controllers\AttendanceReportController::class, 'classReport'])
+            ->name('class');
+        Route::get('/class/export', [\App\Http\Controllers\AttendanceReportController::class, 'exportClass'])
+            ->name('class.export');
+        Route::get('/student/{child}', [\App\Http\Controllers\AttendanceReportController::class, 'studentReport'])
+            ->name('student');
+        Route::get('/student/{child}/export', [\App\Http\Controllers\AttendanceReportController::class, 'exportStudent'])
+            ->name('student.export');
+    });
+
+    // ============================================
     // QR CODE
     // ============================================
     Route::get('/qr-code', fn () => view('admin.qr-code'))->name('qr.code');
