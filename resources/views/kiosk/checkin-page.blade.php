@@ -896,7 +896,11 @@
         <div class="status-badge checked"><i class="fas fa-check-circle"></i> Sudah Check-in</div>
 
         <button class="btn-checkout" id="btnCheckout" onclick="submitAttendance('checkout')"
-                style="display: block;">
+                style="display: none;">
+            <i class="fas fa-hand-wave"></i> Confirm Check-out
+        </button>
+
+        <button class="btn-checkout-disabled" id="btnCheckoutDisabled" style="display: none;" disabled>
             <i class="fas fa-hand-wave"></i> Confirm Check-out
         </button>
 
@@ -1061,17 +1065,23 @@
                 canCheckout = false;
                 console.log('<i class="fas fa-times-circle"></i> canCheckout = FALSE (Sudah checkout)');
             } else if (hasCheckin) {
-                // Allow checkout anytime after check-in
-                canCheckout = true;
-                if (currentTime >= eveningStartInt && currentTime <= eveningEndInt) {
+                const isValidEvening = !Number.isNaN(eveningStartInt) && !Number.isNaN(eveningEndInt);
+                if (isValidEvening) {
+                    canCheckout = currentTime >= eveningStartInt;
+                } else {
+                    // If no configured evening slot is available, keep checkout available after check-in
+                    canCheckout = true;
+                }
+
+                if (!canCheckout) {
+                    isLateCheckout = false;
+                    console.log('<i class="fas fa-times-circle"></i> canCheckout = FALSE (Sebelum waktu checkout bermula)');
+                } else if (currentTime <= eveningEndInt) {
                     isLateCheckout = false;
                     console.log('<i class="fas fa-check-circle"></i> canCheckout = TRUE (On-time checkout)');
-                } else if (currentTime > eveningEndInt) {
+                } else {
                     isLateCheckout = true;
                     console.log('<i class="fas fa-check-circle"></i> canCheckout = TRUE (Late Checkout)');
-                } else {
-                    isLateCheckout = false;
-                    console.log('<i class="fas fa-check-circle"></i> canCheckout = TRUE (Early Checkout)');
                 }
             } else {
                 canCheckout = false;
@@ -1368,12 +1378,35 @@
                 updateCheckinStatus('closed', '<i class="fas fa-check-circle"></i> Sudah Check-in', 'Sila checkout untuk balik');
                 document.getElementById('btnCheckin')?.setAttribute('disabled', 'disabled');
                 document.getElementById('btnCheckinAll')?.setAttribute('disabled', 'disabled');
-                // 🔥 Enable checkout always when already checked in
+
+                const eveningStartInt = !Number.isNaN(parseInt(eveningStart.replace(':', '')))
+                    ? parseInt(eveningStart.replace(':', ''))
+                    : NaN;
+                const eveningEndInt = !Number.isNaN(parseInt(eveningEnd.replace(':', '')))
+                    ? parseInt(eveningEnd.replace(':', ''))
+                    : NaN;
+                const currentTimeInt = parseInt(now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0'));
+
+                if (!Number.isNaN(eveningStartInt) && currentTimeInt < eveningStartInt) {
+                    canCheckout = false;
+                    isLateCheckout = false;
+                    const btn = document.getElementById('btnCheckout');
+                    const btnDisabled = document.getElementById('btnCheckoutDisabled');
+                    if (btn) { btn.style.display = 'none'; }
+                    if (btnDisabled) { btnDisabled.style.display = 'block'; }
+                    const checkoutInfo = document.getElementById('checkoutInfo');
+                    if (checkoutInfo) {
+                        checkoutInfo.textContent = '🕐 Checkout bermula pada ' + eveningStart;
+                        checkoutInfo.className = 'checkout-info';
+                    }
+                    return;
+                }
+
                 canCheckout = true;
                 const btn = document.getElementById('btnCheckout');
                 const btnDisabled = document.getElementById('btnCheckoutDisabled');
                 if (btn) { btn.style.display = 'block'; btn.disabled = false; }
-                if (btnDisabled) btnDisabled.style.display = 'none';
+                if (btnDisabled) { btnDisabled.style.display = 'none'; }
                 return;
             }
 

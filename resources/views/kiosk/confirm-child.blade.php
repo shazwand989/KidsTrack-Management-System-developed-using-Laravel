@@ -5,17 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>KidsTrack - Confirm Child</title>
-    
+
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Canvas Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
-    
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             min-height: 100vh;
@@ -436,6 +436,43 @@
             box-shadow: 0 8px 25px rgba(217, 119, 6, 0.4);
         }
 
+        /* ================================================ */
+        /* DISABLED BUTTON - CHECKOUT NOT YET ALLOWED       */
+        /* ================================================ */
+        .btn-yes.disabled-btn {
+            background: #94a3b8;
+            cursor: not-allowed;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .btn-yes.disabled-btn:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ================================================ */
+        /* CHECKOUT WAITING BANNER                          */
+        /* ================================================ */
+        .checkout-waiting-banner {
+            margin-top: 15px;
+            padding: 12px 16px;
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 12px;
+            color: #92400e;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+        }
+        .checkout-waiting-banner i {
+            margin-right: 8px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .btn-no {
             flex: 1;
             padding: 14px;
@@ -532,11 +569,11 @@
 
     @php
         use Carbon\Carbon;
-        
+
         $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
         $currentTime = Carbon::now('Asia/Kuala_Lumpur');
         $currentHour = (int) $currentTime->format('H');
-        
+
         // Use classroom schedule
         $classroom = $child->classroom;
         $classStart = $classroom ? substr($classroom->start_time, 0, 5) : '08:00';
@@ -544,7 +581,7 @@
         $currentTimeInt = (int) $currentTime->format('Hi');
         $classStartInt  = (int) str_replace(':', '', $classStart);
         $classEndInt    = (int) str_replace(':', '', $classEnd);
-        
+
         $isMorningSlot = false;
         $isEveningSlot = false;
         $isOutsideSlot = false;
@@ -554,7 +591,7 @@
         $morningEnd = $classStart;
         $eveningStart = $classEnd;
         $eveningEnd = $classEnd;
-        
+
         if ($currentTimeInt < $classEndInt) {
             $isMorningSlot = true;
             $slotLabel = 'Check-in';
@@ -564,28 +601,28 @@
             $slotLabel = 'Check-out';
             $slotType = 'checkout';
         }
-        
+
         $attendance = \App\Models\Attendance::where('child_id', $child->id)
             ->whereDate('date', $today)
             ->first();
-        
+
         $hasCheckin = $attendance && $attendance->checkin_time;
         $hasCheckout = $attendance && $attendance->checkout_time;
         $isCheckedIn = $hasCheckin && !$hasCheckout;
         $isCheckedOut = $hasCheckout;
         $checkinTime = $attendance ? Carbon::parse($attendance->checkin_time)->format('h:i A') : null;
         $checkoutTime = $attendance ? Carbon::parse($attendance->checkout_time)->format('h:i A') : null;
-        
+
         $isMainParent = isset($isMainParent) ? $isMainParent : false;
         $isSecondParent = isset($isSecondParent) ? $isSecondParent : false;
         $isGuardian = isset($isGuardian) ? $isGuardian : false;
         $userRole = isset($userRole) ? $userRole : 'unknown';
-        
+
         // ============================================================
         // CHECK-OUT MODE DETECTION
         // ============================================================
         $isCheckoutMode = ($isCheckedIn && !$isCheckedOut);
-        
+
         $headerClass = 'weekday-morning';
         $iconBig = '☀️';
         $badgeText = 'Check-In';
@@ -597,7 +634,7 @@
         $timerBoxClass = '';
         $btnNoClass = '';
         $bodyClass = 'checkin-mode';
-        
+
         // ============================================================
         // ROLE LABEL
         // ============================================================
@@ -617,7 +654,7 @@
             $roleLabel = '<i class="fas fa-user"></i> User';
             $roleBadgeClass = 'role-badge-main';
         }
-        
+
         // ============================================================
         // CHECK-OUT MODE - INTERFACE BERBEZA
         // ============================================================
@@ -631,10 +668,10 @@
             $buttonClass = 'checkout-btn';
             $timerBoxClass = 'checkout-mode';
             $btnNoClass = 'checkout-no';
-            
+
             // Role badge checkout version
             $roleBadgeClass .= ' checkout-role';
-            
+
             if ($isBirthday) {
                 $headerClass = 'checkout-birthday';
                 $iconBig = '<i class="fas fa-party-horn"></i>';
@@ -645,18 +682,18 @@
             } else {
                 $headerClass = 'checkout-mode';
             }
-            
+
         } else {
             // === CHECK-IN MODE ===
             $bodyClass = 'checkin-mode';
-            
+
             if ($userRole == 'unknown') {
                 $headerClass = 'unauthorized-mode';
                 $iconBig = '<i class="fas fa-exclamation-triangle"></i>';
                 $badgeText = 'Access Denied';
                 $greetingText = 'Access Denied!';
                 $subText = 'Invalid QR code or unauthorized device.';
-                
+
             } elseif ($isBirthday) {
                 $headerClass = 'birthday-mode';
                 $iconBig = '<i class="fas fa-party-horn"></i>';
@@ -664,14 +701,14 @@
                 $greetingText = "Happy Birthday, {$child->name}!";
                 $subText = $birthdayMessage;
                 $buttonClass = 'birthday-btn';
-                
+
             } elseif ($isWeekend) {
                 $headerClass = 'weekend-mode';
                 $iconBig = '🎨';
                 $badgeText = 'Weekend';
                 $greetingText = 'Welcome to Weekend Activities / Extra Classes!';
                 $subText = 'Have a great day! ✨';
-                
+
             } elseif ($isMorningSlot) {
                 if ($isMainParent) {
                     $headerClass = 'main-parent';
@@ -706,7 +743,7 @@
                     $greetingText = "Welcome!";
                     $subText = "Morning session • Please confirm.";
                 }
-                
+
             } elseif ($isEveningSlot) {
                 if ($isMainParent) {
                     $headerClass = 'main-parent';
@@ -741,7 +778,7 @@
                     $greetingText = "Welcome!";
                     $subText = "Evening session • Please confirm.";
                 }
-                
+
             } elseif ($isOutsideSlot) {
                 if ($isMainParent) {
                     $headerClass = 'main-parent';
@@ -776,14 +813,14 @@
                     $greetingText = "Hi!";
                     $subText = "Outside operation hours • Still allowed";
                 }
-                
+
             } elseif ($isMainParent) {
                 $headerClass = 'main-parent';
                 $iconBig = '👨‍👩‍👦';
                 $badgeText = $roleLabel;
                 $greetingText = "Welcome, {$parentName}!";
                 $subText = 'Please confirm your child.';
-                
+
             } elseif ($isSecondParent) {
                 $headerClass = 'second-parent';
                 $iconBig = '👫';
@@ -791,7 +828,7 @@
                 $greetingText = "Hi, {$parentName}!";
                 $subText = 'Status: Registered Second Parent';
                 $buttonClass = 'second-parent-btn';
-                
+
             } elseif ($isGuardian) {
                 $headerClass = 'guardian-mode';
                 $iconBig = '<i class="fas fa-shield-alt"></i>';
@@ -799,14 +836,14 @@
                 $greetingText = "Hi, {$parentName}!";
                 $subText = 'Status: Registered Guardian';
                 $buttonClass = 'guardian-btn';
-                
+
             } elseif (in_array($userRole, ['admin', 'teacher'])) {
                 $headerClass = 'admin-mode';
                 $iconBig = '👑';
                 $badgeText = $roleLabel;
                 $greetingText = "Welcome, {$parentName}!";
                 $subText = 'Status: Administrator Access';
-                
+
             } else {
                 $headerClass = 'weekday-morning';
                 $iconBig = '☀️';
@@ -815,7 +852,7 @@
                 $subText = 'Please confirm your child.';
             }
         }
-        
+
         if ($isCheckedOut) {
             $badgeText = '<i class="fas fa-check-circle"></i> Already Checked Out';
             $subText = 'Your child has safely returned home.';
@@ -825,42 +862,42 @@
     @endphp
 
     <div class="confirm-card">
-        
+
         <!-- ============================================================ -->
         <!-- CARD HEADER - CHECK-IN / CHECK-OUT VERSION                   -->
         <!-- ============================================================ -->
         <div class="card-header {{ $headerClass }}">
-            
+
             @if($isBirthday && !$isCheckoutMode)
                 <div class="confetti-container" id="confettiContainer"></div>
             @endif
-            
+
             @if($isBirthday && $isCheckoutMode)
                 <div class="confetti-container" id="confettiContainerCheckout"></div>
             @endif
-            
+
             <div class="icon-big">{{ $iconBig }}</div>
             <div class="badge-role {{ $roleBadgeClass }}">{{ $badgeText }}</div>
             <h2>{{ $greetingText }}</h2>
             <p class="sub-text">{{ $subText }}</p>
-            
+
             @if($isBirthday && !$isCheckoutMode)
                 <div class="birthday-text"><i class="fas fa-birthday-cake"></i> {{ $birthdayMessage }}</div>
             @endif
-            
+
             @if($isBirthday && $isCheckoutMode)
                 <div class="birthday-text"><i class="fas fa-birthday-cake"></i> Happy Birthday, {{ $child->name }}! Have a wonderful celebration at home! <i class="fas fa-party-horn"></i></div>
             @endif
-            
+
             @if($isCheckoutMode && !$isBirthday)
                 <div class="checkout-welcome">
                     <i class="fas fa-clock"></i> Checked in at {{ $checkinTime }} • Time to go home! <i class="fas fa-home"></i>
                 </div>
             @endif
         </div>
-        
+
         <div class="card-body">
-            
+
             @if($userRole == 'unknown')
                 <div class="unauthorized-content">
                     <div class="icon"><i class="fas fa-user-slash"></i></div>
@@ -872,7 +909,7 @@
                         LOG_ID: {{ rand(10000, 99999) }}
                     </div>
                 </div>
-                
+
             @elseif($isCheckedOut)
                 <div class="child-profile">
                     <div class="child-avatar">
@@ -887,10 +924,10 @@
                         <i class="fas fa-home"></i> Safe & Sound • {{ $checkoutTime }}
                     </div>
                 </div>
-                
+
                 @if($timerSetting)
                 <div class="timer-display-box">
-                    <div class="timer-title">⏱️ Waktu Operasi Hari Ini ({{ $timerSetting->day_name }})</div>
+                    <div class="timer-title">⏱️ Waktu Operasi Hari Ini ({{ $now->englishDayOfWeek }})</div>
                     <div class="timer-row">
                         <span class="label"> Morning</span>
                         <span class="time">{{ $morningStart }} - {{ $morningEnd }}</span>
@@ -904,13 +941,13 @@
                     </div>
                 </div>
                 @endif
-                
+
                 <div class="btn-group">
                     <a href="{{ route('kiosk.index') }}" class="btn-yes">
                         <i class="fas fa-check-circle"></i> Back to Kiosk
                     </a>
                 </div>
-                
+
             @else
                 <!-- ============================================================ -->
                 <!-- CHILD PROFILE - CHECK-IN / CHECK-OUT VERSION                 -->
@@ -921,20 +958,20 @@
                     </div>
                     <div class="child-name">{{ $child->name }}</div>
                     <div class="child-class"><i class="fas fa-school"></i> {{ $child->classroom->name ?? 'No class' }}</div>
-                    
+
                     @if($isCheckoutMode)
                         <div style="margin-top: 8px;">
                             <span class="status-badge checked-in"><i class="fas fa-check-circle"></i> Checked In • {{ $checkinTime }}</span>
                         </div>
                     @endif
                 </div>
-                
+
                 <!-- ============================================================ -->
                 <!-- TIMER BOX - CHECK-IN / CHECK-OUT VERSION                     -->
                 <!-- ============================================================ -->
                 @if($timerSetting)
                 <div class="timer-display-box {{ $timerBoxClass }}">
-                    <div class="timer-title">⏱️ Waktu Operasi Hari Ini ({{ $timerSetting->day_name }})</div>
+                    <div class="timer-title">⏱️ Waktu Operasi Hari Ini ({{ $now->englishDayOfWeek }})</div>
                     <div class="timer-row">
                         <span class="label"> Morning (Check-in)</span>
                         <span class="time">{{ $morningStart }} - {{ $morningEnd }}</span>
@@ -943,7 +980,7 @@
                         <span class="label">🌙 Evening (Check-out)</span>
                         <span class="time">{{ $eveningStart }} - {{ $eveningEnd }}</span>
                     </div>
-                    <div class="current-slot 
+                    <div class="current-slot
                         @if($isMorningSlot) morning
                         @elseif($isEveningSlot) evening
                         @else outside
@@ -958,36 +995,50 @@
                     </div>
                 </div>
                 @endif
-                
+
                 @if($hasUnpaidFee)
                     <div class="fee-banner unpaid">
                         <i class="fas fa-exclamation-circle"></i>
                         {{ $feeMessage }}
                     </div>
                 @endif
-                
+
+                {{-- CHECKOUT NOT YET ALLOWED BANNER --}}
+                @if($isCheckoutMode && !$checkoutAllowed)
+                    <div class="checkout-waiting-banner">
+                        <i class="fas fa-hourglass-half"></i>
+                        Check-out hanya boleh dibuat selepas <strong>{{ $checkoutStartTimeFormatted }}</strong>. Sila tunggu.
+                    </div>
+                @endif
+
                 <!-- ============================================================ -->
                 <!-- BUTTONS - CHECK-IN / CHECK-OUT VERSION                       -->
                 <!-- ============================================================ -->
                 <div class="btn-group">
                     @if($isCheckoutMode)
-                        <a href="{{ route('kiosk.add.another', $child->id) }}" 
-                           class="btn-yes {{ $buttonClass }}">
-                            <i class="fas fa-hand-wave"></i> YES, Pick Up {{ $child->name }}
-                        </a>
+                        @if($checkoutAllowed)
+                            <a href="{{ route('kiosk.add.another', $child->id) }}"
+                               class="btn-yes {{ $buttonClass }}">
+                                <i class="fas fa-hand-wave"></i> YES, Pick Up {{ $child->name }}
+                            </a>
+                        @else
+                            <button class="btn-yes disabled-btn" disabled>
+                                <i class="fas fa-lock"></i> Check-out at {{ $checkoutStartTimeFormatted }}
+                            </button>
+                        @endif
                     @else
-                        <a href="{{ route('kiosk.add.another', $child->id) }}" 
+                        <a href="{{ route('kiosk.add.another', $child->id) }}"
                            class="btn-yes {{ $buttonClass }}">
                             <i class="fas fa-check-circle"></i> YES, Check-in {{ $child->name }}
                         </a>
                     @endif
-                    
+
                     <a href="{{ route('kiosk.index') }}" class="btn-no {{ $btnNoClass }}">
                         <i class="fas fa-times-circle"></i> NO, Not me
                     </a>
                 </div>
             @endif
-            
+
         </div>
     </div>
 
@@ -1000,7 +1051,7 @@
                 origin: { y: 0.6 },
                 colors: ['#f472b6', '#ec4899', '#fbc2eb', '#a6c1ee', '#fbbf24', '#34d399']
             });
-            
+
             setTimeout(() => {
                 confetti({
                     particleCount: 50,
@@ -1008,7 +1059,7 @@
                     origin: { y: 0.5, x: 0.3 }
                 });
             }, 500);
-            
+
             setTimeout(() => {
                 confetti({
                     particleCount: 50,
@@ -1016,7 +1067,7 @@
                     origin: { y: 0.5, x: 0.7 }
                 });
             }, 1000);
-            
+
             const container = document.getElementById('confettiContainer');
             if (container) {
                 const colors = ['#f472b6', '#ec4899', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa'];
@@ -1047,7 +1098,7 @@
                 origin: { y: 0.6 },
                 colors: ['#f472b6', '#ec4899', '#fbc2eb', '#a6c1ee', '#fbbf24', '#34d399']
             });
-            
+
             setTimeout(() => {
                 confetti({
                     particleCount: 40,
@@ -1055,7 +1106,7 @@
                     origin: { y: 0.5, x: 0.2 }
                 });
             }, 400);
-            
+
             setTimeout(() => {
                 confetti({
                     particleCount: 40,
@@ -1063,7 +1114,7 @@
                     origin: { y: 0.5, x: 0.8 }
                 });
             }, 800);
-            
+
             const container = document.getElementById('confettiContainerCheckout');
             if (container) {
                 const colors = ['#f472b6', '#ec4899', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa'];

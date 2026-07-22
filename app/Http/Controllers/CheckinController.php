@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Child;
 use App\Models\Attendance;
+use App\Models\SimulationClock;
 
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
@@ -126,8 +127,8 @@ class CheckinController extends Controller
                 $parent = \App\Models\User::whereIn('role', ['parent1'])->first();
             }
 
-            // Get timer setting
-            $timerSetting = null; // classroom schedule used instead
+            // Get timer setting from SimulationClock (same as processCheckout)
+            $timerSetting = \App\Models\SimulationClock::first();
 
             // Check attendance
             $todayAttendance = Attendance::where('child_id', $child->id)
@@ -141,16 +142,25 @@ class CheckinController extends Controller
             $slot = $this->getCurrentSlot();
             $isLate = $slot && $slot['slot'] === 'morning' ? $this->isLateForCheckin() : false;
 
-            // 🔥🔥🔥 CHECKOUT LOGIC - LENGKAP 🔥🔥🔥
-            // Can checkout anytime after checkin
-            $canCheckout = $hasCheckin && !$hasCheckout;
+            // 🔥🔥🔥 CHECKOUT LOGIC WITH TIME RESTRICTION 🔥🔥🔥
+            // Determine checkout start time from SimulationClock (evening_start) — consistent with processCheckout
+            $checkoutStartTime = $this->getCheckoutStartTime();
+            $checkoutStartCarbon = Carbon::parse($checkoutStartTime);
+            $checkoutAllowed = $now->greaterThanOrEqualTo($checkoutStartCarbon);
+            $checkoutStartTimeFormatted = $checkoutStartCarbon->format('h:i A');
+
+            $canCheckout = $hasCheckin && !$hasCheckout && $checkoutAllowed;
             $checkoutMessage = '✅ Sedia untuk checkout';
             $checkoutInfoClass = 'active';
             $isLateCheckout = false;
 
-            if ($timerSetting && $hasCheckin) {
+            if (!$checkoutAllowed && $hasCheckin && !$hasCheckout) {
+                $checkoutMessage = '⏳ Check-out bermula pada ' . $checkoutStartTimeFormatted;
+                $checkoutInfoClass = 'waiting';
+            }
+
+            if ($timerSetting && $hasCheckin && $checkoutAllowed) {
                 $currentTimeInt = (int) $now->format('Hi');
-                $eveningStartInt = (int) str_replace(':', '', $timerSetting->evening_start);
                 $eveningEndInt = (int) str_replace(':', '', $timerSetting->evening_end);
 
                 if ($currentTimeInt > $eveningEndInt) {
@@ -206,18 +216,20 @@ class CheckinController extends Controller
                 'hasCheckin',
                 'hasCheckout',
                 'canCheckout',
-                'checkoutMessage',      // ⭐ TAMBAH
-                'checkoutInfoClass',    // ⭐ TAMBAH
-                'isLateCheckout',       // ⭐ TAMBAH
+                'checkoutAllowed',
+                'checkoutStartTimeFormatted',
+                'checkoutMessage',
+                'checkoutInfoClass',
+                'isLateCheckout',
                 'allChildren',
-                'checkedChildren',      // ⭐ TAMBAH
+                'checkedChildren',
                 'checkedInData',
                 'userRole',
                 'roleData',
                 'parentName',
                 'timerSetting',
                 'now',
-                'selectedDate'          // ⭐ TAMBAH
+                'selectedDate'
             ));
 
         } catch (\Exception $e) {
@@ -358,6 +370,16 @@ class CheckinController extends Controller
     // ============================================
     // 🔥 PROCESS CHECKOUT
     // ============================================
+    private function getCheckoutStartTime(): string
+    {
+        $clock = SimulationClock::first();
+        if ($clock && $clock->evening_start) {
+            return Carbon::parse($clock->evening_start)->format('H:i:s');
+        }
+
+        return '17:00:00';
+    }
+
     private function processCheckout(\App\Models\Child $child, int $parentId, string $today, \Carbon\Carbon $now): \Illuminate\Http\JsonResponse
     {
         $attendance = Attendance::where('child_id', $child->id)
@@ -375,6 +397,14 @@ class CheckinController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Anak ini sudah check-out hari ini!'
+            ]);
+        }
+
+        $checkoutStart = $this->getCheckoutStartTime();
+        if ($now->lt(Carbon::parse($checkoutStart))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Checkout belum boleh! Sila tunggu sehingga ' . Carbon::parse($checkoutStart)->format('h:i A') . '.'
             ]);
         }
 
