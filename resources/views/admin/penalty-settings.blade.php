@@ -100,7 +100,7 @@
                         @endif
                         <form method="POST" action="{{ route('penalties.destroy', $p->id) }}" style="display:inline">
                             @csrf @method('DELETE')
-                            <button style="background:#dc2626;color:white;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer" onclick="return confirm('Delete?')">Delete</button>
+                            <button style="background:#dc2626;color:white;border:none;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer" onclick="return confirmDelete(this, 'Delete this penalty?')">Delete</button>
                         </form>
                     </td>
                 </tr>

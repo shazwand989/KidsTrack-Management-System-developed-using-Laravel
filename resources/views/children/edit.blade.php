@@ -733,7 +733,7 @@
         <a href="{{ route('children.show', hash_id($child->id)) }}" class="btn-cancel">
             <span><i class="fas fa-times"></i></span> Cancel
         </a>
-        <form action="{{ route('children.destroy', hash_id($child->id)) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{ $child->name }}? This action cannot be undone.')">
+        <form action="{{ route('children.destroy', hash_id($child->id)) }}" method="POST" style="display: inline;" onsubmit="return confirmDelete(this, 'Are you sure you want to delete {{ addslashes($child->name) }}? This action cannot be undone.')">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn-delete">

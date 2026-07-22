@@ -517,11 +517,10 @@
                             <i class="fas fa-edit"></i>
                         </a>
                         <form action="{{ route('children.destroy', hash_id($child->id)) }}"
-                            method="POST" style="margin:0;">
+                            method="POST" style="margin:0;" onsubmit="return confirmDelete(this, 'Delete {{ addslashes($child->name) }}? This will also remove all associated data.')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="act-btn delete" title="Delete"
-                                onclick="return confirm('Delete {{ addslashes($child->name) }}? This will also remove all associated data.')">
+                            <button type="submit" class="act-btn delete" title="Delete">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>

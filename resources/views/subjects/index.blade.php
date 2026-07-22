@@ -379,7 +379,7 @@
                                     <form action="{{ route('subjects.destroy', $subject->id) }}"
                                           method="POST"
                                           class="delete-form"
-                                          onsubmit="return confirm('Delete this subject?')">
+                                          onsubmit="return confirmDelete(this, 'Delete this subject?')">
                                         @csrf
                                         @method('DELETE')
 

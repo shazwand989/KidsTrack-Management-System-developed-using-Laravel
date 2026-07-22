@@ -506,11 +506,10 @@
                             <i class="fas fa-edit"></i>
                         </a>
                         <form action="{{ route('teachers.destroy', $teacher->id) }}"
-                            method="POST" style="margin:0;">
+                            method="POST" style="margin:0;" onsubmit="return confirmDelete(this, 'Delete {{ addslashes($teacher->name) }}? This action cannot be undone.')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="act-btn delete" title="Delete"
-                                onclick="return confirm('Delete {{ addslashes($teacher->name) }}? This action cannot be undone.')">
+                            <button type="submit" class="act-btn delete" title="Delete">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>

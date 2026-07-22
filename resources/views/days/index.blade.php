@@ -352,7 +352,7 @@
                                     <form action="{{ route('days.destroy', $day->id) }}"
                                           method="POST"
                                           class="delete-form"
-                                          onsubmit="return confirm('Delete this day?')">
+                                          onsubmit="return confirmDelete(this, 'Delete this day?')">
                                         @csrf
                                         @method('DELETE')
 

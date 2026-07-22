@@ -370,7 +370,7 @@
                                     <form action="{{ route('lecturer-groups.destroy', $lecturerGroup->id) }}"
                                           method="POST"
                                           class="delete-form"
-                                          onsubmit="return confirm('Delete this lecturer group?')">
+                                          onsubmit="return confirmDelete(this, 'Delete this lecturer group?')">
                                         @csrf
                                         @method('DELETE')
 

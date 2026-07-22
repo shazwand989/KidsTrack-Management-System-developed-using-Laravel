@@ -370,7 +370,7 @@
                                     <form action="{{ route('halls.destroy', $hall->id) }}"
                                           method="POST"
                                           class="delete-form"
-                                          onsubmit="return confirm('Delete this hall?')">
+                                          onsubmit="return confirmDelete(this, 'Delete this hall?')">
                                         @csrf
                                         @method('DELETE')
 

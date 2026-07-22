@@ -311,7 +311,7 @@
             <form action="{{ route('attendance.destroy', $attendance->id) }}" method="POST" style="display:inline;">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="btn-delete" onclick="return confirm('Delete this attendance record?')">
+                <button type="submit" class="btn-delete" onclick="return confirmDelete(this, 'Delete this attendance record?')">
                     <i class="fas fa-trash-alt"></i> Delete
                 </button>
             </form>

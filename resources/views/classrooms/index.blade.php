@@ -537,7 +537,7 @@
                             <i class="fas fa-edit"></i>
                         </a>
                         <form action="{{ route('classrooms.destroy', $classroom->id) }}" method="POST" style="margin:0;" 
-                            onsubmit="return confirm('Delete {{ addslashes($classroom->name) }}? This will affect all children in this class.')">
+                            onsubmit="return confirmDelete(this, 'Delete {{ addslashes($classroom->name) }}? This will affect all children in this class.')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="act-btn delete" title="Delete">

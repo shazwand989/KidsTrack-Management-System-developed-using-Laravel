@@ -371,6 +371,9 @@
     }
   </style>
 
+  <!-- SweetAlert2 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
 </head>
 
 <body class="g-sidenav-show bg-gray-100">
@@ -724,6 +727,33 @@
     });
   </script>
   @endauth
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    function confirmDelete(formOrBtn, message) {
+      event.preventDefault();
+      Swal.fire({
+        title: 'Are you sure?',
+        text: message || 'This action cannot be undone!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          if (formOrBtn.tagName === 'FORM') {
+            formOrBtn.submit();
+          } else {
+            formOrBtn.closest('form').submit();
+          }
+        }
+      });
+      return false;
+    }
+  </script>
 
 </body>
 

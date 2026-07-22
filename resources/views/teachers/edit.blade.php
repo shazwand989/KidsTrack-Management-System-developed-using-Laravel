@@ -432,7 +432,7 @@
         <a href="{{ route('teachers.show', $teacher->id) }}" class="btn-cancel">
             <span><i class="fas fa-times"></i></span> Cancel
         </a>
-        <form action="{{ route('teachers.destroy', $teacher->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{ $teacher->name }}? This action cannot be undone.')">
+        <form action="{{ route('teachers.destroy', $teacher->id) }}" method="POST" style="display: inline;" onsubmit="return confirmDelete(this, 'Are you sure you want to delete {{ addslashes($teacher->name) }}? This action cannot be undone.')">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn-delete">

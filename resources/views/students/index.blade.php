@@ -391,7 +391,7 @@
                                     <form action="{{ route('students.destroy', $student->id) }}"
                                           method="POST"
                                           class="delete-form"
-                                          onsubmit="return confirm('Delete this student?')">
+                                          onsubmit="return confirmDelete(this, 'Delete this student?')">
                                         @csrf
                                         @method('DELETE')
 

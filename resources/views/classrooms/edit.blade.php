@@ -439,7 +439,7 @@
     </form>
 
     <form action="{{ route('classrooms.destroy', $classroom->id) }}" method="POST" style="display: inline;"
-        onsubmit="return confirm('<i class="fas fa-exclamation-triangle"></i> Are you sure you want to delete {{ $classroom->name }}?\n\nThis action cannot be undone and will affect all children in this class.')">
+        onsubmit="return confirmDelete(this, 'Are you sure you want to delete {{ addslashes($classroom->name) }}? This action cannot be undone and will affect all children in this class.')">
         @csrf
         @method('DELETE')
         <div class="rg-actions">

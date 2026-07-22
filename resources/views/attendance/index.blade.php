@@ -839,11 +839,10 @@
                             <i class="fas fa-edit"></i>
                         </a>
                         @if(in_array(auth()->user()->role ?? '', ['admin', 'teacher']))
-                        <form action="{{ route('attendance.destroy', $attendance->id) }}" method="POST" style="margin:0;">
+                        <form action="{{ route('attendance.destroy', $attendance->id) }}" method="POST" style="margin:0;" onsubmit="return confirmDelete(this, 'Delete this attendance record?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="act-btn delete" title="Delete"
-                                onclick="return confirm('Delete this attendance record?')">
+                            <button type="submit" class="act-btn delete" title="Delete">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </form>
