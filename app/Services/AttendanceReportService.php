@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Attendance;
 use App\Models\Child;
 use App\Models\Classroom;
-use App\Models\TimerSetting;
+
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -122,7 +122,7 @@ class AttendanceReportService
                 'co_status_class'    => $summary['checkout']['status_class'] ?? '',
                 'ci_mins'            => $summary['checkin']['minutes_diff'] ?? 0,
                 'co_mins'            => $summary['checkout']['minutes_diff'] ?? 0,
-                'schedule_in'        => $summary['schedule']['morning_end'] ?? '—',
+                'schedule_in'        => $summary['schedule']['class_start'] ?? $summary['schedule']['morning_end'] ?? '—',
                 'schedule_out'       => $summary['schedule']['class_end'] ?? $summary['schedule']['evening_end'] ?? '—',
                 'note'               => $att->status_note ?? $att->late_reason ?? '',
             ];

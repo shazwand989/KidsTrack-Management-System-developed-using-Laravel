@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Child;
 use App\Models\Attendance;
-use App\Models\TimerSetting;
+
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -27,7 +27,7 @@ class CheckinController extends Controller
     private function getTimerForToday()
     {
         $today = Carbon::now('Asia/Kuala_Lumpur')->format('l');
-        return TimerSetting::where('day_name', 'like', '%' . $today . '%')->first();
+        return \App\Models\TimerSetting::where('day_name','like','%'.$today.'%')->first();
     }
 
     private function getCurrentSlot()
@@ -187,7 +187,7 @@ class CheckinController extends Controller
             }
 
             // Get timer setting
-            $timerSetting = TimerSetting::where('day_name', 'like', '%' . $now->format('l') . '%')->first();
+            $timerSetting = null; // classroom schedule used instead
 
             // Check attendance
             $todayAttendance = Attendance::where('child_id', $child->id)

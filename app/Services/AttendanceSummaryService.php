@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\Attendance;
 use App\Models\Child;
-use App\Models\TimerSetting;
+
 use App\Models\StudentTimetable;
 use Carbon\Carbon;
 
@@ -27,23 +27,15 @@ class AttendanceSummaryService
         $date = Carbon::parse($attendance->date);
         $dayName = $date->format('l');
 
-        // Get timer/schedule settings for this day
-        $timer = TimerSetting::where('day_name', 'like', "%{$dayName}%")->first();
+        // Use classroom schedule exclusively
+        $classStart = $classroom->start_time ?? '08:00';
+        $classEnd   = $classroom->end_time   ?? '17:00';
 
-        // Default schedule times
-        $morningStart = $timer ? $this->parseTime($timer->morning_start) : '07:00';
-        $morningEnd   = $timer ? $this->parseTime($timer->morning_end)   : '07:30';
-        $eveningEnd   = $timer ? $this->parseTime($timer->evening_end)   : '17:30';
+        // --- CHECK-IN ANALYSIS --- (compare against classroom start time)
+        $checkin = $this->analyzeCheckin($attendance, $classStart);
 
-        // Classroom schedule (dismissal time)
-        $classStart  = $classroom->start_time ?? '08:00';
-        $classEnd    = $classroom->end_time   ?? '17:00';
-
-        // --- CHECK-IN ANALYSIS ---
-        $checkin = $this->analyzeCheckin($attendance, $morningEnd);
-
-        // --- CHECK-OUT ANALYSIS ---
-        $checkout = $this->analyzeCheckout($attendance, $classEnd, $eveningEnd);
+        // --- CHECK-OUT ANALYSIS --- (compare against classroom end time)
+        $checkout = $this->analyzeCheckout($attendance, $classEnd, $classEnd);
 
         // --- OVERALL SUMMARY ---
         $summary = $this->buildSummary($checkin, $checkout);
@@ -53,11 +45,11 @@ class AttendanceSummaryService
             'checkout' => $checkout,
             'schedule' => [
                 'day'          => $dayName,
-                'morning_start' => $morningStart,
-                'morning_end'   => $morningEnd,
+                'morning_start' => $classStart,
+                'morning_end'   => $classStart,
                 'class_start'   => $classStart,
                 'class_end'     => $classEnd,
-                'evening_end'   => $eveningEnd,
+                'evening_end'   => $classEnd,
             ],
             'summary' => $summary,
         ];

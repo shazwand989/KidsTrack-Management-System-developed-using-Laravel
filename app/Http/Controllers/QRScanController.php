@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Child;
 use App\Models\Attendance;
-use App\Models\TimerSetting;
+
 use App\Models\User;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
@@ -28,7 +28,7 @@ class QRScanController extends Controller
     private function getTimerForToday()
     {
         $today = Carbon::now('Asia/Kuala_Lumpur')->format('l');
-        return TimerSetting::where('day_name', 'like', '%' . $today . '%')->first();
+        return \App\Models\TimerSetting::where('day_name','like','%'.$today.'%')->first();
     }
 
     private function getCurrentSlot(?Child $child = null)
@@ -386,7 +386,7 @@ class QRScanController extends Controller
         $hour = (int)$now->format('H');
         $currentTime = $now->format('h:i A');
 
-        $timerSetting = TimerSetting::where('day_name', 'like', '%' . $now->format('l') . '%')->first();
+        $timerSetting = null; // classroom schedule used instead
 
         $today = $now->toDateString();
         $todayAttendance = Attendance::where('child_id', $child->id)

@@ -6,7 +6,7 @@ use App\Models\Attendance;
 use App\Models\Child;
 use App\Models\Guardianship;
 use App\Models\User;
-use App\Models\TimerSetting;
+
 use App\Models\Classroom;
 use App\Models\SimulationClock;
 use App\Services\TelegramService;

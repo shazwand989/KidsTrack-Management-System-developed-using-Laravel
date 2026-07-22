@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Child;
 use App\Models\Attendance;
-use App\Models\TimerSetting;
+
 use App\Services\AttendanceSummaryService;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
@@ -120,7 +120,7 @@ class AddAnotherChildController extends Controller
             }
 
             // Checkout logic
-            $timerSetting = TimerSetting::where('day_name', 'like', '%' . $now->format('l') . '%')->first();
+            $timerSetting = null; // classroom schedule used instead
             $canCheckout = false;
             $isCheckoutMode = false;
             $checkoutStartTime = '--:--';
