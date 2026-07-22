@@ -51,7 +51,7 @@ class ChildController extends Controller
             'children.*.name' => 'required|string|max:255',
             'children.*.classroom_id' => 'nullable|exists:classrooms,id',
             'children.*.age' => 'required|integer|min:0|max:17',
-            'children.*.ic_number' => 'required|string|distinct',
+            'children.*.ic_number' => 'required|string|distinct|unique:children,ic_number',
             'children.*.dob' => 'nullable|date',
             'children.*.photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'children.*.medical_notes' => 'nullable|string',

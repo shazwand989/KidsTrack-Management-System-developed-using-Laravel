@@ -702,40 +702,41 @@
     }
 
     // ============================================
-    // FORM VALIDATION
+    // FORM VALIDATION (jQuery)
     // ============================================
-    const form = document.getElementById('childForm');
-    form.addEventListener('submit', function(e) {
+    $('#childForm').on('submit', function(e) {
         let hasError = false;
-        form.querySelectorAll('.client-err').forEach(el => el.remove());
-        form.querySelectorAll('input:not([type="radio"]):not([type="hidden"]), textarea').forEach(el => el.style.borderColor = '');
+        $('.client-err').remove();
+        $('input:not([type="radio"]):not([type="hidden"]), textarea', this).css('borderColor', '');
 
-        // Check parent
         if (!$('#parent_id').val()) {
-            showErr(document.getElementById('parent_id'), 'Please select a Main Parent');
+            showErr($('#parent_id')[0], 'Please select a Main Parent');
             hasError = true;
         }
-        // Check each child
-        document.querySelectorAll('.child-card').forEach(card => {
-            const idx = card.getAttribute('data-index');
-            const nameEl = card.querySelector('[name$="[name]"]');
-            const ageEl = card.querySelector('[name$="[age]"]');
-            const icEl = card.querySelector('[name$="[ic_number]"]');
+
+        $('.child-card').each(function() {
+            const idx = $(this).data('index');
+            const nameEl = $(this).find('[name$="[name]"]')[0];
+            const ageEl  = $(this).find('[name$="[age]"]')[0];
+            const icEl   = $(this).find('[name$="[ic_number]"]')[0];
+
             if (!nameEl.value.trim()) { showErr(nameEl, 'Name is required'); hasError = true; }
             if (!ageEl.value.trim() || isNaN(ageEl.value) || ageEl.value < 0 || ageEl.value > 17) {
                 showErr(ageEl, 'Age must be 0-17'); hasError = true;
             }
             if (!icEl.value.trim()) { showErr(icEl, 'IC is required'); hasError = true; }
-            const icFb = document.getElementById('ic_fb_' + idx);
-            if (icFb && icFb.classList.contains('taken')) {
+            const icFb = $('#ic_fb_' + idx);
+            if (icFb.hasClass('taken')) {
                 showErr(icEl, 'IC already registered'); hasError = true;
             }
         });
 
         if (hasError) {
             e.preventDefault();
-            const firstErr = form.querySelector('.client-err');
-            if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const firstErr = $('.client-err').first();
+            if (firstErr.length) {
+                $('html, body').animate({ scrollTop: firstErr.offset().top - 100 }, 300);
+            }
         }
     });
 
@@ -849,17 +850,23 @@
             fb.innerHTML = '&#8635;'; fb.className = 'ic-feedback checking'; msg.className = 'ic-feedback-msg';
             clearTimeout(icTimers[idx]);
             icTimers[idx] = setTimeout(() => {
-                fetch(checkIcRoute, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken, 'Accept': 'application/json' }, body: JSON.stringify({ ic: raw }) })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.available) { fb.innerHTML = '&#10003;'; fb.className = 'ic-feedback available'; msg.textContent = '✓ IC available'; msg.className = 'ic-feedback-msg available'; }
-                    else { fb.innerHTML = '&#10007;'; fb.className = 'ic-feedback taken'; msg.textContent = '✗ ' + data.message; msg.className = 'ic-feedback-msg taken'; }
-                })
-                .catch(() => { fb.className = 'ic-feedback'; msg.className = 'ic-feedback-msg'; });
+                $.ajax({
+                    url: checkIcRoute,
+                    type: 'POST',
+                    headers: { 'X-CSRF-TOKEN': csrfToken },
+                    contentType: 'application/json',
+                    data: JSON.stringify({ ic: raw }),
+                    success: function(data) {
+                        if (data.available) { fb.innerHTML = '&#10003;'; fb.className = 'ic-feedback available'; msg.textContent = '✓ IC available'; msg.className = 'ic-feedback-msg available'; }
+                        else { fb.innerHTML = '&#10007;'; fb.className = 'ic-feedback taken'; msg.textContent = '✗ ' + data.message; msg.className = 'ic-feedback-msg taken'; }
+                    },
+                    error: function() { fb.className = 'ic-feedback'; msg.className = 'ic-feedback-msg'; }
+                });
             }, 500);
         });
     }
     setupIcCheck(0);
+
     // ============================================
     // DATA DARI PHP
     // ============================================

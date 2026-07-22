@@ -189,7 +189,7 @@ class AddAnotherChildController extends Controller
     // HELPER FUNCTIONS
     // ============================================
 
-    private function getRoleData(\App\Models\User $user): array
+    private function getRoleData(?\App\Models\User $user): array
     {
         $role = $user ? $user->role : 'guest';
 
