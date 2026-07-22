@@ -331,12 +331,18 @@ class ParentController extends Controller
                 return back()->withInput()->withErrors(['children.' . $i . '.age' => 'Child age must be between 1 and 12.']);
             }
 
+            // Normalize DOB: convert d/m/Y to Y-m-d format
+            $childDob = $childData['dob'] ?? $dob;
+            if ($childDob && preg_match('#^\d{2}/\d{2}/\d{4}$#', $childDob)) {
+                $childDob = \Carbon\Carbon::createFromFormat('d/m/Y', $childDob)->format('Y-m-d');
+            }
+
             $child = \App\Models\Child::create([
                 'name'         => $childData['name'],
                 'age'          => $age,
                 'ic_number'    => $ic,
                 'classroom_id' => $childData['classroom_id'] ?? null,
-                'dob'          => $childData['dob'] ?? $dob,
+                'dob'          => $childDob,
                 'is_active'    => true,
                 'enrollment_date' => now(),
                 'qr_code'      => 'KID-' . str_pad(rand(1, 9999), 4, '0', STR_PAD_LEFT),

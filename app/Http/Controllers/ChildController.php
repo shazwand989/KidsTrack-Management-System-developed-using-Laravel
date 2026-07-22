@@ -45,7 +45,7 @@ class ChildController extends Controller
     {
         $request->validate([
             'children.*.classroom_id' => 'nullable|exists:classrooms,id',
-            'address' => 'required|string',
+            'address' => 'nullable|string',
             'parent_id' => 'required|exists:users,id',
             'children' => 'required|array|min:1',
             'children.*.name' => 'required|string|max:255',
@@ -117,7 +117,41 @@ class ChildController extends Controller
     public function show(Child $child)
     {
         $child->load(['classroom', 'guardianships.user', 'attendances']);
-        return view('children.show', compact('child'));
+
+        // Main parent from this child
+        $mainParent = $child->guardianships->where('relationship', 'main_parent')->first()?->user;
+
+        // Second parent & guardian — use siblings to find family's shared ones
+        $secondParent = null;
+        $guardian = null;
+        $siblings = collect();
+
+        if ($mainParent) {
+            $siblingIds = \App\Models\Guardianship::where('user_id', $mainParent->id)
+                ->where('relationship', 'main_parent')
+                ->where('child_id', '!=', $child->id)
+                ->pluck('child_id');
+            $siblings = Child::with('classroom')->whereIn('id', $siblingIds)->get();
+
+            // Find family's second_parent from any sibling
+            if ($siblings->isNotEmpty()) {
+                $siblingGuardianships = \App\Models\Guardianship::whereIn('child_id', $siblingIds)->get();
+                $secondParent = $siblingGuardianships
+                    ->where('relationship', 'second_parent')->first()?->user;
+                $guardian = $siblingGuardianships
+                    ->where('relationship', 'guardian')->first()?->user;
+            }
+
+            // Fallback to this child's own records
+            if (!$secondParent) {
+                $secondParent = $child->guardianships->where('relationship', 'second_parent')->first()?->user;
+            }
+            if (!$guardian) {
+                $guardian = $child->guardianships->where('relationship', 'guardian')->first()?->user;
+            }
+        }
+
+        return view('children.show', compact('child', 'mainParent', 'secondParent', 'guardian', 'siblings'));
     }
 
     public function edit(Child $child)
@@ -137,7 +171,7 @@ class ChildController extends Controller
             'age' => 'required|integer|min:0|max:17',
             'ic_number' => 'required|string|unique:children,ic_number,' . $child->id,
             'dob' => 'nullable|date',
-            'address' => 'required|string',
+            'address' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'classroom_id' => 'nullable|exists:classrooms,id',
             'parent_id' => 'required|exists:users,id',
@@ -160,18 +194,49 @@ class ChildController extends Controller
 
         $child->update($data);
 
-        // Sync guardianships
-        $guardianshipData = [];
-        if ($request->parent_id) {
-            $guardianshipData[$request->parent_id] = ['relationship' => 'main_parent', 'is_emergency_contact' => true];
+        // Find siblings (children sharing the same main parent as this child currently has)
+        $currentMainParentId = $child->guardianships()
+            ->where('relationship', 'main_parent')->value('user_id');
+        $siblingIds = [];
+        if ($currentMainParentId) {
+            $siblingIds = \App\Models\Guardianship::where('user_id', $currentMainParentId)
+                ->where('relationship', 'main_parent')
+                ->pluck('child_id')->toArray();
         }
-        if ($request->second_parent_id && $request->second_parent_id != $request->parent_id) {
-            $guardianshipData[$request->second_parent_id] = ['relationship' => 'second_parent', 'is_emergency_contact' => false];
+        // Always include this child
+        if (!in_array($child->id, $siblingIds)) {
+            $siblingIds[] = $child->id;
         }
-        if ($request->guardian_id && !isset($guardianshipData[$request->guardian_id])) {
-            $guardianshipData[$request->guardian_id] = ['relationship' => 'guardian', 'is_emergency_contact' => false];
+
+        // Build guardianship data for second_parent & guardian (shared across family)
+        $secondParentId = $request->second_parent_id;
+        $guardianId = $request->guardian_id;
+
+        foreach ($siblingIds as $sid) {
+            $sibling = Child::find($sid);
+            if (!$sibling) continue;
+
+            $gsData = [];
+
+            // Keep existing main_parent for each sibling (don't change it)
+            $sibMainParent = $sibling->guardianships()
+                ->where('relationship', 'main_parent')->value('user_id');
+            if ($sibMainParent) {
+                $gsData[$sibMainParent] = ['relationship' => 'main_parent', 'is_emergency_contact' => true];
+            } elseif ($request->parent_id) {
+                // No existing main parent — use the new one
+                $gsData[$request->parent_id] = ['relationship' => 'main_parent', 'is_emergency_contact' => true];
+            }
+
+            if ($secondParentId && $secondParentId != ($sibMainParent ?? $request->parent_id)) {
+                $gsData[$secondParentId] = ['relationship' => 'second_parent', 'is_emergency_contact' => false];
+            }
+            if ($guardianId && !isset($gsData[$guardianId])) {
+                $gsData[$guardianId] = ['relationship' => 'guardian', 'is_emergency_contact' => false];
+            }
+
+            $sibling->linkedUsers()->sync($gsData);
         }
-        $child->linkedUsers()->sync($guardianshipData);
 
         if ($request->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Child updated.']);

@@ -527,7 +527,7 @@
     @csrf
 
     {{-- ============================================ --}}
-    {{-- SHARED INFO: Parent, Address --}}
+    {{-- SHARED INFO: Parent --}}
     {{-- ============================================ --}}
 
     {{-- Parent --}}
@@ -550,18 +550,6 @@
                 @endforeach
             </select>
             @error('parent_id')<span class="invalid-msg">{{ $message }}</span>@enderror
-        </div>
-    </div>
-
-    {{-- Shared Address (from parent) --}}
-    <div class="rg-card">
-        <div class="rg-section-title"><span><i class="fas fa-map-marker-alt"></i></span> Home Address</div>
-        <div class="rg-group">
-            <label class="rg-label">Address</label>
-            <div id="parentAddressDisplay" style="padding:10px 14px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;color:#94a3b8;font-size:13px;">
-                Select a parent to show address
-            </div>
-            <small style="color:#94a3b8;font-size:11px;display:block;margin-top:4px;">Address is from the selected parent's profile.</small>
         </div>
     </div>
 
@@ -925,6 +913,7 @@ $(document).ready(function() {
         placeholder: '<i class="fas fa-search"></i> Search by IC, name or phone number...',
         allowClear: true,
         width: '100%',
+        escapeMarkup: function(m) { return m; },
         templateResult: formatParentOption,
         templateSelection: formatParentSelection,
         matcher: function(params, data) {

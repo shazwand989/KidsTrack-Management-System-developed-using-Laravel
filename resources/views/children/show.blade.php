@@ -578,7 +578,7 @@
                     </div>
                     <div class="info-row">
                         <div class="info-label"><span><i class="fas fa-map-marker-alt"></i></span> Home Address</div>
-                        <div class="info-value">{{ $child->parent->address ?? '-' }}</div>
+                        <div class="info-value">{{ $mainParent->address ?? '-' }}</div>
                     </div>
                 </div>
 
@@ -639,40 +639,40 @@
                 {{-- Main Parent --}}
                 <div class="parent-card">
                     <div class="parent-avatar">
-                        @if($child->parent && $child->parent->photo)
-                            <img src="{{ asset('storage/'.$child->parent->photo) }}" alt="">
+                        @if($mainParent && $mainParent->photo)
+                            <img src="{{ asset('storage/'.$mainParent->photo) }}" alt="">
                         @else
-                            <span>{{ strtoupper(substr($child->parent->name ?? 'M', 0, 1)) }}</span>
+                            <span>{{ strtoupper(substr($mainParent->name ?? 'M', 0, 1)) }}</span>
                         @endif
                     </div>
                     <div class="parent-details">
                         <div class="parent-name">
-                            {{ $child->parent->name ?? 'Not Assigned' }}
+                            {{ $mainParent->name ?? 'Not Assigned' }}
                             <span class="parent-relation-badge">Main Parent</span>
                         </div>
                         <div class="parent-phone">
-                            <span><i class="fas fa-phone"></i></span> {{ $child->parent->phone_number ?? '-' }}
+                            <span><i class="fas fa-phone"></i></span> {{ $mainParent->phone_number ?? '-' }}
                         </div>
                     </div>
                 </div>
 
                 {{-- SECOND PARENT --}}
-                @if($child->secondParent)
+                @if($secondParent)
                 <div class="parent-card">
                     <div class="parent-avatar">
-                        @if($child->secondParent->photo)
-                            <img src="{{ asset('storage/'.$child->secondParent->photo) }}" alt="">
+                        @if($secondParent->photo)
+                            <img src="{{ asset('storage/'.$secondParent->photo) }}" alt="">
                         @else
-                            <span>{{ strtoupper(substr($child->secondParent->name, 0, 1)) }}</span>
+                            <span>{{ strtoupper(substr($secondParent->name, 0, 1)) }}</span>
                         @endif
                     </div>
                     <div class="parent-details">
                         <div class="parent-name">
-                            {{ $child->secondParent->name }}
+                            {{ $secondParent->name }}
                             <span class="parent-relation-badge">Second Parent</span>
                         </div>
                         <div class="parent-phone">
-                            <span><i class="fas fa-phone"></i></span> {{ $child->secondParent->phone_number ?? '-' }}
+                            <span><i class="fas fa-phone"></i></span> {{ $secondParent->phone_number ?? '-' }}
                         </div>
                     </div>
                 </div>
@@ -689,22 +689,22 @@
                 @endif
 
                 {{-- Guardian --}}
-                @if($child->guardian)
+                @if($guardian)
                 <div class="parent-card">
                     <div class="parent-avatar">
-                        @if($child->guardian->photo)
-                            <img src="{{ asset('storage/'.$child->guardian->photo) }}" alt="">
+                        @if($guardian->photo)
+                            <img src="{{ asset('storage/'.$guardian->photo) }}" alt="">
                         @else
-                            <span>{{ strtoupper(substr($child->guardian->name, 0, 1)) }}</span>
+                            <span>{{ strtoupper(substr($guardian->name, 0, 1)) }}</span>
                         @endif
                     </div>
                     <div class="parent-details">
                         <div class="parent-name">
-                            {{ $child->guardian->name }}
+                            {{ $guardian->name }}
                             <span class="parent-relation-badge">Guardian</span>
                         </div>
                         <div class="parent-phone">
-                            <span><i class="fas fa-phone"></i></span> {{ $child->guardian->phone_number ?? '-' }}
+                            <span><i class="fas fa-phone"></i></span> {{ $guardian->phone_number ?? '-' }}
                         </div>
                     </div>
                 </div>
@@ -720,6 +720,32 @@
                 </div>
                 @endif
             </div>
+
+            {{-- Siblings Section --}}
+            @if($siblings && $siblings->isNotEmpty())
+            <div class="info-card" style="margin-bottom: 20px;">
+                <div class="info-card-header">
+                    <span><i class="fas fa-child"></i></span>
+                    <h3>Siblings ({{ $siblings->count() }})</h3>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:10px;padding:12px 0;">
+                    @foreach($siblings as $sib)
+                    <a href="{{ route('children.show', hash_id($sib->id)) }}"
+                       style="display:flex;align-items:center;gap:10px;padding:8px 14px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;text-decoration:none;transition:.15s;"
+                       onmouseover="this.style.background='#FFF5F2';this.style.borderColor='#FFD4C8'"
+                       onmouseout="this.style.background='#f8fafc';this.style.borderColor='#e2e8f0'">
+                        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#FF6B6B,#FF9E7D);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;">
+                            {{ strtoupper(substr($sib->name, 0, 1)) }}
+                        </div>
+                        <div>
+                            <div style="font-weight:700;font-size:13px;color:#1e293b;">{{ $sib->name }}</div>
+                            <div style="font-size:10px;color:#94a3b8;">{{ $sib->classroom->name ?? 'No Class' }} · {{ $sib->age }}y</div>
+                        </div>
+                    </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
             {{-- QR CODE SECTION --}}
             <div class="info-card" style="margin-bottom: 20px;">
