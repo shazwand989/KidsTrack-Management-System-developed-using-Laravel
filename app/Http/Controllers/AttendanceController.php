@@ -752,7 +752,8 @@ class AttendanceController extends Controller
     {
         $attendance = Attendance::with(['child', 'child.classroom'])->findOrFail($id);
         $children = Child::with('classroom')->where('is_active', true)->get();
-        return view('attendance.create', compact('attendance', 'children'));
+        $classrooms = Classroom::all();
+        return view('attendance.create', compact('attendance', 'children', 'classrooms'));
     }
 
     // ============================================

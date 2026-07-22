@@ -6,7 +6,6 @@ use App\Models\Attendance;
 use App\Models\Child;
 use App\Models\Classroom;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class AttendanceReportService
@@ -178,7 +177,7 @@ class AttendanceReportService
     /**
      * Apply month/year or date range filters to an attendance query.
      */
-    private function applyDateFilters(Builder $query, array $filters): void
+    private function applyDateFilters($query, array $filters): void
     {
         if (!empty($filters['date_from']) && !empty($filters['date_to'])) {
             $query->whereBetween('date', [$filters['date_from'], $filters['date_to']]);

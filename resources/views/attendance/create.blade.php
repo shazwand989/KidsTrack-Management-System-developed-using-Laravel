@@ -237,9 +237,9 @@
 
     {{-- Search + Filter --}}
     <div class="tool-row">
-        <input type="text" id="searchInput" placeholder="<i class="fas fa-search"></i> Search child name..." oninput="filterTable()">
+        <input type="text" id="searchInput" placeholder="🔍 Search child name..." oninput="filterTable()">
         <select id="classFilter" onchange="filterTable()">
-            <option value="all"><i class="fas fa-school"></i> All Classes</option>
+            <option value="all">🏫 All Classes</option>
             @foreach($classrooms as $c)
                 <option value="{{ $c->id }}">{{ $c->name }}</option>
             @endforeach
@@ -383,7 +383,7 @@ function cycleStatus(childId) {
 function updatePill(childId, status) {
     const pill = document.getElementById('pill-' + childId);
     const idx = statusMap.indexOf(status);
-    pill.textContent = statusLabels[idx >= 0 ? idx : 0];
+    pill.innerHTML = statusLabels[idx >= 0 ? idx : 0];
     pill.className = 'status-pill ' + statusClasses[idx >= 0 ? idx : 0] + (status ? ' sel' : '');
 }
 
@@ -499,7 +499,7 @@ async function saveAll() {
 
 function showToast(msg, type) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
+    t.innerHTML = msg;
     t.className = 'toast ' + type;
     t.style.display = 'block';
     setTimeout(() => t.style.display = 'none', 3000);
