@@ -23,6 +23,14 @@
     $totalTeachers = Teacher::count();
     $totalClassrooms = Classroom::count();
 
+    // Penalty stats
+    $penalties = \App\Models\LateCheckoutPenalty::all();
+    $totalFines = $penalties->count();
+    $pendingFines = $penalties->where('payment_status', 'pending')->count();
+    $paidFines = $penalties->where('payment_status', 'paid')->count();
+    $totalOutstanding = $penalties->where('payment_status', 'pending')->sum('penalty_amount');
+    $totalCollectedAmount = $penalties->where('payment_status', 'paid')->sum('penalty_amount');
+
     $classrooms = Classroom::withCount(['children'])->get();
 
     $recentCheckins = Attendance::with('child.classroom')
@@ -58,7 +66,7 @@
         backdrop-filter: blur(4px); cursor: pointer;
     }
 
-    .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 20px; }
+    .stats-row { display: grid; grid-template-columns: repeat(5,1fr); gap: 16px; margin-bottom: 20px; }
     .stat-card {
         background: white; border-radius: 20px; padding: 22px;
         box-shadow: 0 2px 12px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
@@ -154,7 +162,7 @@
     .chart-wrap { height: 200px; margin-top: 10px; }
 
     @media (max-width: 992px) {
-        .stats-row { grid-template-columns: repeat(2,1fr); }
+        .stats-row { grid-template-columns: repeat(3,1fr); }
         .content-grid { grid-template-columns: 1fr; }
         .att-overview { grid-template-columns: repeat(3,1fr); }
     }
@@ -209,6 +217,13 @@
             <div class="stat-info">
                 <h4>{{ $totalClassrooms }}</h4>
                 <span>Classrooms</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon-wrap" style="background:#fef3c7;color:#d97706;"><i class="material-symbols-rounded">gavel</i></div>
+            <div class="stat-info">
+                <h4>RM {{ number_format($totalOutstanding, 0) }}</h4>
+                <span>Outstanding Fines <span style="color:#d97706;">({{ $pendingFines }})</span></span>
             </div>
         </div>
     </div>
@@ -276,6 +291,9 @@
                     <a href="{{ route('simulation.dashboard') }}" class="qa-btn">
                         <i class="material-symbols-rounded">timer</i> Timer
                     </a>
+                    <a href="{{ route('penalties.fines') }}" class="qa-btn">
+                        <i class="material-symbols-rounded">gavel</i> Fines
+                    </a>
                 </div>
             </div>
 
@@ -337,6 +355,32 @@
                 No check-ins today yet
             </div>
             @endforelse
+        </div>
+    </div>
+
+    {{-- Penalty Summary --}}
+    <div class="card" style="margin-top:20px;">
+        <div class="card-header">
+            <h3><i class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">gavel</i> Late Pickup Fines</h3>
+            <a href="{{ route('penalties.fines') }}" style="font-size:12px;font-weight:700;color:#d97706;text-decoration:none;">Manage &rarr;</a>
+        </div>
+        <div class="att-overview">
+            <div class="att-item absent">
+                <div class="num">RM {{ number_format($totalOutstanding, 0) }}</div>
+                <div class="lbl">Outstanding</div>
+            </div>
+            <div class="att-item checkout">
+                <div class="num">RM {{ number_format($totalCollectedAmount, 0) }}</div>
+                <div class="lbl">Collected</div>
+            </div>
+            <div class="att-item checkin">
+                <div class="num">{{ $paidFines }}</div>
+                <div class="lbl">Paid</div>
+            </div>
+        </div>
+        <div class="progress-wrap">
+            <div class="progress-label"><span>Collection Rate</span><span>{{ $totalFines > 0 ? round(($paidFines / $totalFines) * 100) : 0 }}% ({{ $paidFines }}/{{ $totalFines }})</span></div>
+            <div class="progress-bar"><div class="progress-fill green" style="width:{{ $totalFines > 0 ? round(($paidFines / $totalFines) * 100) : 0 }}%"></div></div>
         </div>
     </div>
 

@@ -53,7 +53,16 @@ class PenaltyController extends Controller
     {
         $settings = $this->penaltyService->getSettings();
         $penalties = LateCheckoutPenalty::with(['child', 'parent'])->latest()->paginate(20);
-        return view('admin.penalty-settings', compact('settings', 'penalties'));
+
+        // Summary stats
+        $allPenalties = LateCheckoutPenalty::all();
+        $pending = $allPenalties->where('payment_status', 'pending');
+        $paid    = $allPenalties->where('payment_status', 'paid');
+
+        return view('admin.penalty-settings', compact(
+            'settings', 'penalties',
+            'allPenalties', 'pending', 'paid'
+        ));
     }
 
     public function saveSettings(Request $request)

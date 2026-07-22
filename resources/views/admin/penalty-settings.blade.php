@@ -19,12 +19,25 @@
     .badge{display:inline-block;padding:3px 8px;border-radius:8px;font-size:10px;font-weight:700}
     .badge.pending{background:#fef3c7;color:#d97706}
     .badge.paid{background:#dcfce7;color:#16a34a}
-    @media(max-width:600px){.set-row{grid-template-columns:1fr}}
+    .sum-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+    .sum-box{background:white;border-radius:14px;padding:18px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04);border:1px solid #f1f5f9}
+    .sum-box .num{font-size:24px;font-weight:800;line-height:1}
+    .sum-box.red .num{color:#dc2626}.sum-box.green .num{color:#16a34a}
+    .sum-box.amber .num{color:#d97706}.sum-box.blue .num{color:#3b82f6}
+    .sum-box .lbl{font-size:11px;color:#64748b;font-weight:600;margin-top:4px}
+    @media(max-width:600px){.set-row{grid-template-columns:1fr}.sum-row{grid-template-columns:repeat(2,1fr)}}
 </style>
 
 @if(session('success'))
 <div style="background:#dcfce7;color:#16a34a;padding:12px 18px;border-radius:10px;margin-bottom:16px;font-weight:600;font-size:13px">{{ session('success') }}</div>
 @endif
+
+<div class="sum-row">
+    <div class="sum-box red"><div class="num">RM {{ number_format($pending->sum('penalty_amount'), 2) }}</div><div class="lbl">Outstanding</div></div>
+    <div class="sum-box green"><div class="num">RM {{ number_format($paid->sum('penalty_amount'), 2) }}</div><div class="lbl">Collected</div></div>
+    <div class="sum-box amber"><div class="num">{{ $pending->count() }}</div><div class="lbl">Pending</div></div>
+    <div class="sum-box blue"><div class="num">{{ $paid->count() }}</div><div class="lbl">Paid</div></div>
+</div>
 
 <div class="set-card">
     <h4><i class="fas fa-cog"></i> Late Check-out Penalty Configuration</h4>
