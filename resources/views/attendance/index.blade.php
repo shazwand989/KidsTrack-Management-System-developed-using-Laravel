@@ -593,6 +593,7 @@
                 <th>#</th>
                 <th>Child</th>
                 <th><i class="fas fa-school"></i> Classroom</th>
+                <th><i class="fas fa-clock"></i> Schedule</th>
                 <th>Date</th>
                 <th>Status</th>
                 <th>Check-in Time</th>
@@ -610,6 +611,54 @@
                 $classroomName = $classroom ? $classroom->name : 'No Class';
                 $classroomColor = $classroom && $classroom->color ? $classroom->color : '#94a3b8';
                 $classroomId = $classroom ? $classroom->id : 0;
+
+                // Schedule times
+                $scheduleStart = $classroom ? $classroom->start_time : null;
+                $scheduleEnd   = $classroom ? $classroom->end_time : null;
+                $scheduleStr   = ($scheduleStart && $scheduleEnd)
+                    ? \Carbon\Carbon::parse($scheduleStart)->format('h:i A') . ' - ' . \Carbon\Carbon::parse($scheduleEnd)->format('h:i A')
+                    : '—';
+
+                // Compare check-in vs schedule start
+                $checkinTime = $attendance->checkin_time;
+                $checkoutTime = $attendance->checkout_time;
+                $checkinLate = false;
+                $checkinEarly = false;
+                $checkoutLate = false;
+                $checkoutEarly = false;
+                $lateMinutes = 0;
+                $earlyMinutes = 0;
+
+                if ($checkinTime && $scheduleStart) {
+                    $ci = \Carbon\Carbon::parse($checkinTime);
+                    $ss = \Carbon\Carbon::parse($scheduleStart);
+                    // Normalize to same date for comparison
+                    $today = \Carbon\Carbon::now('Asia/Kuala_Lumpur')->startOfDay();
+                    $ciNorm = $today->copy()->setTime($ci->hour, $ci->minute, $ci->second);
+                    $ssNorm = $today->copy()->setTime($ss->hour, $ss->minute, $ss->second);
+                    $diffMin = (int) round($ssNorm->diffInMinutes($ciNorm, false));
+                    if ($diffMin > 0) {
+                        $checkinLate = true;
+                        $lateMinutes = $diffMin;
+                    } elseif ($diffMin < 0) {
+                        $checkinEarly = true;
+                        $earlyMinutes = abs($diffMin);
+                    }
+                }
+
+                if ($checkoutTime && $scheduleEnd) {
+                    $co = \Carbon\Carbon::parse($checkoutTime);
+                    $se = \Carbon\Carbon::parse($scheduleEnd);
+                    $today = \Carbon\Carbon::now('Asia/Kuala_Lumpur')->startOfDay();
+                    $coNorm = $today->copy()->setTime($co->hour, $co->minute, $co->second);
+                    $seNorm = $today->copy()->setTime($se->hour, $se->minute, $se->second);
+                    $diffMin = (int) round($seNorm->diffInMinutes($coNorm, false));
+                    if ($diffMin > 0) {
+                        $checkoutLate = true;
+                    } elseif ($diffMin < 0) {
+                        $checkoutEarly = true;
+                    }
+                }
 
                 $dropOff = $attendance->drop_off_by;
                 if ($dropOff && is_numeric($dropOff)) {
@@ -639,31 +688,53 @@
 
                 $status = $attendance->status;
 
-                // 🔥 CHECK-IN BADGE
-                $checkinBadgeClass = 'absent';
-                $checkinBadgeIcon = '<i class="fas fa-times-circle"></i>';
-                $checkinBadgeText = 'Absent';
-
-                if (in_array($status, ['checkin', 'present'])) {
+                // 🔥 CHECK-IN BADGE (schedule-aware)
+                if (in_array($status, ['penalty_pending'])) {
                     $checkinBadgeClass = 'checkin';
                     $checkinBadgeIcon = '<i class="fas fa-check-circle"></i>';
-                    $checkinBadgeText = 'Check-in';
-                } elseif ($status == 'checkout') {
-                    // If status is checkout, it means they checked in earlier (show present for check-in part)
-                    $checkinBadgeClass = 'checkin';
-                    $checkinBadgeIcon = '<i class="fas fa-check-circle"></i>';
-                    $checkinBadgeText = 'Check-in';
-                } elseif ($status == 'late') {
+                    $checkinBadgeText = 'Checked In';
+                } elseif (!in_array($status, ['checkin','present','checkout','late'])) {
+                    $checkinBadgeClass = 'absent';
+                    $checkinBadgeIcon = '<i class="fas fa-times-circle"></i>';
+                    $checkinBadgeText = 'Absent';
+                } elseif ($checkinLate) {
                     $checkinBadgeClass = 'late';
-                    $checkinBadgeIcon = '';
-                    $checkinBadgeText = 'Late';
+                    $checkinBadgeIcon = '<i class="fas fa-exclamation-triangle"></i>';
+                    $checkinBadgeText = 'Late (' . $lateMinutes . 'm)';
+                } elseif ($checkinEarly) {
+                    $checkinBadgeClass = 'checkin';
+                    $checkinBadgeIcon = '<i class="fas fa-check-circle"></i>';
+                    $checkinBadgeText = 'Early (' . $earlyMinutes . 'm)';
+                } else {
+                    $checkinBadgeClass = 'checkin';
+                    $checkinBadgeIcon = '<i class="fas fa-check-circle"></i>';
+                    $checkinBadgeText = 'On Time';
                 }
 
-                // 🔥 CHECK-OUT BADGE
+                // 🔥 CHECK-OUT BADGE (schedule-aware)
                 $hasCheckout = $attendance->checkout_time ? true : false;
-                $checkoutBadgeClass = 'checkout';
-                $checkoutBadgeIcon = '<i class="fas fa-upload"></i>';
-                $checkoutBadgeText = 'Check-out';
+                if ($hasCheckout) {
+                    if ($checkoutLate) {
+                        $checkoutBadgeClass = 'late';
+                        $checkoutBadgeIcon = '<i class="fas fa-exclamation-triangle"></i>';
+                        $checkoutBadgeText = 'Late Pickup';
+                    } elseif ($status === 'penalty_pending') {
+                        $checkoutBadgeClass = 'late';
+                        $checkoutBadgeIcon = '<i class="fas fa-money-bill-wave"></i>';
+                        $checkoutBadgeText = 'Penalty Pending';
+                    } elseif ($checkoutEarly) {
+                        $checkoutBadgeClass = 'checkout';
+                        $checkoutBadgeIcon = '<i class="fas fa-upload"></i>';
+                        $checkoutBadgeText = 'Early Pickup';
+                    } else {
+                        $checkoutBadgeClass = 'checkout';
+                        $checkoutBadgeIcon = '<i class="fas fa-upload"></i>';
+                        $checkoutBadgeText = 'On Time';
+                    }
+                }
+
+                // Truncated names for mobile
+                $childInitials = strtoupper(substr($child->name ?? '?', 0, 1));
             @endphp
             <tr
                 data-child="{{ strtolower($child->name ?? '') }}"
@@ -699,6 +770,13 @@
                     </span>
                 </td>
 
+                {{-- SCHEDULE COLUMN --}}
+                <td>
+                    <span style="font-weight:700;font-size:12px;color:#475569;white-space:nowrap;">
+                        <i class="fas fa-clock" style="color:#94a3b8;margin-right:2px;"></i> {{ $scheduleStr }}
+                    </span>
+                </td>
+
                 <td>{{ \Carbon\Carbon::parse($attendance->date)->format('d M Y') }}</td>
 
                 <td>
@@ -706,9 +784,6 @@
                         {{-- CHECK-IN STATUS BADGE --}}
                         <span class="status-badge {{ $checkinBadgeClass }}">
                             {!! $checkinBadgeIcon !!} {{ $checkinBadgeText }}
-                            @if($status == 'late' && $attendance->late_reason)
-                                <span style="font-size:9px; opacity:0.7;">({{ $attendance->late_reason }})</span>
-                            @endif
                         </span>
                         {{-- CHECK-OUT STATUS BADGE (only if checked out) --}}
                         @if($hasCheckout)
@@ -778,7 +853,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="10">
+                <td colspan="11">
                     <div class="empty-state">
                         <div class="empty-icon"><i class="fas fa-clipboard-list"></i></div>
                         <h5>No attendance records found</h5>
@@ -798,6 +873,117 @@
         <span>{{ $stats['total'] ?? 0 }} total records</span>
     </div>
     @endif
+</div>
+
+{{-- MOBILE CARDS VIEW --}}
+<div class="mobile-cards" id="mobileCards">
+    @forelse($attendances as $i => $attendance)
+    @php
+        $child = $attendance->child;
+        $classroom = $child ? $child->classroom : null;
+        $classroomName = $classroom ? $classroom->name : 'No Class';
+        $classroomColor = $classroom && $classroom->color ? $classroom->color : '#94a3b8';
+        $scheduleStart = $classroom ? $classroom->start_time : null;
+        $scheduleEnd   = $classroom ? $classroom->end_time : null;
+        $scheduleStr   = ($scheduleStart && $scheduleEnd)
+            ? \Carbon\Carbon::parse($scheduleStart)->format('h:i A') . ' - ' . \Carbon\Carbon::parse($scheduleEnd)->format('h:i A')
+            : '—';
+        $checkinTime = $attendance->checkin_time;
+        $checkoutTime = $attendance->checkout_time;
+        $childInitials = strtoupper(substr($child->name ?? '?', 0, 1));
+
+        // Status checks (simplified for mobile)
+        $ciLate = false; $coLate = false;
+        if ($checkinTime && $scheduleStart) {
+            $ci = \Carbon\Carbon::parse($checkinTime);
+            $ss = \Carbon\Carbon::parse($scheduleStart);
+            $today = \Carbon\Carbon::now('Asia/Kuala_Lumpur')->startOfDay();
+            $ciNorm = $today->copy()->setTime($ci->hour, $ci->minute, $ci->second);
+            $ssNorm = $today->copy()->setTime($ss->hour, $ss->minute, $ss->second);
+            if ($ssNorm->diffInMinutes($ciNorm, false) > 0) $ciLate = true;
+        }
+        if ($checkoutTime && $scheduleEnd) {
+            $co = \Carbon\Carbon::parse($checkoutTime);
+            $se = \Carbon\Carbon::parse($scheduleEnd);
+            $today = \Carbon\Carbon::now('Asia/Kuala_Lumpur')->startOfDay();
+            $coNorm = $today->copy()->setTime($co->hour, $co->minute, $co->second);
+            $seNorm = $today->copy()->setTime($se->hour, $se->minute, $se->second);
+            if ($seNorm->diffInMinutes($coNorm, false) > 0) $coLate = true;
+        }
+    @endphp
+    <div class="mobile-card" onclick="window.location='{{ route('attendance.show', $attendance->id) }}'">
+        <div class="mc-header">
+            <div class="mc-avatar">
+                @if($child && $child->photo)
+                    <img src="{{ asset('storage/'.$child->photo) }}" alt="">
+                @else
+                    {{ $childInitials }}
+                @endif
+            </div>
+            <div>
+                <div class="mc-name">{{ $child->name ?? 'Child not found' }}</div>
+                <div class="mc-sub">
+                    <span class="color-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:{{ $classroomColor }};margin-right:4px;"></span>
+                    {{ $classroomName }}
+                </div>
+            </div>
+        </div>
+        <div class="mc-body">
+            <div class="mc-item">
+                <div class="mc-label">Date</div>
+                <div class="mc-value">{{ \Carbon\Carbon::parse($attendance->date)->format('d M Y') }}</div>
+            </div>
+            <div class="mc-item">
+                <div class="mc-label">Schedule</div>
+                <div class="mc-value">{{ $scheduleStr }}</div>
+            </div>
+            <div class="mc-item">
+                <div class="mc-label">Check-in</div>
+                <div class="mc-value">
+                    @if($checkinTime)
+                        {{ \Carbon\Carbon::parse($checkinTime)->format('h:i A') }}
+                        @if($ciLate) <span style="color:#d97706;font-size:10px;">(Late)</span> @endif
+                    @else
+                        <span style="color:#dc2626;">—</span>
+                    @endif
+                </div>
+            </div>
+            <div class="mc-item">
+                <div class="mc-label">Check-out</div>
+                <div class="mc-value">
+                    @if($checkoutTime)
+                        {{ \Carbon\Carbon::parse($checkoutTime)->format('h:i A') }}
+                        @if($coLate) <span style="color:#d97706;font-size:10px;">(Late)</span> @endif
+                    @else
+                        <span style="color:#94a3b8;">—</span>
+                    @endif
+                </div>
+            </div>
+            <div class="mc-item">
+                <div class="mc-label">Status</div>
+                <div class="mc-value">
+                    @if(in_array($attendance->status, ['checkin','present','checkout','late']))
+                        <span style="color:#16a34a;">✓ Present</span>
+                        @if($ciLate) <span style="color:#d97706;">+ Late</span> @endif
+                    @else
+                        <span style="color:#dc2626;">✗ Absent</span>
+                    @endif
+                </div>
+            </div>
+            <div class="mc-item">
+                <div class="mc-label">Pickup By</div>
+                <div class="mc-value">{{ $attendance->pickup_by ?? '—' }}</div>
+            </div>
+        </div>
+    </div>
+    @empty
+    <div class="mobile-card" style="text-align:center;padding:40px;">
+        <div class="empty-icon"><i class="fas fa-clipboard-list"></i></div>
+        <h5>No attendance records found</h5>
+        <p>Start by taking attendance for today.</p>
+        <a href="{{ route('attendance.create') }}" style="color:#FF6B6B;font-weight:700;">Take Attendance</a>
+    </div>
+    @endforelse
 </div>
 
 {{-- Pagination --}}

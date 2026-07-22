@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -36,6 +37,17 @@ return new class extends Migration
             $table->text('value')->nullable();
             $table->timestamps();
         });
+
+        DB::table('penalty_settings')->insert([
+            ['key' => 'enabled', 'value' => 'true'],
+            ['key' => 'grace_period', 'value' => '10'],
+            ['key' => 'penalty_amount', 'value' => '20.00'],
+            ['key' => 'toyyibpay_mode', 'value' => 'sandbox'],
+            ['key' => 'toyyibpay_category', 'value' => '1h3x8o4a'],
+            ['key' => 'toyyibpay_secret', 'value' => 'wibp6oak-4iwy-ocio-l65c-oletr03exv6e'],
+            ['key' => 'callback_url', 'value' => rtrim(config('app.url'), '/') . '/api/penalty/callback'],
+            ['key' => 'return_url', 'value' => rtrim(config('app.url'), '/') . '/parent/penalties'],
+        ]);
     }
 
     public function down(): void

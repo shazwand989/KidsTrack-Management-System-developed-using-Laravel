@@ -404,9 +404,9 @@
     <select class="filter-select" id="filterNursery">
         <option value="">All Nursery Types</option>
         <option value="full_day"><i class="fas fa-sun"></i> Full Day</option>
-        <option value="half_day"> Half Day</option>
-        <option value="afternoon"> Afternoon Care</option>
-        <option value="flexible"> Flexible Hours</option>
+        <option value="half_day"><i class="fas fa-cloud-sun"></i> Half Day</option>
+        <option value="afternoon"><i class="fas fa-cloud-moon"></i> Afternoon Care</option>
+        <option value="flexible"><i class="fas fa-sync-alt"></i> Flexible Hours</option>
         <option value="weekend"><i class="fas fa-calendar-alt"></i> Weekend Only</option>
         <option value="trial"><i class="fas fa-bullseye"></i> Trial Class</option>
     </select>
@@ -451,7 +451,7 @@
                         <div>
                             <p class="child-name">{{ $child->name }}</p>
                             <p class="child-sub">
-                                <span>🆔 {{ $child->ic_number }}</span>
+                                <span><i class="fas fa-id-card"></i> {{ $child->ic_number }}</span>
                             </p>
                         </div>
                     </div>
@@ -468,15 +468,15 @@
                     @php
                         $nurseryLabels = [
                             'full_day' => '<i class="fas fa-sun"></i> Full Day',
-                            'half_day' => ' Half Day',
-                            'afternoon' => ' Afternoon',
-                            'flexible' => ' Flexible',
-                            'weekend' => '<i class="fas fa-calendar-alt"></i> Weekend',
-                            'trial' => '<i class="fas fa-bullseye"></i> Trial'
+                            'half_day' => '<i class="fas fa-cloud-sun"></i> Half Day',
+                            'afternoon' => '<i class="fas fa-cloud-moon"></i> Afternoon Care',
+                            'flexible' => '<i class="fas fa-sync-alt"></i> Flexible Hours',
+                            'weekend' => '<i class="fas fa-calendar-alt"></i> Weekend Only',
+                            'trial' => '<i class="fas fa-bullseye"></i> Trial Class'
                         ];
                     @endphp
                     <span class="nursery-badge {{ $child->nursery_type }}">
-                        {{ $nurseryLabels[$child->nursery_type] ?? $child->nursery_type }}
+                        {!! $nurseryLabels[$child->nursery_type] ?? $child->nursery_type !!}
                     </span>
                 </td>
 
@@ -501,7 +501,7 @@
                 {{-- Status --}}
                 <td>
                     <span class="status-badge {{ $child->is_active ? 'active' : 'inactive' }}">
-                        {{ $child->is_active ? '<i class="fas fa-check-circle"></i> Active' : '<i class="fas fa-times-circle"></i> Inactive' }}
+                        {!! $child->is_active ? '<i class="fas fa-check-circle"></i> Active' : '<i class="fas fa-times-circle"></i> Inactive' !!}
                     </span>
                 </td>
 
