@@ -624,7 +624,7 @@ class QRScanController extends Controller
             $message .= "\n<b>📝 Reason:</b> " . $lateReason;
         }
 
-        $message .= "\n\n<i>📍 kidstrack-management-system.shazwan-danial.com</i>";
+        $message .= "\n\n<i>📍 " . parse_url(config('app.url'), PHP_URL_HOST) . "</i>";
 
         // Send to parent
         if ($parent && $parent->telegram_chat_id) {

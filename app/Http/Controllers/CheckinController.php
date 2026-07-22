@@ -804,7 +804,7 @@ class CheckinController extends Controller
         $message .= "<b>⏰ Time:</b> " . $now->format('h:i A') . "\n";
         $message .= "<b>📅 Date:</b> " . $now->format('d M Y, l') . "\n";
         $message .= "<b>📊 Status:</b> {$statusEmoji} {$statusText}\n";
-        $message .= "\n<i>📍 kidstrack-management-system.shazwan-danial.com</i>";
+        $message .= "\n<i>📍 " . parse_url(config('app.url'), PHP_URL_HOST) . "</i>";
 
         // Send to parent
         if ($parent && $parent->telegram_chat_id) {

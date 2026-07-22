@@ -1199,7 +1199,7 @@ public function exportSinglePdf(int $id)
                 . "🕐 <b>Time:</b> " . date('h:i A', strtotime($actualTime)) . "\n"
                 . "⏳ <b>Schedule:</b> " . date('h:i A', strtotime($deadline)) . "\n"
                 . "👤 <b>Parent:</b> " . ($parent->name ?? 'N/A') . "\n\n"
-                . "<i>📍 kidstrack-management-system.shazwan-danial.com</i>";
+                . "<i>📍 " . parse_url(config('app.url'), PHP_URL_HOST) . "</i>";
 
             // 1. Send to admin
             $adminChatId = env('TELEGRAM_ADMIN_CHAT_ID');
