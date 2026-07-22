@@ -58,4 +58,10 @@ Route::middleware(['auth'])->prefix('parent')->name('parent.')->group(function (
         ->name('payment');
     Route::get('/fine', [\App\Http\Controllers\Parent\DashboardController::class, 'fine'])
         ->name('fine');
+
+    // Late Pickup Penalties
+    Route::get('/penalties', [\App\Http\Controllers\PenaltyController::class, 'parentIndex'])
+        ->name('penalties');
+    Route::post('/penalties/{penalty}/pay', [\App\Http\Controllers\PenaltyController::class, 'payPenalty'])
+        ->name('penalties.pay');
 });

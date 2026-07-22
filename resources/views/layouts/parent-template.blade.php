@@ -598,6 +598,14 @@
           </a>
         </li>
 
+        <!-- Penalties -->
+        <li class="nav-item">
+          <a class="nav-link text-dark @if(request()->routeIs('parent.penalties*')) active @endif" href="{{ route('parent.penalties') }}">
+            <i class="material-symbols-rounded opacity-5">payments</i>
+            <span class="nav-link-text ms-1">Penalties</span>
+          </a>
+        </li>
+
         <!-- Profile -->
         <li class="nav-item">
           <a class="nav-link text-dark @if(request()->routeIs('parent.profile*')) active @endif" href="{{ route('parent.profile.index') }}">

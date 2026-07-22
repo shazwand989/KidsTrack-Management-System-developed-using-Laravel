@@ -156,6 +156,12 @@ Route::redirect('/parent/qr-code', '/kiosk', 301);
 Route::redirect('/parent/qr-code/{child}', '/kiosk', 301);
 
 // ============================================
+// TOYYIBPAY CALLBACK (PUBLIC)
+// ============================================
+Route::post('/api/penalty/callback', [\App\Http\Controllers\PenaltyController::class, 'callback'])
+    ->name('penalty.callback');
+
+// ============================================
 // ATTENDANCE CALENDAR DATA (PUBLIC API)
 // ============================================
 Route::get('/attendance-calendar-data', [QRScanController::class, 'getCalendarData'])

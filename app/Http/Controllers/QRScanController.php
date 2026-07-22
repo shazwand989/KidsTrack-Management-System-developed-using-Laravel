@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Child;
 use App\Models\Attendance;
-
+use App\Models\LateCheckoutPenalty;
 use App\Models\User;
+use App\Services\PenaltyService;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
@@ -15,10 +16,12 @@ use Illuminate\Support\Facades\Log;
 class QRScanController extends Controller
 {
     protected $telegram;
+    protected $penaltyService;
 
-    public function __construct(TelegramService $telegram)
+    public function __construct(TelegramService $telegram, PenaltyService $penaltyService)
     {
         $this->telegram = $telegram;
+        $this->penaltyService = $penaltyService;
     }
 
     // ============================================
@@ -1056,15 +1059,35 @@ class QRScanController extends Controller
             'pickup_by' => \App\Models\User::find($parentId)->name ?? 'Parent',
         ]);
 
+        // Check for late checkout penalty
+        $penaltyCalc = $this->penaltyService->calculate($attendance->fresh());
+        $penalty = null;
+        if ($penaltyCalc && $penaltyCalc['needs_payment']) {
+            $penalty = $this->penaltyService->createPenalty($attendance->fresh(), $penaltyCalc, $parentId);
+            // Update status to indicate penalty required
+            $attendance->update(['status' => 'penalty_pending']);
+        }
+
         // Send Telegram notification
         $this->sendTelegramNotification($child, $parentId, 'checkout');
 
-        return response()->json([
+        $response = [
             'success' => true,
             'message' => '✅ Check-out berjaya!',
             'child_name' => $child->name,
             'checkout_time' => $now->format('h:i A'),
-        ]);
+        ];
+
+        if ($penalty) {
+            $response['penalty'] = [
+                'id' => $penalty->id,
+                'amount' => $penalty->penalty_amount,
+                'late_minutes' => $penalty->late_minutes,
+                'message' => "Late {$penalty->late_minutes} minutes — penalty RM {$penalty->penalty_amount}",
+            ];
+        }
+
+        return response()->json($response);
     }
 
     public function processQR(Request $request)

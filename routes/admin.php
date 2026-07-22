@@ -130,8 +130,20 @@ Route::middleware(['auth'])->group(function () {
             ->name('student.export');
     });
 
+    // ============================================    // PENALTY MANAGEMENT
     // ============================================
-    // QR CODE
+    Route::prefix('penalties')->name('penalties.')->group(function () {
+        Route::get('/settings', [\App\Http\Controllers\PenaltyController::class, 'settings'])
+            ->name('settings');
+        Route::post('/settings', [\App\Http\Controllers\PenaltyController::class, 'saveSettings'])
+            ->name('settings.save');
+        Route::post('/{penalty}/mark-paid', [\App\Http\Controllers\PenaltyController::class, 'markPaid'])
+            ->name('mark-paid');
+        Route::delete('/{penalty}', [\App\Http\Controllers\PenaltyController::class, 'destroy'])
+            ->name('destroy');
+    });
+
+    // ============================================    // QR CODE
     // ============================================
     Route::get('/qr-code', fn () => view('admin.qr-code'))->name('qr.code');
 

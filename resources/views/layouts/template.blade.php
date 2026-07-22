@@ -490,6 +490,14 @@
     </a>
 </li>
 
+<!-- Penalty Settings -->
+<li class="nav-item">
+    <a class="nav-link text-dark @if(request()->routeIs('penalties.*')) active @endif" href="{{ route('penalties.settings') }}">
+    <i class="material-symbols-rounded opacity-5">payments</i>
+        <span class="nav-link-text ms-1">Penalty Settings</span>
+    </a>
+</li>
+
 {{-- Dalam layouts/template.blade.php - tambah dalam OPERATIONS section --}}
 <!-- QR Code -->
 <li class="nav-item">
