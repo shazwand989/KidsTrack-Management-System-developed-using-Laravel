@@ -849,8 +849,8 @@ class QRScanController extends Controller
         $penalty = null;
         if ($penaltyCalc && $penaltyCalc['needs_payment']) {
             $penalty = $this->penaltyService->createPenalty($attendance->fresh(), $penaltyCalc, $parentId);
-            // Update status to indicate penalty required
-            $attendance->update(['status' => 'penalty_pending']);
+            // Already marked as late_checkout — penalty check handled by PenaltyService
+            $attendance->update(['status' => 'late_checkout']);
         }
 
         // Send Telegram notification with late detection
