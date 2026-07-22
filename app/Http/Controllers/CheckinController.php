@@ -24,91 +24,31 @@ class CheckinController extends Controller
     // 🔥 TIMER FUNCTIONS
     // ============================================
 
-    private function getTimerForToday()
-    {
-        $today = Carbon::now('Asia/Kuala_Lumpur')->format('l');
-        return \App\Models\TimerSetting::where('day_name','like','%'.$today.'%')->first();
-    }
-
     private function getCurrentSlot()
     {
-        $timer = $this->getTimerForToday();
-        if (!$timer) return null;
-
-        $currentTime = Carbon::now('Asia/Kuala_Lumpur');
-        $currentTimeInt = (int) $currentTime->format('Hi');
-
-        $morningStart = (int) str_replace(':', '', $timer->morning_start);
-        $morningEnd = (int) str_replace(':', '', $timer->morning_end);
-        $eveningStart = (int) str_replace(':', '', $timer->evening_start);
-        $eveningEnd = (int) str_replace(':', '', $timer->evening_end);
-
-        if ($currentTimeInt >= $morningStart && $currentTimeInt <= $morningEnd) {
-            return [
-                'slot' => 'morning',
-                'type' => 'checkin',
-                'label' => 'Morning (Check-in)',
-                'start' => $timer->morning_start,
-                'end' => $timer->morning_end
-            ];
-        }
-
-        if ($currentTimeInt >= $eveningStart && $currentTimeInt <= $eveningEnd) {
-            return [
-                'slot' => 'evening',
-                'type' => 'checkout',
-                'label' => 'Evening (Check-out)',
-                'start' => $timer->evening_start,
-                'end' => $timer->evening_end
-            ];
-        }
-
-        return null;
+        // Classroom schedule based — always allow check-in
+        return [
+            'slot' => 'general',
+            'type' => 'checkin',
+            'label' => 'Open',
+            'start' => '07:00',
+            'end' => '17:30'
+        ];
     }
 
-    private function isLateForCheckin()
+    private function isLateForCheckin(): bool
     {
-        $timer = $this->getTimerForToday();
-        if (!$timer) return false;
-
-        $currentTime = Carbon::now('Asia/Kuala_Lumpur');
-        $currentTimeInt = (int) $currentTime->format('Hi');
-        $morningStart = (int) str_replace(':', '', $timer->morning_start);
-
-        // Late if after morning_start (the configured check-in time window start)
-        return $currentTimeInt > $morningStart;
+        return false; // Determined per-child via classroom schedule in processCheckin
     }
 
-    private function isLateForCheckout()
+    private function isLateForCheckout(): bool
     {
-        $timer = $this->getTimerForToday();
-        if (!$timer) return false;
-
-        $currentTime = Carbon::now('Asia/Kuala_Lumpur');
-        $currentTimeInt = (int) $currentTime->format('Hi');
-        $eveningEnd = (int) str_replace(':', '', $timer->evening_end);
-
-        // Late if after evening_end (the configured check-out time window end)
-        return $currentTimeInt > $eveningEnd;
+        return false; // Determined per-child via classroom schedule in processCheckout
     }
 
     private function isWithinGracePeriod(string $slotType): bool
     {
-        $timer = $this->getTimerForToday();
-        if (!$timer) return false;
-
-        $currentTime = Carbon::now('Asia/Kuala_Lumpur');
-        $currentTimeInt = (int) $currentTime->format('Hi');
-
-        if ($slotType === 'checkin') {
-            $morningStart = (int) str_replace(':', '', $timer->morning_start);
-            $graceEnd = $morningStart + 15; // 15-minute grace period after check-in start
-            return $currentTimeInt > $morningStart && $currentTimeInt <= $graceEnd;
-        } else {
-            $eveningEnd = (int) str_replace(':', '', $timer->evening_end);
-            $graceEnd = $eveningEnd + 15; // 15-minute grace period after check-out end
-            return $currentTimeInt > $eveningEnd && $currentTimeInt <= $graceEnd;
-        }
+        return false; // No longer needed — per-child schedule
     }
 
     // ============================================
@@ -623,19 +563,11 @@ class CheckinController extends Controller
                     continue;
                 }
 
-                // Check late checkout for bulk
-                $timer = $this->getTimerForToday();
-                $isLateCheckout = false;
-
-                if ($timer) {
-                    $currentTimeInt = (int) $now->format('Hi');
-                    $eveningStartInt = (int) str_replace(':', '', $timer->evening_start);
-                    $eveningEndInt = (int) str_replace(':', '', $timer->evening_end);
-
-                    if (!($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt)) {
-                        $isLateCheckout = true;
-                    }
-                }
+                // Check late checkout using classroom schedule
+                $classEnd = $child->classroom->end_time ?? '17:00';
+                $classEndInt = (int) str_replace(':', '', substr($classEnd, 0, 5));
+                $currentTimeInt = (int) $now->format('Hi');
+                $isLateCheckout = $currentTimeInt > $classEndInt;
 
                 $attendance->update([
                     'checkout_time' => $now->format('H:i:s'),

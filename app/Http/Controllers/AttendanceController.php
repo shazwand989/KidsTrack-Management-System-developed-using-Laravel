@@ -739,7 +739,7 @@ class AttendanceController extends Controller
     // ============================================
     // SHOW - Attendance details
     // ============================================
-    public function show($id)
+    public function show(int $id)
     {
         $attendance = Attendance::with(['child', 'child.classroom'])->findOrFail($id);
         return view('attendance.show', compact('attendance'));
@@ -748,7 +748,7 @@ class AttendanceController extends Controller
     // ============================================
     // EDIT - Show edit form
     // ============================================
-    public function edit($id)
+    public function edit(int $id)
     {
         $attendance = Attendance::with(['child', 'child.classroom'])->findOrFail($id);
         $children = Child::with('classroom')->where('is_active', true)->get();
@@ -759,7 +759,7 @@ class AttendanceController extends Controller
     // ============================================
     // UPDATE - Update attendance record
     // ============================================
-    public function update(Request $request, $id)
+    public function update(Request $request, int $id)
     {
         $attendance = Attendance::findOrFail($id);
 
@@ -784,7 +784,7 @@ class AttendanceController extends Controller
     // ============================================
     // DESTROY - Delete attendance record
     // ============================================
-    public function destroy($id)
+    public function destroy(int $id)
     {
         $user = Auth::user();
         if (!in_array($user->role, ['admin', 'teacher'])) {
@@ -802,7 +802,7 @@ class AttendanceController extends Controller
     // ============================================
     // CHILD ATTENDANCE
     // ============================================
-    public function childAttendance($childId)
+    public function childAttendance(int $childId)
     {
         $child = Child::with('classroom')->findOrFail($childId);
         $attendances = Attendance::where('child_id', $childId)
@@ -905,7 +905,7 @@ public function exportPdf(Request $request)
 // ============================================
 // 🔥 EXPORT SINGLE PDF
 // ============================================
-public function exportSinglePdf($id)
+public function exportSinglePdf(int $id)
 {
     try {
         $attendance = Attendance::with(['child', 'child.classroom'])->findOrFail($id);
@@ -972,7 +972,7 @@ public function exportSinglePdf($id)
     // ============================================
     // GET CHILD ATTENDANCE
     // ============================================
-    public function getChildAttendance($childId)
+    public function getChildAttendance(int $childId)
     {
         try {
             $attendances = Attendance::where('child_id', $childId)
@@ -986,164 +986,6 @@ public function exportSinglePdf($id)
             ]);
         } catch (\Exception $e) {
             Log::error('getChildAttendance error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Ralat: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    // ============================================
-    // TIMER SETTINGS
-    // ============================================
-    public function saveTimerSettings(Request $request)
-    {
-        try {
-            $data = $request->all();
-
-            if (empty($data)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No data received'
-                ], 400);
-            }
-
-            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            $saved = 0;
-
-            Log::info('📥 SAVE TIMER - Data received:', $data);
-
-            foreach ($days as $day) {
-                if (isset($data[$day])) {
-                    $dayData = $data[$day];
-
-                    if (!isset($dayData['morning']['start']) || !isset($dayData['morning']['end']) ||
-                        !isset($dayData['evening']['start']) || !isset($dayData['evening']['end'])) {
-                        Log::warning("⚠️ Invalid data for {$day}: " . json_encode($dayData));
-                        continue;
-                    }
-
-                    TimerSetting::updateOrCreate(
-                        ['day_name' => $day],
-                        [
-                            'morning_start' => $dayData['morning']['start'] . ':00',
-                            'morning_end' => $dayData['morning']['end'] . ':00',
-                            'evening_start' => $dayData['evening']['start'] . ':00',
-                            'evening_end' => $dayData['evening']['end'] . ':00',
-                            'is_active' => 1
-                        ]
-                    );
-                    $saved++;
-                    Log::info("✅ Saved timer for {$day}");
-                }
-            }
-
-            if ($saved > 0) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "✅ Timer settings saved for {$saved} days!"
-                ]);
-            }
-
-            if (isset($data['day_name'])) {
-                $timer = TimerSetting::where('day_name', $data['day_name'])->first();
-
-                $timerData = [
-                    'morning_start' => ($data['morning_start'] ?? '07:00') . ':00',
-                    'morning_end' => ($data['morning_end'] ?? '07:30') . ':00',
-                    'evening_start' => ($data['evening_start'] ?? '17:00') . ':00',
-                    'evening_end' => ($data['evening_end'] ?? '17:30') . ':00',
-                    'is_active' => 1
-                ];
-
-                if ($timer) {
-                    $timer->update($timerData);
-                } else {
-                    TimerSetting::create(array_merge($timerData, [
-                        'day_name' => $data['day_name']
-                    ]));
-                }
-
-                return response()->json([
-                    'success' => true,
-                    'message' => "✅ Timer saved for {$data['day_name']}!"
-                ]);
-            }
-
-            return response()->json([
-                'success' => false,
-                'message' => 'No valid data to save.'
-            ], 400);
-
-        } catch (\Exception $e) {
-            Log::error('❌ saveTimerSettings Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function getTimerSettings()
-    {
-        try {
-            $settings = TimerSetting::all();
-            $result = [];
-
-            foreach ($settings as $setting) {
-                $result[$setting->day_name] = [
-                    'morning' => [
-                        'start' => date('H:i', strtotime($setting->morning_start)),
-                        'end' => date('H:i', strtotime($setting->morning_end))
-                    ],
-                    'evening' => [
-                        'start' => date('H:i', strtotime($setting->evening_start)),
-                        'end' => date('H:i', strtotime($setting->evening_end))
-                    ]
-                ];
-            }
-
-            return response()->json([
-                'success' => true,
-                'data' => $result
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error getting timers: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Ralat: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function resetTimerSettings()
-    {
-        try {
-            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-            foreach ($days as $day) {
-                TimerSetting::where('day_name', $day)->delete();
-            }
-
-            foreach ($days as $day) {
-                TimerSetting::create([
-                    'day_name' => $day,
-                    'morning_start' => '07:00:00',
-                    'morning_end' => '07:30:00',
-                    'evening_start' => '17:00:00',
-                    'evening_end' => '17:30:00',
-                    'is_active' => 1
-                ]);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => '✅ Semua tetapan masa direset ke default!'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Error resetting timers: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Ralat: ' . $e->getMessage()
@@ -1262,12 +1104,8 @@ public function exportSinglePdf($id)
             return response()->json(['success' => false, 'message' => $msg]);
         }
 
-        // Get timer settings for today
-        $dayName = date('l', SimulationClock::getCurrentTime());
-        $timer = TimerSetting::where('day_name', 'like', '%' . $dayName . '%')->first();
-        $morningEnd = $timer->morning_end ?? '07:30:00';
-
-        // Determine if late (after morning end time)
+        // Use classroom schedule to determine if check-in is late
+        $morningEnd = $child->classroom->start_time ?? '07:30:00';
         $isLate = $now > $morningEnd;
         $status = $isLate ? 'late' : 'checkin';
 
@@ -1319,12 +1157,8 @@ public function exportSinglePdf($id)
             return response()->json(['success' => false, 'message' => 'Sila check-in dahulu.']);
         }
 
-        // Get timer settings for today
-        $dayName = date('l', SimulationClock::getCurrentTime());
-        $timer = TimerSetting::where('day_name', 'like', '%' . $dayName . '%')->first();
-        $eveningEnd = $timer->evening_end ?? '17:30:00';
-
-        // Determine if late checkout (after evening end time)
+        // Use classroom schedule to determine if checkout is late
+        $eveningEnd = $child->classroom->end_time ?? '17:30:00';
         $isLateCheckout = $now > $eveningEnd;
         $status = $isLateCheckout ? 'late_checkout' : 'checkout';
 

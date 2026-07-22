@@ -98,12 +98,6 @@ Route::get('/scan-qr/result/{qr_data}', function ($qrData) {
 Route::get('/scan-qr/{qr_code}', [QRScanController::class, 'show'])->name('scan.qr.show');
 
 // ============================================
-// TIMER SETTINGS (PUBLIC)
-// ============================================
-Route::get('/get-timer-settings', [QRScanController::class, 'getTimerSettings'])
-    ->name('get.timer.settings.public');
-
-// ============================================
 // KIOSK ROUTES (PUBLIC - USED BY PARENTS/GUARDIANS)
 // ============================================
 Route::prefix('kiosk')->name('kiosk.')->group(function () {
@@ -142,11 +136,6 @@ Route::prefix('kiosk')->name('kiosk.')->group(function () {
     Route::post('/confirm-checkout', [QRScanController::class, 'confirmCheckout'])->name('confirm.checkout');
     Route::post('/direct-checkout', [QRScanController::class, 'directCheckout'])->name('direct.checkout');
     Route::get('/child-profile/{child}', [QRScanController::class, 'showChildProfile'])->name('child.profile');
-
-    // Timer settings
-    Route::get('/get-timer-settings', [QRScanController::class, 'getTimerSettings'])->name('get.timer.settings');
-    Route::post('/save-timer-settings', [QRScanController::class, 'saveTimerSettings'])->name('save.timer.settings');
-    Route::post('/reset-timer-settings', [QRScanController::class, 'resetTimerSettings'])->name('reset.timer.settings');
 });
 
 // ============================================

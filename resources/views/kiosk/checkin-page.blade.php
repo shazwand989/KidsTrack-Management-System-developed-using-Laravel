@@ -865,32 +865,24 @@
         🔥🔥🔥 BAHAGIAN CHECKOUT - IKUT DATABASE! 🔥🔥🔥
         ============================================ -->
         @php
-            // 🔥🔥🔥 AMBIL TIMER SETTING DARI DATABASE 🔥🔥🔥
-            $timerSetting = \App\Models\TimerSetting::where('day_name', 'like', '%' . $now->format('l') . '%')->first();
-
-            // Allow checkout anytime after check-in
+            // Use classroom schedule for checkout timing
+            $classEnd = $child->classroom->end_time ?? '17:00';
+            $classEndInt = (int) str_replace(':', '', substr($classEnd, 0, 5));
+            
             $canCheckout = $hasCheckin && !$hasCheckout;
             $checkoutMessage = '<i class="fas fa-check-circle"></i> Sedia untuk check-out';
             $checkoutInfoClass = 'active';
             $isLateCheckout = false;
 
-            if ($timerSetting && $hasCheckin) {
+            if ($hasCheckin) {
                 $currentTimeInt = (int) $now->format('Hi');
-                $eveningStartInt = (int) str_replace(':', '', $timerSetting->evening_start);
-                $eveningEndInt = (int) str_replace(':', '', $timerSetting->evening_end);
 
-                if ($currentTimeInt < $eveningStartInt) {
-                    // Early checkout (before evening slot)
-                    $checkoutMessage = '🔵 Checkout awal (sebelum ' . date('H:i', strtotime($timerSetting->evening_start)) . ')';
-                    $checkoutInfoClass = 'active';
-                } elseif ($currentTimeInt > $eveningEndInt) {
-                    // Late checkout
+                if ($currentTimeInt > $classEndInt) {
                     $isLateCheckout = true;
-                    $checkoutMessage = ' Late Checkout (Melebihi waktu operasi)';
+                    $checkoutMessage = ' Late Checkout (Selepas ' . substr($classEnd, 0, 5) . ')';
                     $checkoutInfoClass = 'active late';
                 } else {
-                    // On-time checkout
-                    $checkoutMessage = '<i class="fas fa-check-circle"></i> Waktu checkout: ' . date('H:i', strtotime($timerSetting->evening_start)) . ' - ' . date('H:i', strtotime($timerSetting->evening_end));
+                    $checkoutMessage = '<i class="fas fa-check-circle"></i> Waktu checkout sehingga: ' . substr($classEnd, 0, 5);
                     $checkoutInfoClass = 'active';
                 }
             }

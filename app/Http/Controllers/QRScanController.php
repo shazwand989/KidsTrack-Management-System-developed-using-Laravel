@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Child;
 use App\Models\Attendance;
 use App\Models\LateCheckoutPenalty;
-use App\Models\TimerSetting;
 use App\Models\User;
 use App\Services\PenaltyService;
 use App\Services\TelegramService;
@@ -26,18 +25,11 @@ class QRScanController extends Controller
     }
 
     // ============================================
-    // ⏱️ TIMER FUNCTIONS
+    // ⏱️ SLOT FUNCTIONS (classroom schedule based)
     // ============================================
-
-    private function getTimerForToday()
-    {
-        $today = Carbon::now('Asia/Kuala_Lumpur')->format('l');
-        return \App\Models\TimerSetting::where('day_name','like','%'.$today.'%')->first();
-    }
 
     private function getCurrentSlot(?Child $child = null)
     {
-        $timer = $this->getTimerForToday();
         $currentTime = Carbon::now('Asia/Kuala_Lumpur');
         $currentTimeInt = (int) $currentTime->format('Hi');
 
@@ -66,22 +58,7 @@ class QRScanController extends Controller
             ];
         }
 
-        // Fallback: TimerSetting (general display)
-        if ($timer) {
-            $morningStart = (int) str_replace(':', '', $timer->morning_start);
-            $morningEnd   = (int) str_replace(':', '', $timer->morning_end);
-            $eveningStart = (int) str_replace(':', '', $timer->evening_start);
-            $eveningEnd   = (int) str_replace(':', '', $timer->evening_end);
-
-            if ($currentTimeInt >= $morningStart && $currentTimeInt <= $morningEnd) {
-                return ['slot' => 'morning', 'type' => 'checkin', 'label' => 'Morning (Check-in)', 'start' => $timer->morning_start, 'end' => $timer->morning_end];
-            }
-            if ($currentTimeInt >= $eveningStart && $currentTimeInt <= $eveningEnd) {
-                return ['slot' => 'evening', 'type' => 'checkout', 'label' => 'Evening (Check-out)', 'start' => $timer->evening_start, 'end' => $timer->evening_end];
-            }
-        }
-
-        // Always return a usable slot — allow check-in anytime
+        // Fallback: no child provided — allow check-in anytime
         return [
             'slot' => 'general',
             'type' => 'checkin',
@@ -105,19 +82,10 @@ class QRScanController extends Controller
             ];
         }
 
-        $timer = $this->getTimerForToday();
-        if (!$timer) {
-            return [
-                'morning' => '07:00 - 07:30',
-                'evening' => '17:00 - 17:30',
-                'day' => Carbon::now('Asia/Kuala_Lumpur')->format('l'),
-            ];
-        }
-
         return [
-            'morning' => $timer->morning_start . ' - ' . $timer->morning_end,
-            'evening' => $timer->evening_start . ' - ' . $timer->evening_end,
-            'day' => $timer->day_name
+            'morning' => '08:00 - 17:00',
+            'evening' => '17:00 - 17:30',
+            'day' => Carbon::now('Asia/Kuala_Lumpur')->format('l'),
         ];
     }
 
@@ -133,53 +101,19 @@ class QRScanController extends Controller
         return $slot && $slot['slot'] === 'evening';
     }
 
-    private function isLateForCheckin()
+    private function isLateForCheckin(): bool
     {
-        $timer = $this->getTimerForToday();
-        if (!$timer) {
-            return false;
-        }
-
-        $currentTime = Carbon::now('Asia/Kuala_Lumpur');
-        $currentTimeInt = (int) $currentTime->format('Hi');
-        $morningEnd = (int) str_replace(':', '', $timer->morning_end);
-
-        return $currentTimeInt > $morningEnd;
+        return false; // Per-child via classroom schedule
     }
 
-    private function isLateForCheckout()
+    private function isLateForCheckout(): bool
     {
-        $timer = $this->getTimerForToday();
-        if (!$timer) {
-            return false;
-        }
-
-        $currentTime = Carbon::now('Asia/Kuala_Lumpur');
-        $currentTimeInt = (int) $currentTime->format('Hi');
-        $eveningEnd = (int) str_replace(':', '', $timer->evening_end);
-
-        return $currentTimeInt > $eveningEnd;
+        return false; // Per-child via classroom schedule
     }
 
     private function isWithinGracePeriod(string $slotType): bool
     {
-        $timer = $this->getTimerForToday();
-        if (!$timer) {
-            return false;
-        }
-
-        $currentTime = Carbon::now('Asia/Kuala_Lumpur');
-        $currentTimeInt = (int) $currentTime->format('Hi');
-
-        if ($slotType === 'checkin') {
-            $morningEnd = (int) str_replace(':', '', $timer->morning_end);
-            $graceEnd = $morningEnd + 15;
-            return $currentTimeInt > $morningEnd && $currentTimeInt <= $graceEnd;
-        } else {
-            $eveningEnd = (int) str_replace(':', '', $timer->evening_end);
-            $graceEnd = $eveningEnd + 15;
-            return $currentTimeInt > $eveningEnd && $currentTimeInt <= $graceEnd;
-        }
+        return false; // Per-child via classroom schedule
     }
 
     public static function getRoleDataStatic(string $role): array
@@ -594,20 +528,11 @@ class QRScanController extends Controller
                     ]);
                 }
 
-                $timer = $this->getTimerForToday();
-                $isLateCheckout = false;
-                $lateCheckoutMessage = '✅ Check-out berjaya (On Time)';
-
-                if ($timer) {
-                    $currentTimeInt = (int) $now->format('Hi');
-                    $eveningStartInt = (int) str_replace(':', '', $timer->evening_start);
-                    $eveningEndInt = (int) str_replace(':', '', $timer->evening_end);
-
-                    if (!($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt)) {
-                        $isLateCheckout = true;
-                        $lateCheckoutMessage = '⏰ Check-out berjaya (Late Checkout)';
-                    }
-                }
+                $classEnd = $child->classroom->end_time ?? '17:00';
+                $classEndInt = (int) str_replace(':', '', substr($classEnd, 0, 5));
+                $currentTimeInt = (int) $now->format('Hi');
+                $isLateCheckout = $currentTimeInt > $classEndInt;
+                $lateCheckoutMessage = $isLateCheckout ? '⏰ Check-out berjaya (Late Checkout)' : '✅ Check-out berjaya (On Time)';
 
                 $status = 'checkout';
                 $statusNote = '✅ Check-out berjaya';
@@ -687,168 +612,6 @@ class QRScanController extends Controller
 
         // Send to admin
         $this->telegram->sendToAdmin($message);
-    }
-
-    // ============================================
-    // TIMER SETTINGS
-    // ============================================
-
-    public function getTimerSettings()
-    {
-        try {
-            $settings = TimerSetting::all();
-
-            if ($settings->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No timer settings found'
-                ]);
-            }
-
-            $result = [];
-            foreach ($settings as $setting) {
-                $result[$setting->day_name] = [
-                    'morning' => [
-                        'start' => date('H:i', strtotime($setting->morning_start)),
-                        'end' => date('H:i', strtotime($setting->morning_end))
-                    ],
-                    'evening' => [
-                        'start' => date('H:i', strtotime($setting->evening_start)),
-                        'end' => date('H:i', strtotime($setting->evening_end))
-                    ]
-                ];
-            }
-
-            return response()->json([
-                'success' => true,
-                'data' => $result
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('getTimerSettings Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function saveTimerSettings(Request $request)
-    {
-        try {
-            $data = $request->all();
-
-            if (empty($data)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No data received'
-                ], 400);
-            }
-
-            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-            $saved = 0;
-
-            foreach ($days as $day) {
-                if (isset($data[$day])) {
-                    $dayData = $data[$day];
-
-                    if (!isset($dayData['morning']['start']) || !isset($dayData['morning']['end']) ||
-                        !isset($dayData['evening']['start']) || !isset($dayData['evening']['end'])) {
-                        continue;
-                    }
-
-                    TimerSetting::updateOrCreate(
-                        ['day_name' => $day],
-                        [
-                            'morning_start' => $dayData['morning']['start'] . ':00',
-                            'morning_end' => $dayData['morning']['end'] . ':00',
-                            'evening_start' => $dayData['evening']['start'] . ':00',
-                            'evening_end' => $dayData['evening']['end'] . ':00',
-                            'is_active' => 1
-                        ]
-                    );
-                    $saved++;
-                }
-            }
-
-            if ($saved > 0) {
-                return response()->json([
-                    'success' => true,
-                    'message' => "✅ Timer settings saved for {$saved} days!"
-                ]);
-            }
-
-            if (isset($data['day_name'])) {
-                $timer = TimerSetting::where('day_name', $data['day_name'])->first();
-
-                $timerData = [
-                    'morning_start' => ($data['morning_start'] ?? '07:00') . ':00',
-                    'morning_end' => ($data['morning_end'] ?? '07:30') . ':00',
-                    'evening_start' => ($data['evening_start'] ?? '17:00') . ':00',
-                    'evening_end' => ($data['evening_end'] ?? '17:30') . ':00',
-                    'is_active' => 1
-                ];
-
-                if ($timer) {
-                    $timer->update($timerData);
-                } else {
-                    TimerSetting::create(array_merge($timerData, [
-                        'day_name' => $data['day_name']
-                    ]));
-                }
-
-                return response()->json([
-                    'success' => true,
-                    'message' => "✅ Timer saved for {$data['day_name']}!"
-                ]);
-            }
-
-            return response()->json([
-                'success' => false,
-                'message' => 'No valid data to save'
-            ], 400);
-
-        } catch (\Exception $e) {
-            Log::error('saveTimerSettings Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    public function resetTimerSettings()
-    {
-        try {
-            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-
-            foreach ($days as $day) {
-                TimerSetting::where('day_name', $day)->delete();
-            }
-
-            foreach ($days as $day) {
-                TimerSetting::create([
-                    'day_name' => $day,
-                    'morning_start' => '07:00:00',
-                    'morning_end' => '07:30:00',
-                    'evening_start' => '17:00:00',
-                    'evening_end' => '17:30:00',
-                    'is_active' => 1
-                ]);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => '✅ All timers reset to default!'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('resetTimerSettings Error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error: ' . $e->getMessage()
-            ], 500);
-        }
     }
 
     public function getCalendarData(Request $request)

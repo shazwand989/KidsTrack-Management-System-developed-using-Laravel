@@ -537,43 +537,32 @@
         $currentTime = Carbon::now('Asia/Kuala_Lumpur');
         $currentHour = (int) $currentTime->format('H');
         
-        $timerSetting = \App\Models\TimerSetting::where('day_name', $currentTime->format('l'))->first();
+        // Use classroom schedule
+        $classroom = $child->classroom;
+        $classStart = $classroom ? substr($classroom->start_time, 0, 5) : '08:00';
+        $classEnd   = $classroom ? substr($classroom->end_time, 0, 5) : '17:00';
+        $currentTimeInt = (int) $currentTime->format('Hi');
+        $classStartInt  = (int) str_replace(':', '', $classStart);
+        $classEndInt    = (int) str_replace(':', '', $classEnd);
         
         $isMorningSlot = false;
         $isEveningSlot = false;
         $isOutsideSlot = false;
-        $slotLabel = 'Morning (Check-in)';
+        $slotLabel = 'Check-in';
         $slotType = 'checkin';
-        $morningStart = '--:--';
-        $morningEnd = '--:--';
-        $eveningStart = '--:--';
-        $eveningEnd = '--:--';
+        $morningStart = $classStart;
+        $morningEnd = $classStart;
+        $eveningStart = $classEnd;
+        $eveningEnd = $classEnd;
         
-        if ($timerSetting) {
-            $morningStart = date('H:i', strtotime($timerSetting->morning_start));
-            $morningEnd = date('H:i', strtotime($timerSetting->morning_end));
-            $eveningStart = date('H:i', strtotime($timerSetting->evening_start));
-            $eveningEnd = date('H:i', strtotime($timerSetting->evening_end));
-            
-            $morningStartInt = (int) str_replace(':', '', $timerSetting->morning_start);
-            $morningEndInt = (int) str_replace(':', '', $timerSetting->morning_end);
-            $eveningStartInt = (int) str_replace(':', '', $timerSetting->evening_start);
-            $eveningEndInt = (int) str_replace(':', '', $timerSetting->evening_end);
-            $currentTimeInt = (int) $currentTime->format('Hi');
-            
-            if ($currentTimeInt >= $morningStartInt && $currentTimeInt <= $morningEndInt) {
-                $isMorningSlot = true;
-                $slotLabel = 'Morning (Check-in)';
-                $slotType = 'checkin';
-            } elseif ($currentTimeInt >= $eveningStartInt && $currentTimeInt <= $eveningEndInt) {
-                $isEveningSlot = true;
-                $slotLabel = 'Evening (Check-out)';
-                $slotType = 'checkout';
-            } else {
-                $isOutsideSlot = true;
-                $slotLabel = 'Outside Hours';
-                $slotType = 'closed';
-            }
+        if ($currentTimeInt < $classEndInt) {
+            $isMorningSlot = true;
+            $slotLabel = 'Check-in';
+            $slotType = 'checkin';
+        } else {
+            $isEveningSlot = true;
+            $slotLabel = 'Check-out';
+            $slotType = 'checkout';
         }
         
         $attendance = \App\Models\Attendance::where('child_id', $child->id)
