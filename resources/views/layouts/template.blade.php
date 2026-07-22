@@ -490,10 +490,18 @@
     </a>
 </li>
 
+<!-- Fine Dashboard -->
+<li class="nav-item">
+    <a class="nav-link text-dark @if(request()->routeIs('penalties.fines')) active @endif" href="{{ route('penalties.fines') }}">
+    <i class="material-symbols-rounded opacity-5">payments</i>
+        <span class="nav-link-text ms-1">Fine</span>
+    </a>
+</li>
+
 <!-- Penalty Settings -->
 <li class="nav-item">
-    <a class="nav-link text-dark @if(request()->routeIs('penalties.*')) active @endif" href="{{ route('penalties.settings') }}">
-    <i class="material-symbols-rounded opacity-5">payments</i>
+    <a class="nav-link text-dark @if(request()->routeIs('penalties.settings')) active @endif" href="{{ route('penalties.settings') }}">
+    <i class="material-symbols-rounded opacity-5">settings</i>
         <span class="nav-link-text ms-1">Penalty Settings</span>
     </a>
 </li>

@@ -133,6 +133,8 @@ Route::middleware(['auth'])->group(function () {
     // ============================================    // PENALTY MANAGEMENT
     // ============================================
     Route::prefix('penalties')->name('penalties.')->group(function () {
+        Route::get('/fines', [\App\Http\Controllers\PenaltyController::class, 'fines'])
+            ->name('fines');
         Route::get('/settings', [\App\Http\Controllers\PenaltyController::class, 'settings'])
             ->name('settings');
         Route::post('/settings', [\App\Http\Controllers\PenaltyController::class, 'saveSettings'])

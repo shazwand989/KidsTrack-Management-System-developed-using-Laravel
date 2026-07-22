@@ -20,6 +20,35 @@ class PenaltyController extends Controller
     // ============================================
     // ADMIN SETTINGS
     // ============================================
+    public function fines()
+    {
+        $allPenalties = LateCheckoutPenalty::with(['child.classroom', 'parent'])->latest()->get();
+
+        $pending = $allPenalties->where('payment_status', 'pending');
+        $paid = $allPenalties->where('payment_status', 'paid');
+
+        $totalPending = $pending->sum('penalty_amount');
+        $totalPaid = $paid->sum('penalty_amount');
+        $totalCollected = $paid->count();
+
+        // Group pending by parent for summary
+        $byParent = $pending->groupBy('parent_id')->map(function ($items) {
+            $first = $items->first();
+            return [
+                'parent_name' => $first->parent->name ?? 'Unknown',
+                'parent_id' => $first->parent_id,
+                'count' => $items->count(),
+                'total' => $items->sum('penalty_amount'),
+                'penalties' => $items,
+            ];
+        })->sortByDesc('total');
+
+        return view('admin.fines', compact(
+            'pending', 'paid', 'totalPending', 'totalPaid',
+            'totalCollected', 'byParent', 'allPenalties'
+        ));
+    }
+
     public function settings()
     {
         $settings = $this->penaltyService->getSettings();
