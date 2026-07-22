@@ -89,32 +89,32 @@ class TelegramWebhookController extends Controller
 
     private function linkUserByPhone($chatId, $phone, TelegramService $telegram)
     {
-        // Search in users table for parent role
-        $parent = User::whereIn('role', ['parent', 'parent1'])
-            ->where('phone_number', 'like', '%' . substr($phone, -7) . '%')
+        // Normalize: keep only digits, then match by last 7
+        $digits = preg_replace('/\D/', '', $phone);
+        $last7  = substr($digits, -7);
+        if (strlen($last7) < 7) {
+            $telegram->sendMessage($chatId,
+                "❌ Invalid phone number. Please enter at least 7 digits.\n\nExample: 0122424534"
+            );
+            return false;
+        }
+
+        // Search ALL parent/guardian roles by last 7 digits
+        $user = User::whereIn('role', ['parent', 'parent1', 'parent2', 'guardian'])
+            ->where(function ($q) use ($last7) {
+                $q->where('phone_number', 'like', "%{$last7}")
+                  ->orWhere('phone_number', 'like', "%{$last7}%");
+            })
             ->first();
 
-        if ($parent) {
-            $parent->update(['telegram_chat_id' => $chatId]);
+        if ($user) {
+            $user->update(['telegram_chat_id' => $chatId]);
             $telegram->sendMessage($chatId,
-                "✅ Account linked! Welcome *{$parent->name}*!\n\n"
+                "✅ Account linked! Welcome *{$user->name}*!\n\n"
                 . "You will now receive late check-in/check-out notifications for your child(ren).\n\n"
                 . "Commands:\n"
                 . "/status - Check today's attendance\n"
                 . "/help - Show help"
-            );
-            return true;
-        }
-
-        // Search in users table for guardian role
-        $guardian = User::where('role', 'guardian')
-            ->where('phone_number', 'like', '%' . substr($phone, -7) . '%')
-            ->first();
-        if ($guardian) {
-            $guardian->update(['telegram_chat_id' => $chatId]);
-            $telegram->sendMessage($chatId,
-                "✅ Account linked! Welcome *{$guardian->name}*!\n\n"
-                . "You will now receive notifications for your linked child(ren)."
             );
             return true;
         }

@@ -101,14 +101,35 @@ class QRScanController extends Controller
         return $slot && $slot['slot'] === 'evening';
     }
 
-    private function isLateForCheckin(): bool
+    private function isLateForCheckin(?\App\Models\Child $child = null): bool
     {
-        return false; // Per-child via classroom schedule
+        if (!$child || !$child->classroom || !$child->classroom->start_time) {
+            $now = Carbon::now('Asia/Kuala_Lumpur');
+            // Fallback: late if past 8:00 AM
+            return $now->hour >= 8;
+        }
+
+        $now = Carbon::now('Asia/Kuala_Lumpur');
+        $startTime = Carbon::parse($child->classroom->start_time, 'Asia/Kuala_Lumpur')
+            ->setDateFrom($now);
+
+        return $now->greaterThan($startTime);
     }
 
-    private function isLateForCheckout(): bool
+    private function isLateForCheckout(?\App\Models\Child $child = null): bool
     {
-        return false; // Per-child via classroom schedule
+        if (!$child || !$child->classroom || !$child->classroom->end_time) {
+            $now = Carbon::now('Asia/Kuala_Lumpur');
+            // Fallback: late if past 6:00 PM
+            return $now->hour >= 18;
+        }
+
+        $now = Carbon::now('Asia/Kuala_Lumpur');
+        $endTime = Carbon::parse($child->classroom->end_time, 'Asia/Kuala_Lumpur')
+            ->setDateFrom($now);
+
+        // Late checkout if after class end time
+        return $now->greaterThan($endTime);
     }
 
     private function isWithinGracePeriod(string $slotType): bool
@@ -215,9 +236,9 @@ class QRScanController extends Controller
             $isLate = false;
             if ($slot) {
                 if ($slot['slot'] === 'morning') {
-                    $isLate = $this->isLateForCheckin();
+                    $isLate = $this->isLateForCheckin($child);
                 } else if ($slot['slot'] === 'evening') {
-                    $isLate = $this->isLateForCheckout();
+                    $isLate = $this->isLateForCheckout($child);
                 }
             }
 
@@ -293,7 +314,7 @@ class QRScanController extends Controller
                 }
 
                 // Send Telegram notification
-                $isLate = $this->isLateForCheckin();
+                $isLate = $this->isLateForCheckin($child);
                 $this->sendTelegramNotification($child, $parentId, 'checkin', $isLate);
             }
 
@@ -335,7 +356,7 @@ class QRScanController extends Controller
         $hasCheckout = $todayAttendance && $todayAttendance->checkout_time;
 
         $slot = $this->getCurrentSlot($child);
-        $isLate = $slot && $slot['slot'] === 'morning' ? $this->isLateForCheckin() : false;
+        $isLate = $slot && $slot['slot'] === 'morning' ? $this->isLateForCheckin($child) : false;
 
         // Can checkout anytime after checkin, not just during evening slot
         $canCheckout = $hasCheckin && !$hasCheckout;
@@ -451,7 +472,7 @@ class QRScanController extends Controller
                     ]);
                 }
 
-                $isLate = $this->isLateForCheckin();
+                $isLate = $this->isLateForCheckin($child);
                 $withinGrace = $this->isWithinGracePeriod('checkin');
 
                 if ($isLate) {

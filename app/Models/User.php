@@ -27,6 +27,7 @@ class User extends Authenticatable
         'photo',
         'role',
         'verified',
+        'telegram_chat_id',
     ];
 
     protected function casts(): array
