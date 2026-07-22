@@ -40,8 +40,8 @@
     <div class="rp-card">
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between">
             <div>
-                <h4 style="margin:0"><i class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">person</i> {{ $child->name }}</h4>
-                <small style="color:#64748b">🏫 {{ $child->classroom->name ?? '-' }} · {{ $child->age }}y</small>
+                <h4 style="margin:0"><i class="fas fa-user-graduate"></i> {{ $child->name }}</h4>
+                <small style="color:#64748b"><i class="fas fa-school"></i> {{ $child->classroom->name ?? '-' }} · {{ $child->age }}y</small>
             </div>
             <a href="{{ route('reports.class') }}?{{ $queryStr }}" style="font-size:13px;color:#6d28d9;font-weight:700;text-decoration:none;">← Back to Class Report</a>
         </div>

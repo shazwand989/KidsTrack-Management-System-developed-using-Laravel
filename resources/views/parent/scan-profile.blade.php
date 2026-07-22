@@ -195,16 +195,16 @@
                     @if($isLate)
                         ⏰ Late Check-in
                     @else
-                        ✅ Check-in Berjaya
+                        <i class="fas fa-check-circle"></i> Check-in Berjaya
                     @endif
                 @else
-                    ✅ Belum Check-in
+                    <i class="fas fa-check-circle"></i> Belum Check-in
                 @endif
             </div>
 
             {{-- Attendance Info --}}
             <div class="info-box">
-                <div class="label">📅 Tarikh</div>
+                <div class="label"><i class="fas fa-calendar-alt"></i> Tarikh</div>
                 <div class="value">{{ \Carbon\Carbon::now()->format('d/m/Y') }}</div>
             </div>
 
@@ -227,14 +227,14 @@
             @endif
 
             <div class="info-box">
-                <div class="label">🏫 Kelas</div>
+                <div class="label"><i class="fas fa-school"></i> Kelas</div>
                 <div class="value">{{ $child->classroom->name ?? 'Tiada kelas' }}</div>
             </div>
 
             {{-- Fee Warning --}}
             @if($hasFeeWarning ?? false)
                 <div class="fee-warning">
-                    <div><span class="icon">⚠️</span> {{ $feeMessage ?? 'Anda mempunyai yuran tertunggak. Sila jelaskan segera.' }}</div>
+                    <div><span class="icon"><i class="fas fa-exclamation-triangle"></i></span> {{ $feeMessage ?? 'Anda mempunyai yuran tertunggak. Sila jelaskan segera.' }}</div>
                 </div>
             @endif
 

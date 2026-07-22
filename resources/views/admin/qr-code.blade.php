@@ -105,13 +105,13 @@
         </a>
 
         <div class="info-box">
-            ✅ Parents boleh scan guna <strong>data sendiri</strong> — tak perlu WiFi taska<br>
-            ✅ Boleh scan dari rumah, kedai, mana-mana sahaja!
+            <i class="fas fa-check-circle"></i> Parents boleh scan guna <strong>data sendiri</strong> — tak perlu WiFi taska<br>
+            <i class="fas fa-check-circle"></i> Boleh scan dari rumah, kedai, mana-mana sahaja!
         </div>
 
         <div class="warning-box">
-            ⚠️ URL ini hanya valid selagi terminal cloudflared dibuka.<br>
-            ⚠️ Jangan tutup terminal yang running cloudflared!
+            <i class="fas fa-exclamation-triangle"></i> URL ini hanya valid selagi terminal cloudflared dibuka.<br>
+            <i class="fas fa-exclamation-triangle"></i> Jangan tutup terminal yang running cloudflared!
         </div>
     </div>
 </div>

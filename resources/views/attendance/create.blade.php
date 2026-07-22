@@ -212,13 +212,13 @@
     {{-- Top Bar --}}
     <div class="top-bar">
         <div class="top-bar-left">
-            <h3>📋 Take Attendance</h3>
+            <h3><i class="fas fa-clipboard-list"></i> Take Attendance</h3>
             <p id="dateDisplay"></p>
         </div>
         <div class="clock" id="liveClock">--:--:--</div>
         <div>
             <button class="qa-btn qa-save" onclick="saveAll()" style="padding:12px 24px;font-size:14px;">
-                💾 Save All Records
+                <i class="fas fa-save"></i> Save All Records
             </button>
         </div>
     </div>
@@ -228,8 +228,8 @@
 
     {{-- Quick Actions --}}
     <div class="quick-actions">
-        <button class="qa-btn qa-present" onclick="setAll('present')">✅ Mark All Present</button>
-        <button class="qa-btn qa-absent" onclick="setAll('absent')">❌ Mark All Absent</button>
+        <button class="qa-btn qa-present" onclick="setAll('present')"><i class="fas fa-check-circle"></i> Mark All Present</button>
+        <button class="qa-btn qa-absent" onclick="setAll('absent')"><i class="fas fa-times-circle"></i> Mark All Absent</button>
         <button class="qa-btn qa-clear" onclick="setAll(null)">🔄 Clear All</button>
         <span style="flex:1;"></span>
         <span class="counter-badge" id="counterBadge">0 / {{ $children->count() }} marked</span>
@@ -237,9 +237,9 @@
 
     {{-- Search + Filter --}}
     <div class="tool-row">
-        <input type="text" id="searchInput" placeholder="🔍 Search child name..." oninput="filterTable()">
+        <input type="text" id="searchInput" placeholder="<i class="fas fa-search"></i> Search child name..." oninput="filterTable()">
         <select id="classFilter" onchange="filterTable()">
-            <option value="all">🏫 All Classes</option>
+            <option value="all"><i class="fas fa-school"></i> All Classes</option>
             @foreach($classrooms as $c)
                 <option value="{{ $c->id }}">{{ $c->name }}</option>
             @endforeach
@@ -279,7 +279,7 @@
                     <td class="row-num" style="color:#64748b;font-weight:700;">{{ $i + 1 }}</td>
                     <td>
                         <span class="child-name">{{ $child->name }}</span>
-                        <div class="child-meta">👶 {{ $child->age }}y</div>
+                        <div class="child-meta"><i class="fas fa-child"></i> {{ $child->age }}y</div>
                     </td>
                     <td><span class="child-meta">{{ $child->classroom->name ?? '-' }}
                         @if($child->classroom?->start_time)
@@ -329,7 +329,7 @@
 
 <script>
 const statusMap = [null, 'present', 'late', 'absent'];
-const statusLabels = ['— Tap to set —', '✅ Present', '⚠️ Late', '❌ Absent'];
+const statusLabels = ['— Tap to set —', '<i class="fas fa-check-circle"></i> Present', '<i class="fas fa-exclamation-triangle"></i> Late', '<i class="fas fa-times-circle"></i> Absent'];
 const statusClasses = ['sp-none', 'sp-present', 'sp-late', 'sp-absent'];
 
 let attendanceState = {};
@@ -481,7 +481,7 @@ async function saveAll() {
         });
         const result = await resp.json();
         if (result.success) {
-            showToast('✅ ' + result.saved + ' records saved!', 'success');
+            showToast('<i class="fas fa-check-circle"></i> ' + result.saved + ' records saved!', 'success');
             // Mark saved rows
             document.querySelectorAll('#tableBody tr').forEach(row => {
                 const childId = parseInt(row.dataset.child);

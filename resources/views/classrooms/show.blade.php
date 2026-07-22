@@ -511,12 +511,12 @@
         <div class="header-content">
             <div class="classroom-info">
                 <h1>
-                    <span>🏫</span> {{ $classroom->name }}
+                    <span><i class="fas fa-school"></i></span> {{ $classroom->name }}
                 </h1>
                 <div class="code">
                     <span>📛 Code: {{ $classroom->code }}</span>
                     <span>👥 Capacity: {{ $classroom->capacity }} children</span>
-                    <span>📊 Enrollment: {{ $children->count() }}/{{ $classroom->capacity }}</span>
+                    <span><i class="fas fa-chart-bar"></i> Enrollment: {{ $children->count() }}/{{ $classroom->capacity }}</span>
                     <div class="progress-bar" style="width: 150px;">
                         <div class="progress-fill" style="width: {{ $stats['capacity_percentage'] }}%"></div>
                     </div>
@@ -536,17 +536,17 @@
     {{-- Statistics Cards --}}
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-icon">👶</div>
+            <div class="stat-icon"><i class="fas fa-child"></i></div>
             <div class="stat-number">{{ $stats['total_children'] }}</div>
             <div class="stat-label">Total Children</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">✅</div>
+            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
             <div class="stat-number" style="color:#16a34a;">{{ $stats['total_present'] }}</div>
             <div class="stat-label">Checked In</div>
         </div>
         <div class="stat-card">
-            <div class="stat-icon">📤</div>
+            <div class="stat-icon"><i class="fas fa-upload"></i></div>
             <div class="stat-number" style="color:#dc2626;">{{ $stats['total_checkout'] }}</div>
             <div class="stat-label">Checked Out</div>
         </div>
@@ -561,7 +561,7 @@
     <div class="info-grid">
         <div class="info-card">
             <div class="info-card-title">
-                <span>📋</span> Class Details
+                <span><i class="fas fa-clipboard-list"></i></span> Class Details
             </div>
             <div class="info-row">
                 <div class="info-label"><span>🏷️</span> Class Name</div>
@@ -576,16 +576,16 @@
                 <div class="info-value">{{ $classroom->age_group }}</div>
             </div>
             <div class="info-row">
-                <div class="info-label"><span>📊</span> Age Range</div>
+                <div class="info-label"><span><i class="fas fa-chart-bar"></i></span> Age Range</div>
                 <div class="info-value">{{ $classroom->min_age }} - {{ $classroom->max_age }} years</div>
             </div>
             <div class="info-row">
                 <div class="info-label"><span>⚙️</span> Status</div>
                 <div class="info-value">
                     @if($classroom->status == 'active')
-                        <span style="color:#16a34a;">✅ Active</span>
+                        <span style="color:#16a34a;"><i class="fas fa-check-circle"></i> Active</span>
                     @else
-                        <span style="color:#dc2626;">❌ Inactive</span>
+                        <span style="color:#dc2626;"><i class="fas fa-times-circle"></i> Inactive</span>
                     @endif
                 </div>
             </div>
@@ -604,7 +604,7 @@
                 <div class="info-value">{{ date('h:i A', strtotime($classroom->end_time)) }}</div>
             </div>
             <div class="info-row">
-                <div class="info-label"><span>👩‍🏫</span> Class Teacher</div>
+                <div class="info-label"><span>👩‍<i class="fas fa-school"></i></span> Class Teacher</div>
                 <div class="info-value">
                     @if($classroom->teacher)
                         {{ $classroom->teacher->name }}
@@ -641,14 +641,14 @@
         {{-- SEARCH & FILTER --}}
         <div class="seatmap-controls">
             <div class="search-box">
-                <span class="icon">🔍</span>
+                <span class="icon"><i class="fas fa-search"></i></span>
                 <input type="text" id="searchInput" placeholder="Cari nama anak..." onkeyup="filterSeats()">
                 <span class="icon" id="clearSearch" style="cursor:pointer; display:none;" onclick="clearSearch()">✕</span>
             </div>
             <div class="filter-group">
-                <button class="filter-btn active active-all" data-filter="all" onclick="setFilter('all', this)">📋 Semua</button>
-                <button class="filter-btn" data-filter="checkin" onclick="setFilter('checkin', this)">✅ Checked In</button>
-                <button class="filter-btn" data-filter="checkout" onclick="setFilter('checkout', this)">📤 Checked Out</button>
+                <button class="filter-btn active active-all" data-filter="all" onclick="setFilter('all', this)"><i class="fas fa-clipboard-list"></i> Semua</button>
+                <button class="filter-btn" data-filter="checkin" onclick="setFilter('checkin', this)"><i class="fas fa-check-circle"></i> Checked In</button>
+                <button class="filter-btn" data-filter="checkout" onclick="setFilter('checkout', this)"><i class="fas fa-upload"></i> Checked Out</button>
                 <button class="filter-btn" data-filter="absent" onclick="setFilter('absent', this)">⏰ Belum Hadir</button>
             </div>
         </div>
@@ -682,7 +682,7 @@
                         } elseif ($att->checkin_time) {
                             $attStatus = in_array($att->status, ['late']) ? 'late' : 'checkin';
                             $displayStatus = 'checkin';
-                            $badgeLabel = $attStatus == 'late' ? '⏰ Late' : '✅ Checked In';
+                            $badgeLabel = $attStatus == 'late' ? '⏰ Late' : '<i class="fas fa-check-circle"></i> Checked In';
                             $badgeClass = $attStatus == 'late' ? 'late' : 'checkin';
                             $checkinTime = $att->checkin_time;
                             $lateReason = $att->late_reason ?? null;
@@ -712,14 +712,14 @@
                     <div class="seat-name">{{ $child->name }}</div>
                     <div class="seat-status">
                         @if($attStatus == 'checkout')
-                            <span>📤</span>
+                            <span><i class="fas fa-upload"></i></span>
                             <span style="color:#dc2626; font-weight:600;">Checked Out</span>
                             <span class="time">
                                 🕐 {{ $checkoutTime ? date('h:i A', strtotime($checkoutTime)) : '' }}
                             </span>
                             @if($checkinTime)
                                 <span class="time" style="color:#6b7280; width:100%;">
-                                    📥 In: {{ date('h:i A', strtotime($checkinTime)) }}
+                                    <i class="fas fa-download"></i> In: {{ date('h:i A', strtotime($checkinTime)) }}
                                 </span>
                             @endif
                         @elseif(in_array($attStatus, ['checkin', 'late', 'present']))
@@ -745,7 +745,7 @@
                 </div>
             @empty
                 <div class="empty-seat">
-                    <span>👶</span>
+                    <span><i class="fas fa-child"></i></span>
                     <p>No children enrolled in this class yet</p>
                     <small>Add children to see seatmap</small>
                 </div>

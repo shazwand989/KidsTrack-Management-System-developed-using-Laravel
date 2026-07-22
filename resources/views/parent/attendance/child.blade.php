@@ -45,14 +45,14 @@
 @php $cls = $child->classroom; @endphp
 @if($cls)
 <div class="detail-card" style="border-left:4px solid #6d28d9;">
-    <h3>📅 Class Schedule — {{ $cls->name }}</h3>
+    <h3><i class="fas fa-calendar-alt"></i> Class Schedule — {{ $cls->name }}</h3>
     <div style="display:flex;gap:24px;flex-wrap:wrap;">
         <div style="flex:1;min-width:120px;background:#f0fdf4;border-radius:12px;padding:14px;text-align:center;">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#059669;margin-bottom:4px;">🟢 Class Starts</div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#059669;margin-bottom:4px;"> Class Starts</div>
             <div style="font-size:22px;font-weight:800;color:#1e293b;">{{ $cls->start_time ? \Carbon\Carbon::parse($cls->start_time)->format('h:i A') : '—' }}</div>
         </div>
         <div style="flex:1;min-width:120px;background:#f5f3ff;border-radius:12px;padding:14px;text-align:center;">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#6d28d9;margin-bottom:4px;">🟣 Class Ends</div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#6d28d9;margin-bottom:4px;"> Class Ends</div>
             <div style="font-size:22px;font-weight:800;color:#1e293b;">{{ $cls->end_time ? \Carbon\Carbon::parse($cls->end_time)->format('h:i A') : '—' }}</div>
         </div>
     </div>

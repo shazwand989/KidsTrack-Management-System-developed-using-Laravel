@@ -40,10 +40,10 @@
             </div>
             <div class="schedule-info">
                 <div class="child-name">{{ $child->name }}</div>
-                <div class="class-name">🏫 {{ $cls->name ?? 'No Class' }}</div>
+                <div class="class-name"><i class="fas fa-school"></i> {{ $cls->name ?? 'No Class' }}</div>
                 <div class="times">
-                    <span class="in">🟢 {{ $cls->start_time ? \Carbon\Carbon::parse($cls->start_time)->format('h:i A') : '—' }}</span>
-                    <span class="out">🟣 {{ $cls->end_time ? \Carbon\Carbon::parse($cls->end_time)->format('h:i A') : '—' }}</span>
+                    <span class="in"> {{ $cls->start_time ? \Carbon\Carbon::parse($cls->start_time)->format('h:i A') : '—' }}</span>
+                    <span class="out"> {{ $cls->end_time ? \Carbon\Carbon::parse($cls->end_time)->format('h:i A') : '—' }}</span>
                 </div>
             </div>
         </div>
@@ -126,7 +126,7 @@
 
         {{-- Check-in --}}
         <div style="padding:12px;background:#f8fafc;border-radius:12px;margin-bottom:10px;">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;">📥 Check-in</div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;"><i class="fas fa-download"></i> Check-in</div>
             <table style="width:100%;font-size:12px;border-collapse:collapse;">
                 <tr><td style="padding:3px 0;color:#94a3b8;">Schedule</td><td style="padding:3px 0;text-align:right;font-weight:600;" id="mdlCiSched">—</td></tr>
                 <tr><td style="padding:3px 0;color:#94a3b8;">Actual</td><td style="padding:3px 0;text-align:right;font-weight:700;" id="mdlCiTime">—</td></tr>
@@ -137,7 +137,7 @@
 
         {{-- Check-out --}}
         <div style="padding:12px;background:#f8fafc;border-radius:12px;margin-bottom:12px;">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;">📤 Check-out</div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;"><i class="fas fa-upload"></i> Check-out</div>
             <table style="width:100%;font-size:12px;border-collapse:collapse;">
                 <tr><td style="padding:3px 0;color:#94a3b8;">Schedule</td><td style="padding:3px 0;text-align:right;font-weight:600;" id="mdlCoSched">—</td></tr>
                 <tr><td style="padding:3px 0;color:#94a3b8;">Actual</td><td style="padding:3px 0;text-align:right;font-weight:700;" id="mdlCoTime">—</td></tr>
@@ -146,7 +146,7 @@
             </table>
         </div>
 
-        <a id="mdlLink" href="#" style="display:block;text-align:center;padding:8px;background:#ede9fe;color:#6d28d9;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;">📋 View Full History</a>
+        <a id="mdlLink" href="#" style="display:block;text-align:center;padding:8px;background:#ede9fe;color:#6d28d9;border-radius:10px;font-size:12px;font-weight:700;text-decoration:none;"><i class="fas fa-clipboard-list"></i> View Full History</a>
     </div>
 </div>
 
@@ -161,7 +161,7 @@
 function showDetailModal(row){
     var d=row.dataset;
     document.getElementById('mdlName').textContent=d.name;
-    document.getElementById('mdlClassDate').textContent='🏫 '+d.classroom+' · 📅 '+d.date;
+    document.getElementById('mdlClassDate').textContent='<i class="fas fa-school"></i> '+d.classroom+' · <i class="fas fa-calendar-alt"></i> '+d.date;
     document.getElementById('mdlLink').href=d.link;
 
     // Check-in
@@ -185,10 +185,10 @@ function showDetailModal(row){
 }
 
 function statusBadge(status,label){
-    if(status==='on_time') return '<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟢 '+label+'</span>';
-    if(status==='late') return '<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟡 '+label+'</span>';
-    if(status==='early') return '<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🔴 '+label+'</span>';
-    if(status==='absent') return '<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🔴 '+label+'</span>';
+    if(status==='on_time') return '<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> '+label+'</span>';
+    if(status==='late') return '<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> '+label+'</span>';
+    if(status==='early') return '<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> '+label+'</span>';
+    if(status==='absent') return '<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> '+label+'</span>';
     return '<span style="color:#94a3b8;">'+label+'</span>';
 }
 

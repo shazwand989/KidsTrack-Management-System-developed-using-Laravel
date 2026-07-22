@@ -507,14 +507,14 @@
     @endif
 
     <div class="rg-breadcrumb">
-        <a href="{{ route('children.index') }}">👶 Children</a>
+        <a href="{{ route('children.index') }}"><i class="fas fa-child"></i> Children</a>
         <span class="sep">›</span>
         <strong>Register New Child</strong>
     </div>
 
     @if($errors->any())
     <div class="alert-error">
-        <strong>⚠️ Please fix the following errors:</strong>
+        <strong><i class="fas fa-exclamation-triangle"></i> Please fix the following errors:</strong>
         <ul>
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -532,7 +532,7 @@
 
     {{-- Parent --}}
     <div class="rg-card">
-        <div class="rg-section-title"><span>👨‍👩‍👧‍👦</span> Parent</div>
+        <div class="rg-section-title"><span><i class="fas fa-users"></i></span> Parent</div>
 
         <div class="rg-group">
             <label class="rg-label">Main Parent <span class="req">*</span></label>
@@ -555,7 +555,7 @@
 
     {{-- Shared Address (from parent) --}}
     <div class="rg-card">
-        <div class="rg-section-title"><span>📍</span> Home Address</div>
+        <div class="rg-section-title"><span><i class="fas fa-map-marker-alt"></i></span> Home Address</div>
         <div class="rg-group">
             <label class="rg-label">Address</label>
             <div id="parentAddressDisplay" style="padding:10px 14px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;color:#94a3b8;font-size:13px;">
@@ -571,16 +571,16 @@
     <div id="childrenContainer">
         <div class="rg-card child-card" data-index="0">
             <div class="rg-section-title" style="justify-content:space-between;">
-                <span><span>👶</span> Child #1</span>
+                <span><span><i class="fas fa-child"></i></span> Child #1</span>
                 <span class="remove-child" style="display:none;cursor:pointer;color:#dc2626;font-size:12px;" onclick="removeChild(this)">✕ Remove</span>
             </div>
             <div class="card-inner">
                 <div class="card-photo-col">
                     <div class="photo-circle" onclick="this.nextElementSibling.nextElementSibling.click()">
-                        <span>👶</span>
+                        <span><i class="fas fa-child"></i></span>
                     </div>
                     <div class="upload-zone" onclick="this.previousElementSibling.click()">
-                        <span>📸</span><p>Upload Photo</p><small>JPG/PNG · 2MB</small>
+                        <span><i class="fas fa-camera"></i></span><p>Upload Photo</p><small>JPG/PNG · 2MB</small>
                     </div>
                     <input type="file" name="children[0][photo]" accept="image/*" onchange="previewChildPhoto(this,0)">
                 </div>
@@ -590,7 +590,7 @@
                         <input type="text" name="children[0][name]" placeholder="e.g. Ahmad bin Abdullah">
                     </div>
                     <div class="rg-group">
-                        <label class="rg-label">🏫 Classroom</label>
+                        <label class="rg-label"><i class="fas fa-school"></i> Classroom</label>
                         <select name="children[0][classroom_id]" class="classroom-select" style="width:100%;">
                             <option value="">-- Select Classroom --</option>
                             @foreach($classrooms as $c)
@@ -635,14 +635,14 @@
     {{-- Add Child Button --}}
     <div style="text-align:center;margin:18px 0;">
         <button type="button" onclick="addChild()" class="add-another-link" style="font-size:14px;padding:10px 24px;">
-            <span class="icon">➕</span> Add Another Child
+            <span class="icon"><i class="fas fa-plus"></i></span> Add Another Child
         </button>
     </div>
 
     {{-- Submit --}}
     <div class="rg-actions">
-        <button type="submit" class="btn-save"><span>💾</span> Register All Children</button>
-        <a href="{{ route('children.index') }}" class="btn-cancel"><span>✖️</span> Cancel</a>
+        <button type="submit" class="btn-save"><span><i class="fas fa-save"></i></span> Register All Children</button>
+        <a href="{{ route('children.index') }}" class="btn-cancel"><span><i class="fas fa-times"></i></span> Cancel</a>
     </div>
 
     </form>
@@ -660,7 +660,7 @@
         const template = container.querySelector('.child-card').cloneNode(true);
         const idx = childCount;
         template.setAttribute('data-index', idx);
-        template.querySelector('.rg-section-title span:first-child').innerHTML = '<span>👶</span> Child #' + (idx + 1);
+        template.querySelector('.rg-section-title span:first-child').innerHTML = '<span><i class="fas fa-child"></i></span> Child #' + (idx + 1);
         template.querySelector('.remove-child').style.display = 'inline';
         template.querySelectorAll('input, textarea').forEach(el => {
             const name = el.getAttribute('name');
@@ -675,7 +675,7 @@
             }
         });
         template.querySelectorAll('.photo-circle').forEach(c => {
-            c.innerHTML = '<span>👶</span>';
+            c.innerHTML = '<span><i class="fas fa-child"></i></span>';
             c.previousElementSibling && (c.previousElementSibling.innerHTML = '');
         });
         template.querySelectorAll('.ic-feedback').forEach(f => { f.className = 'ic-feedback'; f.innerHTML = ''; f.id = 'ic_fb_' + idx; });
@@ -922,7 +922,7 @@
 <script>
 $(document).ready(function() {
     $('#parent_id').select2({
-        placeholder: '🔍 Search by IC, name or phone number...',
+        placeholder: '<i class="fas fa-search"></i> Search by IC, name or phone number...',
         allowClear: true,
         width: '100%',
         templateResult: formatParentOption,
@@ -956,7 +956,7 @@ $(document).ready(function() {
             avatar +
             '<div style="flex:1;line-height:1.3;">' +
             '<div style="font-weight:700;font-size:14px;">' + name.trim() + '</div>' +
-            '<div style="font-size:11px;color:#94a3b8;">' + ic.trim() + ' · 📞 ' + phone.trim() + '</div>' +
+            '<div style="font-size:11px;color:#94a3b8;">' + ic.trim() + ' · <i class="fas fa-phone"></i> ' + phone.trim() + '</div>' +
             '</div></div>'
         );
     }
@@ -966,7 +966,7 @@ $(document).ready(function() {
         var $el = $(option.element);
         var name = $el.data('name') || option.text.split('|')[1] || option.text;
         var phone = $el.data('phone') || option.text.split('|')[2] || '';
-        return name.trim() + ' (📞 ' + phone.trim() + ')';
+        return name.trim() + ' (<i class="fas fa-phone"></i> ' + phone.trim() + ')';
     }
 });
 </script>

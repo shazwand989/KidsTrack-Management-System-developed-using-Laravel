@@ -625,7 +625,7 @@
             $roleLabel = '👑 Admin/Teacher';
             $roleBadgeClass = 'role-badge-admin';
         } else {
-            $roleLabel = '👤 User';
+            $roleLabel = '<i class="fas fa-user"></i> User';
             $roleBadgeClass = 'role-badge-main';
         }
         
@@ -635,7 +635,7 @@
         if ($isCheckoutMode) {
             // === CHECK-OUT MODE ===
             $bodyClass = 'checkout-mode';
-            $iconBig = '👋';
+            $iconBig = '<i class="fas fa-hand-wave"></i>';
             $badgeText = 'Check-Out';
             $greetingText = "Time to Pick Up, {$parentName}!";
             $subText = 'Please confirm to pick up your child.';
@@ -648,7 +648,7 @@
             
             if ($isBirthday) {
                 $headerClass = 'checkout-birthday';
-                $iconBig = '🎉';
+                $iconBig = '<i class="fas fa-party-horn"></i>';
                 $badgeText = '🎂 Birthday Check-Out!';
                 $greetingText = "Happy Birthday, {$child->name}!";
                 $subText = "Time to go home and celebrate! 🎂";
@@ -663,14 +663,14 @@
             
             if ($userRole == 'unknown') {
                 $headerClass = 'unauthorized-mode';
-                $iconBig = '⚠️';
+                $iconBig = '<i class="fas fa-exclamation-triangle"></i>';
                 $badgeText = 'Access Denied';
                 $greetingText = 'Access Denied!';
                 $subText = 'Invalid QR code or unauthorized device.';
                 
             } elseif ($isBirthday) {
                 $headerClass = 'birthday-mode';
-                $iconBig = '🎉';
+                $iconBig = '<i class="fas fa-party-horn"></i>';
                 $badgeText = '🎂 Birthday!';
                 $greetingText = "Happy Birthday, {$child->name}!";
                 $subText = $birthdayMessage;
@@ -828,9 +828,9 @@
         }
         
         if ($isCheckedOut) {
-            $badgeText = '✅ Already Checked Out';
+            $badgeText = '<i class="fas fa-check-circle"></i> Already Checked Out';
             $subText = 'Your child has safely returned home.';
-            $iconBig = '✅';
+            $iconBig = '<i class="fas fa-check-circle"></i>';
             $bodyClass = 'checkin-mode';
         }
     @endphp
@@ -860,7 +860,7 @@
             @endif
             
             @if($isBirthday && $isCheckoutMode)
-                <div class="birthday-text">🎂 Happy Birthday, {{ $child->name }}! Have a wonderful celebration at home! 🎉</div>
+                <div class="birthday-text">🎂 Happy Birthday, {{ $child->name }}! Have a wonderful celebration at home! <i class="fas fa-party-horn"></i></div>
             @endif
             
             @if($isCheckoutMode && !$isBirthday)
@@ -890,9 +890,9 @@
                         {{ strtoupper(substr($child->name, 0, 1)) }}
                     </div>
                     <div class="child-name">{{ $child->name }}</div>
-                    <div class="child-class">🏫 {{ $child->classroom->name ?? 'No class' }}</div>
+                    <div class="child-class"><i class="fas fa-school"></i> {{ $child->classroom->name ?? 'No class' }}</div>
                     <div style="margin-top: 8px;">
-                        <span class="status-badge checked-out">✅ Checked Out</span>
+                        <span class="status-badge checked-out"><i class="fas fa-check-circle"></i> Checked Out</span>
                     </div>
                     <div style="margin-top: 12px; padding: 10px; background: #f0fdf4; border-radius: 8px; color: #166534; font-weight: 600;">
                         🏠 Safe & Sound • {{ $checkoutTime }}
@@ -911,14 +911,14 @@
                         <span class="time">{{ $eveningStart }} - {{ $eveningEnd }}</span>
                     </div>
                     <div class="current-slot outside">
-                        ⚠️ Current: Already Checked Out
+                        <i class="fas fa-exclamation-triangle"></i> Current: Already Checked Out
                     </div>
                 </div>
                 @endif
                 
                 <div class="btn-group">
                     <a href="{{ route('kiosk.index') }}" class="btn-yes">
-                        ✅ Back to Kiosk
+                        <i class="fas fa-check-circle"></i> Back to Kiosk
                     </a>
                 </div>
                 
@@ -931,11 +931,11 @@
                         {{ strtoupper(substr($child->name, 0, 1)) }}
                     </div>
                     <div class="child-name">{{ $child->name }}</div>
-                    <div class="child-class">🏫 {{ $child->classroom->name ?? 'No class' }}</div>
+                    <div class="child-class"><i class="fas fa-school"></i> {{ $child->classroom->name ?? 'No class' }}</div>
                     
                     @if($isCheckoutMode)
                         <div style="margin-top: 8px;">
-                            <span class="status-badge checked-in">✅ Checked In • {{ $checkinTime }}</span>
+                            <span class="status-badge checked-in"><i class="fas fa-check-circle"></i> Checked In • {{ $checkinTime }}</span>
                         </div>
                     @endif
                 </div>
@@ -960,11 +960,11 @@
                         @else outside
                         @endif">
                         @if($isMorningSlot)
-                            🟢 Current: <strong>Morning Slot</strong> (Check-in)
+                             Current: <strong>Morning Slot</strong> (Check-in)
                         @elseif($isEveningSlot)
-                            🟢 Current: <strong>Evening Slot</strong> (Check-out)
+                             Current: <strong>Evening Slot</strong> (Check-out)
                         @else
-                            ⚠️ Current: <strong>Outside Operation Hours</strong> (Still allowed)
+                            <i class="fas fa-exclamation-triangle"></i> Current: <strong>Outside Operation Hours</strong> (Still allowed)
                         @endif
                     </div>
                 </div>
@@ -984,17 +984,17 @@
                     @if($isCheckoutMode)
                         <a href="{{ route('kiosk.add.another', $child->id) }}" 
                            class="btn-yes {{ $buttonClass }}">
-                            👋 YES, Pick Up {{ $child->name }}
+                            <i class="fas fa-hand-wave"></i> YES, Pick Up {{ $child->name }}
                         </a>
                     @else
                         <a href="{{ route('kiosk.add.another', $child->id) }}" 
                            class="btn-yes {{ $buttonClass }}">
-                            ✅ YES, Check-in {{ $child->name }}
+                            <i class="fas fa-check-circle"></i> YES, Check-in {{ $child->name }}
                         </a>
                     @endif
                     
                     <a href="{{ route('kiosk.index') }}" class="btn-no {{ $btnNoClass }}">
-                        ❌ NO, Not me
+                        <i class="fas fa-times-circle"></i> NO, Not me
                     </a>
                 </div>
             @endif

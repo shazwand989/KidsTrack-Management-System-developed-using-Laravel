@@ -367,10 +367,10 @@
                     $roleData = App\Http\Controllers\QRScanController::getRoleDataStatic($user->role);
                 @endphp
                 <div class="role-badge {{ $roleData['badge_class'] ?? 'parent' }}">
-                    {{ $roleData['badge_text'] ?? '👤 User' }}
+                    {{ $roleData['badge_text'] ?? '<i class="fas fa-user"></i> User' }}
                 </div>
                 <div class="role-info">
-                    <span class="role-icon">{{ $roleData['icon'] ?? '👤' }}</span>
+                    <span class="role-icon">{{ $roleData['icon'] ?? '<i class="fas fa-user"></i>' }}</span>
                     <span>Logged in as</span>
                     <span class="role-name {{ $roleData['name_class'] ?? '' }}">
                         {{ $roleData['display_name'] ?? $user->name }}
@@ -378,10 +378,10 @@
                 </div>
             @else
                 <div class="role-badge" style="background:#f3f4f6; color:#6b7280; border-color:#d1d5db;">
-                    👤 Guest
+                    <i class="fas fa-user"></i> Guest
                 </div>
                 <div class="role-info">
-                    <span class="role-icon">👤</span>
+                    <span class="role-icon"><i class="fas fa-user"></i></span>
                     <span>Not logged in</span>
                     <span class="role-name" style="color:#6b7280;">Guest</span>
                 </div>
@@ -410,14 +410,14 @@
             <!-- UPLOAD QR -->
             <div class="upload-section">
                 <label class="upload-label" onclick="document.getElementById('qrFileInput').click()">
-                    📤 Upload QR Code Image
+                    <i class="fas fa-upload"></i> Upload QR Code Image
                 </label>
                 <input type="file" id="qrFileInput" accept="image/*">
                 <div class="upload-preview" id="uploadPreview">
                     <img id="qrPreviewImage" src="" alt="QR Preview">
                     <div style="margin-top:10px;">
-                        <button onclick="processUploadedQR()" class="btn-primary">🔍 Scan QR</button>
-                        <button onclick="clearUpload()" class="btn-clear">✖️ Clear</button>
+                        <button onclick="processUploadedQR()" class="btn-primary"><i class="fas fa-search"></i> Scan QR</button>
+                        <button onclick="clearUpload()" class="btn-clear"><i class="fas fa-times"></i> Clear</button>
                     </div>
                 </div>
                 <div id="uploadStatus"></div>
@@ -430,7 +430,7 @@
                 <h4>🧪 Simulasi Scan (Manual)</h4>
                 <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; align-items:center;">
                     <input type="number" id="parentIdInput" placeholder="Parent ID" value="1">
-                    <button onclick="simulateScan()">🔍 Scan</button>
+                    <button onclick="simulateScan()"><i class="fas fa-search"></i> Scan</button>
                     <button onclick="quickScan()" class="btn-quick">⚡ Quick</button>
                 </div>
             </div>
@@ -441,13 +441,13 @@
     <div class="popup-overlay" id="warningPopup">
         <div class="popup-box">
             <div class="popup-icon">🚫</div>
-            <h2 id="popupTitle">⚠️ Akses Ditolak!</h2>
+            <h2 id="popupTitle"><i class="fas fa-exclamation-triangle"></i> Akses Ditolak!</h2>
             <p class="popup-sub" id="popupMessage">Maaf, anda <strong>tidak mempunyai akses</strong> ke anak ini.</p>
-            <div class="popup-detail" id="popupDetail">📍 <span id="popupScannedCode">---</span></div>
+            <div class="popup-detail" id="popupDetail"><i class="fas fa-map-marker-alt"></i> <span id="popupScannedCode">---</span></div>
             <p style="font-size:13px; color:#6b7280;" id="popupFooter">Sila pastikan anda mengimbas QR Code anak anda sendiri.</p>
             <div class="popup-btn-group">
                 <button class="popup-btn popup-btn-primary" onclick="closeWarningPopup()">👍 Faham</button>
-                <button class="popup-btn popup-btn-secondary" onclick="closeWarningPopup()">✖️ Tutup</button>
+                <button class="popup-btn popup-btn-secondary" onclick="closeWarningPopup()"><i class="fas fa-times"></i> Tutup</button>
             </div>
         </div>
     </div>
@@ -477,12 +477,12 @@
                         renderTimerInfo(data.data);
                     } else {
                         document.getElementById('timerInfoContent').innerHTML = 
-                            '<div class="no-timer">⚠️ Gagal memuat</div>';
+                            '<div class="no-timer"><i class="fas fa-exclamation-triangle"></i> Gagal memuat</div>';
                     }
                 })
                 .catch(() => {
                     document.getElementById('timerInfoContent').innerHTML = 
-                        '<div class="no-timer">⚠️ Ralat memuat</div>';
+                        '<div class="no-timer"><i class="fas fa-exclamation-triangle"></i> Ralat memuat</div>';
                 });
         }
 
@@ -501,7 +501,7 @@
             
             if (!timer) {
                 document.getElementById('timerInfoContent').innerHTML = 
-                    '<div class="no-timer">📅 Tiada waktu operasi</div>';
+                    '<div class="no-timer"><i class="fas fa-calendar-alt"></i> Tiada waktu operasi</div>';
                 return;
             }
 
@@ -532,7 +532,7 @@
 
             function getLabel(status) {
                 const map = { 
-                    'active': '🟢 Aktif', 
+                    'active': ' Aktif', 
                     'info': 'ℹ️ Info' 
                 };
                 return map[status] || 'ℹ️';
@@ -564,7 +564,7 @@
         // POPUP
         // ============================================
         function showWarningPopup(title, message, detail, footer) {
-            document.getElementById('popupTitle').textContent = title || '⚠️ Akses Ditolak!';
+            document.getElementById('popupTitle').textContent = title || '<i class="fas fa-exclamation-triangle"></i> Akses Ditolak!';
             document.getElementById('popupMessage').innerHTML = message || 'Maaf, anda tidak mempunyai akses.';
             document.getElementById('popupScannedCode').textContent = detail || '---';
             document.getElementById('popupFooter').textContent = footer || 'Sila imbas QR Code yang sah.';
@@ -587,7 +587,7 @@
             const statusDiv = document.getElementById('scannerStatus');
             
             if (isScanning) {
-                statusDiv.textContent = '✅ Kamera sudah aktif';
+                statusDiv.textContent = '<i class="fas fa-check-circle"></i> Kamera sudah aktif';
                 return;
             }
 
@@ -614,10 +614,10 @@
                 onScanError
             ).then(() => {
                 isScanning = true;
-                statusDiv.textContent = '✅ Kamera aktif. Imbas QR Code!';
+                statusDiv.textContent = '<i class="fas fa-check-circle"></i> Kamera aktif. Imbas QR Code!';
                 statusDiv.style.color = '#16a34a';
             }).catch((err) => {
-                statusDiv.textContent = '❌ Gagal akses kamera: ' + err.message;
+                statusDiv.textContent = '<i class="fas fa-times-circle"></i> Gagal akses kamera: ' + err.message;
                 statusDiv.style.color = '#dc2626';
             });
         }
@@ -641,7 +641,7 @@
             if (isProcessing) return;
             isProcessing = true;
             
-            console.log('✅ QR Code detected:', decodedText);
+            console.log('<i class="fas fa-check-circle"></i> QR Code detected:', decodedText);
             
             if (html5QrCode && isScanning) {
                 html5QrCode.stop().then(() => {
@@ -664,7 +664,7 @@
         // CHECK ACCESS
         // ============================================
         function checkAccess(qrData) {
-            console.log('📤 Sending to server:', { qr_code: qrData });
+            console.log('<i class="fas fa-upload"></i> Sending to server:', { qr_code: qrData });
             
             fetch('/kiosk/check-access', {
                 method: 'POST',
@@ -685,7 +685,7 @@
             })
             .then(data => {
                 showScanning(false);
-                console.log('📥 Server response:', data);
+                console.log('<i class="fas fa-download"></i> Server response:', data);
                 
                 if (data.success) {
                     window.location.href = data.redirect;
@@ -696,7 +696,7 @@
                     
                     if (data.message) {
                         if (data.message.includes('QR')) {
-                            title = '❌ QR Code Tidak Sah!';
+                            title = '<i class="fas fa-times-circle"></i> QR Code Tidak Sah!';
                             detail = 'QR Code tidak dikenali.';
                             footer = 'Sila imbas QR Code yang sah.';
                         } else if (data.message.includes('waktu')) {
@@ -713,9 +713,9 @@
                 }
             })
             .catch(error => {
-                console.error('❌ Error:', error);
+                console.error('<i class="fas fa-times-circle"></i> Error:', error);
                 showScanning(false);
-                showWarningPopup('❌ Ralat Sistem!', 'Gagal memproses.', 'Sila cuba lagi.', 'Ralat: ' + error.message);
+                showWarningPopup('<i class="fas fa-times-circle"></i> Ralat Sistem!', 'Gagal memproses.', 'Sila cuba lagi.', 'Ralat: ' + error.message);
                 isProcessing = false;
             });
         }
@@ -748,7 +748,7 @@
             const statusDiv = document.getElementById('uploadStatus');
             
             if (!previewImg.src || previewImg.src === '') {
-                statusDiv.textContent = '❌ Sila muat naik gambar QR Code dahulu.';
+                statusDiv.textContent = '<i class="fas fa-times-circle"></i> Sila muat naik gambar QR Code dahulu.';
                 statusDiv.style.color = '#dc2626';
                 return;
             }
@@ -775,23 +775,23 @@
                         });
                         
                         if (code && code.data) {
-                            statusDiv.textContent = '✅ QR Code dikesan: ' + code.data;
+                            statusDiv.textContent = '<i class="fas fa-check-circle"></i> QR Code dikesan: ' + code.data;
                             statusDiv.style.color = '#16a34a';
                             showScanning(true);
                             
                             checkAccess(code.data);
                         } else {
-                            statusDiv.textContent = '❌ Tiada QR Code dikesan. Sila cuba gambar lain.';
+                            statusDiv.textContent = '<i class="fas fa-times-circle"></i> Tiada QR Code dikesan. Sila cuba gambar lain.';
                             statusDiv.style.color = '#dc2626';
                             isProcessing = false;
                         }
                     } catch (err) {
-                        statusDiv.textContent = '❌ Error: ' + err.message;
+                        statusDiv.textContent = '<i class="fas fa-times-circle"></i> Error: ' + err.message;
                         statusDiv.style.color = '#dc2626';
                         isProcessing = false;
                     }
                 } else {
-                    statusDiv.textContent = '❌ Library jsQR tidak dimuat. Sila refresh.';
+                    statusDiv.textContent = '<i class="fas fa-times-circle"></i> Library jsQR tidak dimuat. Sila refresh.';
                     statusDiv.style.color = '#dc2626';
                     isProcessing = false;
                 }

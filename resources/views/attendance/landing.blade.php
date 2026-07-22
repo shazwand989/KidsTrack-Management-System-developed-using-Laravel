@@ -137,13 +137,13 @@
 
 <div class="landing-container">
     <div class="logo-section">
-        <h1>🏫 KidsTrack</h1>
+        <h1><i class="fas fa-school"></i> KidsTrack</h1>
         <p>Scan to check-in / check-out your child</p>
     </div>
     
     <div class="children-list">
         <div style="padding: 10px 15px; border-bottom: 1px solid #f0f0f0;">
-            <span style="font-weight: 700; color: #1e293b;">👶 Select Your Child</span>
+            <span style="font-weight: 700; color: #1e293b;"><i class="fas fa-child"></i> Select Your Child</span>
         </div>
         
         @foreach($children as $child)
@@ -158,8 +158,8 @@
             <div class="child-info">
                 <div class="child-name">{{ $child->name }}</div>
                 <div class="child-class">
-                    <span>🏫 {{ $child->classroom->name ?? 'No class' }}</span>
-                    <span>👶 {{ $child->age }} yrs</span>
+                    <span><i class="fas fa-school"></i> {{ $child->classroom->name ?? 'No class' }}</span>
+                    <span><i class="fas fa-child"></i> {{ $child->age }} yrs</span>
                 </div>
             </div>
             <div class="arrow-icon">→</div>

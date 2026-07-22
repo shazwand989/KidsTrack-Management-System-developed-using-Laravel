@@ -297,7 +297,7 @@
     <div class="detail-header">
         <div>
             <h2>
-                <span>📋</span> Attendance Details
+                <span><i class="fas fa-clipboard-list"></i></span> Attendance Details
                 <span class="sub">#{{ $attendance->id }}</span>
             </h2>
         </div>
@@ -327,7 +327,7 @@
         {{-- Left Column: Child Info & Status --}}
         <div class="detail-card">
             <div class="card-title">
-                <span>👶</span> Child Information
+                <span><i class="fas fa-child"></i></span> Child Information
             </div>
 
             <div class="child-profile">
@@ -342,7 +342,7 @@
                     <p class="name">{{ $attendance->child->name ?? 'Child not found' }}</p>
                     <p class="sub">
                         @if($attendance->child && $attendance->child->classroom)
-                            🏫 {{ $attendance->child->classroom->name }}
+                            <i class="fas fa-school"></i> {{ $attendance->child->classroom->name }}
                         @else
                             No class
                         @endif
@@ -351,21 +351,21 @@
             </div>
 
             <div class="detail-row">
-                <span class="label">📊 Status</span>
+                <span class="label"><i class="fas fa-chart-bar"></i> Status</span>
                 <span class="value">
                     @php
                         $status = $attendance->status;
                         $badgeClass = 'absent';
-                        $badgeIcon = '❌';
+                        $badgeIcon = '<i class="fas fa-times-circle"></i>';
                         $badgeText = 'Absent';
 
                         if (in_array($status, ['checkin', 'present'])) {
                             $badgeClass = 'checkin';
-                            $badgeIcon = '✅';
+                            $badgeIcon = '<i class="fas fa-check-circle"></i>';
                             $badgeText = 'Check-in';
                         } elseif ($status == 'checkout') {
                             $badgeClass = 'checkout';
-                            $badgeIcon = '📤';
+                            $badgeIcon = '<i class="fas fa-upload"></i>';
                             $badgeText = 'Check-out';
                         } elseif ($status == 'late') {
                             $badgeClass = 'late';
@@ -380,7 +380,7 @@
             </div>
 
             <div class="detail-row">
-                <span class="label">📅 Date</span>
+                <span class="label"><i class="fas fa-calendar-alt"></i> Date</span>
                 <span class="value">{{ \Carbon\Carbon::parse($attendance->date)->format('d M Y (l)') }}</span>
             </div>
 
@@ -409,7 +409,7 @@
             </div>
 
             <div class="detail-row">
-                <span class="label">📥 Drop Off By</span>
+                <span class="label"><i class="fas fa-download"></i> Drop Off By</span>
                 <span class="value">
                     @php
                         $dropOff = $attendance->drop_off_by;
@@ -425,7 +425,7 @@
             </div>
 
             <div class="detail-row">
-                <span class="label">📤 Pickup By</span>
+                <span class="label"><i class="fas fa-upload"></i> Pickup By</span>
                 <span class="value">
                     @php
                         $pickup = $attendance->pickup_by;
@@ -441,12 +441,12 @@
             </div>
 
             <div class="detail-row">
-                <span class="label">✅ Verified</span>
+                <span class="label"><i class="fas fa-check-circle"></i> Verified</span>
                 <span class="value">
                     @if($attendance->is_verified)
-                        <span style="color:#16a34a;">✅ Yes</span>
+                        <span style="color:#16a34a;"><i class="fas fa-check-circle"></i> Yes</span>
                     @else
-                        <span style="color:#dc2626;">❌ No</span>
+                        <span style="color:#dc2626;"><i class="fas fa-times-circle"></i> No</span>
                     @endif
                 </span>
             </div>
@@ -479,7 +479,7 @@
             @if($attendance->checkin_time)
             <div class="timeline-item checkin">
                 <div class="time">{{ \Carbon\Carbon::parse($attendance->checkin_time)->format('h:i A') }}</div>
-                <div class="event">✅ Check-in</div>
+                <div class="event"><i class="fas fa-check-circle"></i> Check-in</div>
                 <div class="detail">
                     Child checked in at {{ \Carbon\Carbon::parse($attendance->checkin_time)->format('h:i A') }}
                     @if($attendance->is_late)
@@ -493,7 +493,7 @@
             @if($attendance->checkout_time)
             <div class="timeline-item checkout">
                 <div class="time">{{ \Carbon\Carbon::parse($attendance->checkout_time)->format('h:i A') }}</div>
-                <div class="event">📤 Check-out</div>
+                <div class="event"><i class="fas fa-upload"></i> Check-out</div>
                 <div class="detail">
                     Child checked out at {{ \Carbon\Carbon::parse($attendance->checkout_time)->format('h:i A') }}
                 </div>

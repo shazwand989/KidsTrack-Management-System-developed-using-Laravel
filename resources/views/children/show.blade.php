@@ -509,7 +509,7 @@
                 <div class="profile-info">
                     <h1>{{ $child->name }}</h1>
                     <p><span>🆔</span> IC: {{ $child->ic_number }}</p>
-                    <p><span>📅</span>
+                    <p><span><i class="fas fa-calendar-alt"></i></span>
                         @if($child->dob)
                             {{ \Carbon\Carbon::parse($child->dob)->format('d M Y') }} ({{ $child->age }} years old)
                         @else
@@ -519,10 +519,10 @@
 
                     <div class="profile-badges">
                         <span class="badge-nursery">
-                            <span>🏫</span> {{ $child->classroom->name ?? 'No Classroom' }}
+                            <span><i class="fas fa-school"></i></span> {{ $child->classroom->name ?? 'No Classroom' }}
                         </span>
                         <span class="status-badge {{ $child->is_active ? 'active' : 'inactive' }}">
-                            {{ $child->is_active ? '✅ Active' : '❌ Inactive' }}
+                            {{ $child->is_active ? '<i class="fas fa-check-circle"></i> Active' : '<i class="fas fa-times-circle"></i> Inactive' }}
                         </span>
                     </div>
                 </div>
@@ -547,7 +547,7 @@
                 {{-- Personal Information --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>👶</span>
+                        <span><i class="fas fa-child"></i></span>
                         <h3>Personal Information</h3>
                     </div>
                     <div class="info-row">
@@ -559,7 +559,7 @@
                         <div class="info-value">{{ $child->ic_number }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📅</span> Age</div>
+                        <div class="info-label"><span><i class="fas fa-calendar-alt"></i></span> Age</div>
                         <div class="info-value">{{ $child->age }} years old</div>
                     </div>
                     @if($child->dob)
@@ -577,7 +577,7 @@
                         <h3>Address</h3>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📍</span> Home Address</div>
+                        <div class="info-label"><span><i class="fas fa-map-marker-alt"></i></span> Home Address</div>
                         <div class="info-value">{{ $child->parent->address ?? '-' }}</div>
                     </div>
                 </div>
@@ -585,16 +585,16 @@
                 {{-- Classroom Information --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>🏫</span>
+                        <span><i class="fas fa-school"></i></span>
                         <h3>Classroom Information</h3>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📋</span> Classroom</div>
+                        <div class="info-label"><span><i class="fas fa-clipboard-list"></i></span> Classroom</div>
                         <div class="info-value">{{ $child->classroom->name ?? 'Not Assigned' }}</div>
                     </div>
                     @if($child->classroom)
                     <div class="info-row">
-                        <div class="info-label"><span>📅</span> Age Group</div>
+                        <div class="info-label"><span><i class="fas fa-calendar-alt"></i></span> Age Group</div>
                         <div class="info-value">{{ $child->classroom->min_age }}-{{ $child->classroom->max_age }} yrs</div>
                     </div>
                     <div class="info-row">
@@ -615,7 +615,7 @@
                         <div class="info-value">#{{ str_pad($child->id, 4, '0', STR_PAD_LEFT) }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📅</span> Registered On</div>
+                        <div class="info-label"><span><i class="fas fa-calendar-alt"></i></span> Registered On</div>
                         <div class="info-value">{{ $child->created_at->format('d M Y, h:i A') }}</div>
                     </div>
                     <div class="info-row">
@@ -632,7 +632,7 @@
             {{-- Parents & Guardians Section --}}
             <div class="info-card" style="margin-bottom: 20px;">
                 <div class="info-card-header">
-                    <span>👨‍👩‍👧‍👦</span>
+                    <span><i class="fas fa-users"></i></span>
                     <h3>Parents & Guardians</h3>
                 </div>
 
@@ -651,7 +651,7 @@
                             <span class="parent-relation-badge">Main Parent</span>
                         </div>
                         <div class="parent-phone">
-                            <span>📞</span> {{ $child->parent->phone_number ?? '-' }}
+                            <span><i class="fas fa-phone"></i></span> {{ $child->parent->phone_number ?? '-' }}
                         </div>
                     </div>
                 </div>
@@ -672,7 +672,7 @@
                             <span class="parent-relation-badge">Second Parent</span>
                         </div>
                         <div class="parent-phone">
-                            <span>📞</span> {{ $child->secondParent->phone_number ?? '-' }}
+                            <span><i class="fas fa-phone"></i></span> {{ $child->secondParent->phone_number ?? '-' }}
                         </div>
                     </div>
                 </div>
@@ -704,7 +704,7 @@
                             <span class="parent-relation-badge">Guardian</span>
                         </div>
                         <div class="parent-phone">
-                            <span>📞</span> {{ $child->guardian->phone_number ?? '-' }}
+                            <span><i class="fas fa-phone"></i></span> {{ $child->guardian->phone_number ?? '-' }}
                         </div>
                     </div>
                 </div>
@@ -763,10 +763,10 @@
                         </div>
                         <div class="qr-actions">
                             <a href="{{ route('child.qr.download', $child->id) }}" class="btn-qr btn-success">
-                                📥 Download PNG
+                                <i class="fas fa-download"></i> Download PNG
                             </a>
                             <a href="{{ route('child.qr.show', $child->id) }}" class="btn-qr btn-primary">
-                                🔍 View Full QR
+                                <i class="fas fa-search"></i> View Full QR
                             </a>
                             <button onclick="printQR()" class="btn-qr btn-secondary">
                                 🖨️ Print QR

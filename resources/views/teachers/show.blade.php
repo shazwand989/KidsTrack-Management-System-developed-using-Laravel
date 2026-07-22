@@ -326,12 +326,12 @@
                 
                 <div class="profile-info">
                     <h1>{{ $teacher->name }}</h1>
-                    <p><span>📞</span> {{ $teacher->phone ?? 'No phone number' }}</p>
+                    <p><span><i class="fas fa-phone"></i></span> {{ $teacher->phone ?? 'No phone number' }}</p>
                     <p><span>✉️</span> {{ $teacher->email ?? 'No email' }}</p>
                     
                     <div class="profile-badges">
                         <span class="badge-position">
-                            <span>👩‍🏫</span> {{ $teacher->position }}
+                            <span>👩‍<i class="fas fa-school"></i></span> {{ $teacher->position }}
                         </span>
                         <span class="status-badge {{ $teacher->status_color }}">
                             {{ $teacher->status_badge }}
@@ -359,7 +359,7 @@
                 {{-- Personal Information --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>👤</span>
+                        <span><i class="fas fa-user"></i></span>
                         <h3>Personal Information</h3>
                     </div>
                     <div class="info-row">
@@ -367,11 +367,11 @@
                         <div class="info-value">{{ $teacher->name }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>👩‍🏫</span> Position</div>
+                        <div class="info-label"><span>👩‍<i class="fas fa-school"></i></span> Position</div>
                         <div class="info-value">{{ $teacher->position }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📅</span> Age</div>
+                        <div class="info-label"><span><i class="fas fa-calendar-alt"></i></span> Age</div>
                         <div class="info-value">{{ $teacher->age }} years old</div>
                     </div>
                 </div>
@@ -379,7 +379,7 @@
                 {{-- Contact Information --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>📞</span>
+                        <span><i class="fas fa-phone"></i></span>
                         <h3>Contact Information</h3>
                     </div>
                     <div class="info-row">
@@ -391,7 +391,7 @@
                         <div class="info-value">{{ $teacher->email ?? '-' }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📍</span> Address</div>
+                        <div class="info-label"><span><i class="fas fa-map-marker-alt"></i></span> Address</div>
                         <div class="info-value">{{ $teacher->address ?? '-' }}</div>
                     </div>
                 </div>
@@ -399,7 +399,7 @@
                 {{-- Teaching Assignment --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>🏫</span>
+                        <span><i class="fas fa-school"></i></span>
                         <h3>Teaching Assignment</h3>
                     </div>
                     <div class="info-row">
@@ -419,7 +419,7 @@
                 {{-- Employment Details --}}
                 <div class="info-card">
                     <div class="info-card-header">
-                        <span>📅</span>
+                        <span><i class="fas fa-calendar-alt"></i></span>
                         <h3>Employment Details</h3>
                     </div>
                     <div class="info-row">
@@ -427,7 +427,7 @@
                         <div class="info-value">#{{ str_pad($teacher->id, 4, '0', STR_PAD_LEFT) }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📅</span> Join Date</div>
+                        <div class="info-label"><span><i class="fas fa-calendar-alt"></i></span> Join Date</div>
                         <div class="info-value">{{ $teacher->join_date ? $teacher->join_date->format('d M Y') : 'Not set' }}</div>
                     </div>
                     <div class="info-row">

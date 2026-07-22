@@ -335,14 +335,14 @@
 {{-- Alert --}}
 @if(session('success'))
 <div class="alert-success">
-    <span style="margin-right:6px;">✅</span>{{ session('success') }}
+    <span style="margin-right:6px;"><i class="fas fa-check-circle"></i></span>{{ session('success') }}
 </div>
 @endif
 
 {{-- Header --}}
 <div class="pg-header">
     <div class="pg-header-left">
-        <h2><span>👶</span> Little Stars</h2>
+        <h2><span><i class="fas fa-child"></i></span> Little Stars</h2>
         <p>Registered children in the nursery</p>
     </div>
     <div class="pg-header-right">
@@ -365,7 +365,7 @@
 
 <div class="stat-row">
     <div class="stat-card pink">
-        <div class="stat-icon pink"><span>👶</span></div>
+        <div class="stat-icon pink"><span><i class="fas fa-child"></i></span></div>
         <div>
             <div class="stat-num">{{ $total }}</div>
             <div class="stat-label">Total Children</div>
@@ -379,14 +379,14 @@
         </div>
     </div>
     <div class="stat-card blue">
-        <div class="stat-icon blue"><span>🌞</span></div>
+        <div class="stat-icon blue"><span><i class="fas fa-sun"></i></span></div>
         <div>
             <div class="stat-num">{{ $fullDay }}</div>
             <div class="stat-label">Full Day</div>
         </div>
     </div>
     <div class="stat-card amber">
-        <div class="stat-icon amber"><span>🎯</span></div>
+        <div class="stat-icon amber"><span><i class="fas fa-bullseye"></i></span></div>
         <div>
             <div class="stat-num">{{ $trial }}</div>
             <div class="stat-label">Trial Class</div>
@@ -403,17 +403,17 @@
     </div>
     <select class="filter-select" id="filterNursery">
         <option value="">All Nursery Types</option>
-        <option value="full_day">🌞 Full Day</option>
+        <option value="full_day"><i class="fas fa-sun"></i> Full Day</option>
         <option value="half_day">🌅 Half Day</option>
         <option value="afternoon">🌤️ Afternoon Care</option>
         <option value="flexible">⏰ Flexible Hours</option>
-        <option value="weekend">📅 Weekend Only</option>
-        <option value="trial">🎯 Trial Class</option>
+        <option value="weekend"><i class="fas fa-calendar-alt"></i> Weekend Only</option>
+        <option value="trial"><i class="fas fa-bullseye"></i> Trial Class</option>
     </select>
     <select class="filter-select" id="filterStatus">
         <option value="">All Status</option>
-        <option value="active">✅ Active</option>
-        <option value="inactive">❌ Inactive</option>
+        <option value="active"><i class="fas fa-check-circle"></i> Active</option>
+        <option value="inactive"><i class="fas fa-times-circle"></i> Inactive</option>
     </select>
     <span class="record-count" id="recordCount">{{ $total }} records</span>
 </div>
@@ -467,12 +467,12 @@
                 <td>
                     @php
                         $nurseryLabels = [
-                            'full_day' => '🌞 Full Day',
+                            'full_day' => '<i class="fas fa-sun"></i> Full Day',
                             'half_day' => '🌅 Half Day',
                             'afternoon' => '🌤️ Afternoon',
                             'flexible' => '⏰ Flexible',
-                            'weekend' => '📅 Weekend',
-                            'trial' => '🎯 Trial'
+                            'weekend' => '<i class="fas fa-calendar-alt"></i> Weekend',
+                            'trial' => '<i class="fas fa-bullseye"></i> Trial'
                         ];
                     @endphp
                     <span class="nursery-badge {{ $child->nursery_type }}">
@@ -501,7 +501,7 @@
                 {{-- Status --}}
                 <td>
                     <span class="status-badge {{ $child->is_active ? 'active' : 'inactive' }}">
-                        {{ $child->is_active ? '✅ Active' : '❌ Inactive' }}
+                        {{ $child->is_active ? '<i class="fas fa-check-circle"></i> Active' : '<i class="fas fa-times-circle"></i> Inactive' }}
                     </span>
                 </td>
 
@@ -533,11 +533,11 @@
                 <td colspan="8">
                     <div class="empty-state">
                         <div class="empty-icon">
-                            <span>👶</span>
+                            <span><i class="fas fa-child"></i></span>
                         </div>
                         <h5>No children registered yet</h5>
                         <p>Start by registering your first child to the nursery.</p>
-                        <a href="{{ route('children.create') }}">➕ Register New Child</a>
+                        <a href="{{ route('children.create') }}"><i class="fas fa-plus"></i> Register New Child</a>
                     </div>
                 </td>
             </tr>
@@ -615,7 +615,7 @@
             emptyRow.innerHTML = `
                 <td colspan="8">
                     <div class="empty-state" style="padding: 40px;">
-                        <div class="empty-icon">🔍</div>
+                        <div class="empty-icon"><i class="fas fa-search"></i></div>
                         <h5>No matching records found</h5>
                         <p>Try adjusting your search or filter criteria</p>
                     </div>

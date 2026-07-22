@@ -398,7 +398,7 @@
 
             <div class="profile-info">
                 <h1>{{ $parent->name }}</h1>
-                <p><span>📞</span> {{ $parent->phone_number ?? '-' }}</p>
+                <p><span><i class="fas fa-phone"></i></span> {{ $parent->phone_number ?? '-' }}</p>
                 <p><span><i class="fas fa-envelope" style="font-size:10px;"></i></span> {{ $parent->email ?? 'No email' }}</p>
 
                 <div class="profile-badges">
@@ -446,11 +446,11 @@
                         <div class="info-value">{{ $parent->email ?? '-' }}</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📊</span> Age</div>
+                        <div class="info-label"><span><i class="fas fa-chart-bar"></i></span> Age</div>
                         <div class="info-value">{{ $parent->age ?? '-' }} years old</div>
                     </div>
                     <div class="info-row">
-                        <div class="info-label"><span>📞</span> Phone Number</div>
+                        <div class="info-label"><span><i class="fas fa-phone"></i></span> Phone Number</div>
                         <div class="info-value">{{ $parent->phone_number ?? '-' }}</div>
                     </div>
                     <div class="info-row">
@@ -496,7 +496,7 @@
                                 <div style="font-weight:600;font-size:14px;">{{ $related->name }}</div>
                                 <div style="font-size:12px;color:#64748b;">
                                     {{ $role === 'parent2' ? 'Second Parent' : ($role === 'guardian' ? 'Guardian' : ucfirst($role)) }}
-                                    @if($related->phone_number) · 📞 {{ $related->phone_number }} @endif
+                                    @if($related->phone_number) · <i class="fas fa-phone"></i> {{ $related->phone_number }} @endif
                                 </div>
                                 @php
                                     $sharedChildren = $related->guardianships->pluck('child_id');
@@ -518,7 +518,7 @@
                 {{-- PHOTO GALLERY CARD --}}
                 <div class="right-card">
                     <div class="right-card-header">
-                        <span>📸</span>
+                        <span><i class="fas fa-camera"></i></span>
                         <h3>Photos</h3>
                     </div>
                     <div class="photo-gallery">
@@ -566,7 +566,7 @@
                             @if($parent->verified)
                                 <i class="fas fa-check-circle" style="font-size:10px;"></i> Verified
                             @else
-                                ❌ Unverified
+                                <i class="fas fa-times-circle"></i> Unverified
                             @endif
                         </span>
                     </div>

@@ -307,7 +307,7 @@
 {{-- Header --}}
 <div class="pg-header">
     <div class="pg-header-left">
-        <h2><span>👨‍👩‍👧‍👦</span> Loving Guardians</h2>
+        <h2><span><i class="fas fa-users"></i></span> Loving Guardians</h2>
         <p>Registered parents & guardians in the system</p>
     </div>
     <div class="pg-header-right">
@@ -351,7 +351,7 @@
         </div>
     </div>
     <div class="stat-card amber">
-        <div class="stat-icon amber"><span>⚠️</span></div>
+        <div class="stat-icon amber"><span><i class="fas fa-exclamation-triangle"></i></span></div>
         <div>
             <div class="stat-num">{{ $emergency }}</div>
             <div class="stat-label">Emergency Contact</div>
@@ -430,7 +430,7 @@
                         @elseif($rel === 'guardian')
                             <span>🛡️</span> Guardian
                         @else
-                            <span>👤</span> {{ ucfirst($rel) ?: 'Other' }}
+                            <span><i class="fas fa-user"></i></span> {{ ucfirst($rel) ?: 'Other' }}
                         @endif
                     </span>
                 </td>
@@ -462,7 +462,7 @@
                 <td>
                     @if($parent->emergency)
                         <span class="status-badge emergency">
-                            <span>⚠️</span> Emergency
+                            <span><i class="fas fa-exclamation-triangle"></i></span> Emergency
                         </span>
                     @elseif($parent->verified)
                         <span class="status-badge verified">
@@ -510,7 +510,7 @@
                 <td colspan="8">
                     <div class="empty-state">
                         <div class="empty-icon">
-                            <span>👨‍👩‍👧‍👦</span>
+                            <span><i class="fas fa-users"></i></span>
                         </div>
                         <h5>No records found.</h5>
                         <p>Start by registering your first guardian.</p>

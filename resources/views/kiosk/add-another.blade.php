@@ -467,7 +467,7 @@
 
 <body class="{{ $roleData['class'] ?? 'main-parent' }}">
     <div class="add-card">
-        <div class="logo">👶</div>
+        <div class="logo"><i class="fas fa-child"></i></div>
 
         <!-- ============================================ -->
         <!-- TITLE - BERUBAH MENGIKUT STATUS              -->
@@ -480,21 +480,21 @@
         @endphp
 
         @if($childDone)
-            <h1>👶 Attendance Completed</h1>
+            <h1><i class="fas fa-child"></i> Attendance Completed</h1>
             <p class="subtitle">Rekod kehadiran untuk hari ini</p>
         @elseif($allCheckedIn && $totalChildren > 0)
             @if(isset($attendanceSummary) && $attendanceSummary['checkin']['status'] === 'late')
-                <h1>⚠️ Checked In Late</h1>
+                <h1><i class="fas fa-exclamation-triangle"></i> Checked In Late</h1>
                 <p class="subtitle" style="color:#c62828;">{{ \App\Services\AttendanceSummaryService::formatDuration($attendanceSummary['checkin']['minutes_diff']) }} lewat dari jadual ({{ $attendanceSummary['schedule']['morning_end'] }})</p>
             @else
-                <h1>🎉 All Checked In!</h1>
+                <h1><i class="fas fa-party-horn"></i> All Checked In!</h1>
                 <p class="subtitle">Semua anak telah berjaya check-in hari ini</p>
             @endif
         @elseif(isset($availableChildren) && count($availableChildren) > 0)
-            <h1>👨‍👩‍👧 Check In Another Child</h1>
+            <h1><i class="fas fa-users"></i> Check In Another Child</h1>
             <p class="subtitle">Pilih anak untuk check-in</p>
         @else
-            <h1>👋 Check In</h1>
+            <h1><i class="fas fa-hand-wave"></i> Check In</h1>
             <p class="subtitle">Imbas QR Code untuk check-in anak</p>
         @endif
 
@@ -519,7 +519,7 @@
                 <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#059669,#10b981);color:white;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;flex-shrink:0;">{{ strtoupper(substr($currentChild->name, 0, 1)) }}</div>
                 <div>
                     <div style="font-weight:700;font-size:15px;color:#1e293b;">{{ $currentChild->name }}</div>
-                    <div style="font-size:13px;color:#64748b;">🏫 {{ $currentChild->classroom->name ?? '-' }}</div>
+                    <div style="font-size:13px;color:#64748b;"><i class="fas fa-school"></i> {{ $currentChild->classroom->name ?? '-' }}</div>
                 </div>
             </div>
 
@@ -544,9 +544,9 @@
                                 @if($cin['status'] === 'on_time') background:#e8f5e9;color:#2e7d32;
                                 @elseif($cin['status'] === 'late') background:#fff3e0;color:#e65100;
                                 @else background:#fce4ec;color:#c62828; @endif">
-                                @if($cin['status'] === 'on_time') 🟢 On Time
-                                @elseif($cin['status'] === 'late') 🟡 Late
-                                @else 🔴 {{ $cin['status_label'] }}
+                                @if($cin['status'] === 'on_time')  On Time
+                                @elseif($cin['status'] === 'late')  Late
+                                @else  {{ $cin['status_label'] }}
                                 @endif
                             </span>
                         </td>
@@ -562,10 +562,10 @@
                                 @elseif($cout['status'] === 'early') background:#fce4ec;color:#c62828;
                                 @elseif($cout['status'] === 'late') background:#fff3e0;color:#e65100;
                                 @else background:#f3e8ff;color:#6d28d9; @endif">
-                                @if($cout['status'] === 'on_time') 🟢 On Time
-                                @elseif($cout['status'] === 'early') 🔴 Early
-                                @elseif($cout['status'] === 'late') 🟡 Late
-                                @else 🟣 {{ $cout['status_label'] }}
+                                @if($cout['status'] === 'on_time')  On Time
+                                @elseif($cout['status'] === 'early')  Early
+                                @elseif($cout['status'] === 'late')  Late
+                                @else  {{ $cout['status_label'] }}
                                 @endif
                             </span>
                         </td>
@@ -576,18 +576,18 @@
             <!-- Class Schedule -->
             <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap;">
                 <div style="flex:1;min-width:80px;background:#f0fdf4;border-radius:10px;padding:10px;text-align:center;font-size:12px;">
-                    <div style="color:#059669;font-weight:700;">🟢 Masuk</div>
+                    <div style="color:#059669;font-weight:700;"> Masuk</div>
                     <div style="font-weight:800;color:#1e293b;">{{ $sch['class_start'] ? \Carbon\Carbon::parse($sch['class_start'])->format('h:i A') : '—' }}</div>
                 </div>
                 <div style="flex:1;min-width:80px;background:#f5f3ff;border-radius:10px;padding:10px;text-align:center;font-size:12px;">
-                    <div style="color:#6d28d9;font-weight:700;">🟣 Balik</div>
+                    <div style="color:#6d28d9;font-weight:700;"> Balik</div>
                     <div style="font-weight:800;color:#1e293b;">{{ $sch['class_end'] ? \Carbon\Carbon::parse($sch['class_end'])->format('h:i A') : '—' }}</div>
                 </div>
             </div>
 
             <!-- Confirmation -->
             <div style="text-align:center;margin-top:16px;padding:10px;background:#e8f5e9;border-radius:10px;color:#2e7d32;font-size:13px;font-weight:600;">
-                ✅ Attendance has been recorded successfully.
+                <i class="fas fa-check-circle"></i> Attendance has been recorded successfully.
             </div>
         </div>
 
@@ -598,7 +598,7 @@
         @if($totalCheckedIn > 0)
         <div class="checked-in-list-container">
             <div class="header">
-                <span class="title">✅ Already Checked In</span>
+                <span class="title"><i class="fas fa-check-circle"></i> Already Checked In</span>
                 <span class="count-badge">{{ $totalCheckedIn }} anak</span>
             </div>
             <div class="checked-in-list-scroll">
@@ -610,10 +610,10 @@
                             </div>
                             <div>
                                 <div class="name">{{ $checkedChild['name'] ?? 'Unknown' }}</div>
-                                <div class="class">🏫 {{ $checkedChild['classroom'] ?? '-' }}
+                                <div class="class"><i class="fas fa-school"></i> {{ $checkedChild['classroom'] ?? '-' }}
                                     @if(!empty($checkedChild['class_start']) && !empty($checkedChild['class_end']))
                                         <span style="font-size:10px;color:#64748b;display:block;">
-                                            🟢 {{ \Carbon\Carbon::parse($checkedChild['class_start'])->format('h:i A') }} — 🟣 {{ \Carbon\Carbon::parse($checkedChild['class_end'])->format('h:i A') }}
+                                             {{ \Carbon\Carbon::parse($checkedChild['class_start'])->format('h:i A') }} —  {{ \Carbon\Carbon::parse($checkedChild['class_end'])->format('h:i A') }}
                                         </span>
                                     @endif
                                 </div>
@@ -621,13 +621,13 @@
                         </div>
                         <div style="display:flex; align-items:center; gap:8px;">
                             @if(isset($checkedChild['is_current']) && $checkedChild['is_current'])
-                                <span class="current-badge">⭐ Current</span>
+                                <span class="current-badge"><i class="fas fa-star"></i> Current</span>
                             @endif
                             <div style="text-align:right;">
-                                <span class="time">✅ {{ $checkedChild['check_in_time'] ?? 'Checked In' }}</span>
+                                <span class="time"><i class="fas fa-check-circle"></i> {{ $checkedChild['check_in_time'] ?? 'Checked In' }}</span>
                                 @if(isset($checkedChild['is_current']) && $checkedChild['is_current'] && isset($attendanceSummary) && $attendanceSummary['checkin']['status'] === 'late')
                                     <div style="color:#c62828;font-size:11px;font-weight:700;margin-top:2px;">
-                                        ⚠️ {{ \App\Services\AttendanceSummaryService::formatDuration($attendanceSummary['checkin']['minutes_diff']) }} lewat
+                                        <i class="fas fa-exclamation-triangle"></i> {{ \App\Services\AttendanceSummaryService::formatDuration($attendanceSummary['checkin']['minutes_diff']) }} lewat
                                     </div>
                                 @endif
                             </div>
@@ -646,16 +646,16 @@
                 <div class="child-avatar {{ $roleData['avatar_class'] ?? 'main-parent-avatar' }}">
                     {{ strtoupper(substr($currentChild->name, 0, 1)) }}
                 </div>
-                <div class="child-name">⭐ {{ $currentChild->name }}</div>
-                <div class="child-class">🏫 {{ $currentChild->classroom->name ?? 'Tiada kelas' }}</div>
+                <div class="child-name"><i class="fas fa-star"></i> {{ $currentChild->name }}</div>
+                <div class="child-class"><i class="fas fa-school"></i> {{ $currentChild->classroom->name ?? 'Tiada kelas' }}</div>
                 <div class="current-child-tag {{ $roleData['tag_class'] ?? 'main-parent-tag' }}">
                     @if($childDone)
-                        ✅ Selesai (Check-in & Check-out)
+                        <i class="fas fa-check-circle"></i> Selesai (Check-in & Check-out)
                     @elseif($childCheckedIn)
-                        ✅ Already Checked In
+                        <i class="fas fa-check-circle"></i> Already Checked In
                         @if(isset($attendanceSummary) && $attendanceSummary['checkin']['status'] === 'late')
                             <span style="color:#c62828;font-weight:700;display:block;margin-top:4px;">
-                                ⚠️ {{ \App\Services\AttendanceSummaryService::formatDuration($attendanceSummary['checkin']['minutes_diff']) }} lewat
+                                <i class="fas fa-exclamation-triangle"></i> {{ \App\Services\AttendanceSummaryService::formatDuration($attendanceSummary['checkin']['minutes_diff']) }} lewat
                             </span>
                         @endif
                     @else
@@ -672,11 +672,11 @@
             @php $cls = $currentChild->classroom; @endphp
             <div style="display:flex;gap:12px;margin:10px 0;flex-wrap:wrap;">
                 <div style="flex:1;min-width:100px;background:#f0fdf4;border-radius:12px;padding:12px;text-align:center;border:2px solid #bbf7d0;">
-                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#059669;">🟢 Masuk</div>
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#059669;"> Masuk</div>
                     <div style="font-size:18px;font-weight:800;color:#1e293b;">{{ $cls->start_time ? \Carbon\Carbon::parse($cls->start_time)->format('h:i A') : '—' }}</div>
                 </div>
                 <div style="flex:1;min-width:100px;background:#f5f3ff;border-radius:12px;padding:12px;text-align:center;border:2px solid #ddd6fe;">
-                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6d28d9;">🟣 Balik</div>
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6d28d9;"> Balik</div>
                     <div style="font-size:18px;font-weight:800;color:#1e293b;">{{ $cls->end_time ? \Carbon\Carbon::parse($cls->end_time)->format('h:i A') : '—' }}</div>
                 </div>
             </div>
@@ -703,10 +703,10 @@
                             <div class="checkbox"></div>
                             <div class="details">
                                 <div class="name">{{ $availChild['name'] }}</div>
-                                <div class="class">🏫 {{ $availChild['classroom'] }}
+                                <div class="class"><i class="fas fa-school"></i> {{ $availChild['classroom'] }}
                                     @if(!empty($availChild['class_start']) && !empty($availChild['class_end']))
                                         <span style="font-size:10px;color:#64748b;display:block;">
-                                            🟢 {{ \Carbon\Carbon::parse($availChild['class_start'])->format('h:i A') }} — 🟣 {{ \Carbon\Carbon::parse($availChild['class_end'])->format('h:i A') }}
+                                             {{ \Carbon\Carbon::parse($availChild['class_start'])->format('h:i A') }} —  {{ \Carbon\Carbon::parse($availChild['class_end'])->format('h:i A') }}
                                         </span>
                                     @endif
                                 </div>
@@ -721,7 +721,7 @@
 
             <!-- 🔥 BUTTON CHECK-IN (PINTAR: SINGLE ATAU BULK) -->
             <button class="btn-checkin" id="btnCheckin" onclick="checkinSelected()" disabled>
-                <span id="btnText">✅ Check In Selected Child</span>
+                <span id="btnText"><i class="fas fa-check-circle"></i> Check In Selected Child</span>
             </button>
 
             <!-- BUTTON PROCEED TO CHECKOUT -->
@@ -735,13 +735,13 @@
             <!-- ALL CHECKED IN - Show late warning if applicable -->
             @if(isset($attendanceSummary) && $attendanceSummary['checkin']['status'] === 'late')
                 <div class="all-checked-in-message" style="background:#fff3e0;border-color:#f59e0b;color:#92400e;">
-                    <div class="icon">⚠️</div>
+                    <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
                     Checked in {{ \App\Services\AttendanceSummaryService::formatDuration($attendanceSummary['checkin']['minutes_diff']) }} late!<br>
                     <small style="font-weight:400;">Schedule: {{ $attendanceSummary['schedule']['morning_end'] }}</small>
                 </div>
             @else
                 <div class="all-checked-in-message">
-                    <div class="icon">🎉</div>
+                    <div class="icon"><i class="fas fa-party-horn"></i></div>
                     All children have been checked in!<br>
                     <small style="font-weight:400;">Thank you for completing check-in.</small>
                 </div>
@@ -758,24 +758,24 @@
                 @if(isset($currentChild) && !$childCheckedIn)
                     <!-- Child NOT checked in yet → show check-in button -->
                     <button class="btn-checkin" onclick="checkinCurrentChild()" style="margin-top:10px;">
-                        ✅ Check In {{ $currentChild->name }}
+                        <i class="fas fa-check-circle"></i> Check In {{ $currentChild->name }}
                     </button>
                 @elseif(isset($currentChild) && $childCheckedIn && !$childCheckedOut)
                     <!-- Child checked in but not checked out → show status -->
                     <div class="checked-in-list-container" style="margin-top:15px;">
                         <div class="header">
-                            <span class="title">✅ Checked In Today</span>
+                            <span class="title"><i class="fas fa-check-circle"></i> Checked In Today</span>
                         </div>
                         <div class="checked-in-item" style="padding:10px;">
                             <div class="left">
                                 <div class="avatar-small">{{ strtoupper(substr($currentChild->name, 0, 1)) }}</div>
                                 <div>
                                     <div class="name">{{ $currentChild->name }}</div>
-                                    <div class="class">🏫 {{ $currentChild->classroom->name ?? '-' }}</div>
+                                    <div class="class"><i class="fas fa-school"></i> {{ $currentChild->classroom->name ?? '-' }}</div>
                                 </div>
                             </div>
                             <span class="time" style="color:#059669;font-weight:600;">
-                                ✅ {{ $childAttendance ? \Carbon\Carbon::parse($childAttendance->checkin_time)->format('h:i A') : 'Checked In' }}
+                                <i class="fas fa-check-circle"></i> {{ $childAttendance ? \Carbon\Carbon::parse($childAttendance->checkin_time)->format('h:i A') : 'Checked In' }}
                             </span>
                         </div>
                     </div>
@@ -802,7 +802,7 @@
         <!-- ============================================ -->
         <!-- BACK BUTTON                                  -->
         <!-- ============================================ -->
-        <button class="btn-back" onclick="window.location.href='/kiosk'">🔙 Back to Kiosk</button>
+        <button class="btn-back" onclick="window.location.href='/kiosk'"><i class="fas fa-arrow-left"></i> Back to Kiosk</button>
     </div>
 
     <script>
@@ -819,7 +819,7 @@
 
         let selectedChildren = [];
 
-        console.log('✅ Add Another Child - Data:');
+        console.log('<i class="fas fa-check-circle"></i> Add Another Child - Data:');
         console.log('  - Current Child ID:', currentChildId);
         console.log('  - Parent ID:', parentId);
         console.log('  - Checked In IDs:', allCheckedInIds);
@@ -840,7 +840,7 @@
             console.log('🔄 toggleSelectAll() called');
             const selectAll = document.getElementById('selectAll');
             if (!selectAll) {
-                console.log('  - ⚠️ selectAll element not found');
+                console.log('  - <i class="fas fa-exclamation-triangle"></i> selectAll element not found');
                 return;
             }
 
@@ -935,7 +935,7 @@
         // ============================================
         function updateSelectedCount() {
             const count = selectedChildren.length;
-            console.log('📊 updateSelectedCount():', count);
+            console.log('<i class="fas fa-chart-bar"></i> updateSelectedCount():', count);
 
             const countElement = document.getElementById('selectedCount');
             if (countElement) {
@@ -948,11 +948,11 @@
             if (btn) {
                 if (count === 0) {
                     btn.disabled = true;
-                    if (btnText) btnText.textContent = '✅ Check In Selected Child';
+                    if (btnText) btnText.textContent = '<i class="fas fa-check-circle"></i> Check In Selected Child';
                     console.log('  - Button: DISABLED');
                 } else if (count === 1) {
                     btn.disabled = false;
-                    if (btnText) btnText.textContent = '✅ Check In 1 Child';
+                    if (btnText) btnText.textContent = '<i class="fas fa-check-circle"></i> Check In 1 Child';
                     console.log('  - Button: ENABLED (Single)');
                 } else {
                     btn.disabled = false;
@@ -966,11 +966,11 @@
         // CHECKIN SELECTED - PINTAR (SINGLE ATAU BULK)
         // ============================================
         function checkinSelected() {
-            console.log('✅ checkinSelected() called');
+            console.log('<i class="fas fa-check-circle"></i> checkinSelected() called');
             console.log('  - Selected Children:', selectedChildren);
 
             if (selectedChildren.length === 0) {
-                console.log('  - ⚠️ No children selected');
+                console.log('  - <i class="fas fa-exclamation-triangle"></i> No children selected');
                 return;
             }
 
@@ -1015,7 +1015,7 @@
                         window.location.reload();
                     }, 3000);
                 } else {
-                    alert('❌ ' + (data.message || 'Gagal check-in!'));
+                    alert('<i class="fas fa-times-circle"></i> ' + (data.message || 'Gagal check-in!'));
                     if (btn) {
                         btn.disabled = false;
                         if (btnText) btnText.textContent = '⚡ Check In All (' + selectedChildren.length + ')';
@@ -1024,7 +1024,7 @@
             })
             .catch(error => {
                 console.error('  - Error:', error);
-                alert('❌ Ralat: ' + error.message);
+                alert('<i class="fas fa-times-circle"></i> Ralat: ' + error.message);
                 if (btn) {
                     btn.disabled = false;
                     if (btnText) btnText.textContent = '⚡ Check In All (' + selectedChildren.length + ')';
@@ -1059,7 +1059,7 @@
             let resultsHtml = '';
             if (data.results && data.results.length > 0) {
                 data.results.forEach(item => {
-                    const statusIcon = item.status === 'checked_in' ? '✅' :
+                    const statusIcon = item.status === 'checked_in' ? '<i class="fas fa-check-circle"></i>' :
                                       item.status === 'late' ? '⏰' : '📌';
                     const statusText = item.status === 'checked_in' ? 'Checked In' :
                                       item.status === 'late' ? 'Late' : 'Already';
@@ -1096,7 +1096,7 @@
                     max-height: 90vh;
                     overflow-y: auto;
                 ">
-                    <div style="font-size: 56px; margin-bottom: 8px;">🎉</div>
+                    <div style="font-size: 56px; margin-bottom: 8px;"><i class="fas fa-party-horn"></i></div>
                     <h2 style="font-size: 22px; font-weight: 700; color: #16a34a; margin-bottom: 4px;">
                         Bulk Check-in Berjaya!
                     </h2>
@@ -1167,14 +1167,14 @@
         // PROCEED TO CHECKIN PAGE (UNTUK CURRENT CHILD)
         // ============================================
         function proceedToCheckinPage() {
-            console.log('✅ proceedToCheckinPage() called');
+            console.log('<i class="fas fa-check-circle"></i> proceedToCheckinPage() called');
             console.log('  - Current Child ID:', currentChildId);
             console.log('  - Parent ID:', parentId);
 
             if (currentChildId > 0) {
                 window.location.href = '/kiosk/checkin-page/' + hashedChildId + '?parent_id=' + parentId;
             } else {
-                console.log('  - ⚠️ No current child, redirect to checkout');
+                console.log('  - <i class="fas fa-exclamation-triangle"></i> No current child, redirect to checkout');
                 window.location.href = '/kiosk/checkout-landing?parent_id=' + parentId;
             }
         }
@@ -1203,13 +1203,13 @@
                 if (data.success) {
                     window.location.reload();
                 } else {
-                    alert('❌ ' + (data.message || 'Gagal checkout'));
+                    alert('<i class="fas fa-times-circle"></i> ' + (data.message || 'Gagal checkout'));
                     btn.disabled = false;
                     btn.textContent = '➡️ Proceed to Check Out';
                 }
             })
             .catch(err => {
-                alert('❌ Ralat: ' + err.message);
+                alert('<i class="fas fa-times-circle"></i> Ralat: ' + err.message);
                 btn.disabled = false;
                 btn.textContent = '➡️ Proceed to Check Out';
             });
@@ -1219,7 +1219,7 @@
         // INIT
         // ============================================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ DOM Loaded - Add Another Child');
+            console.log('<i class="fas fa-check-circle"></i> DOM Loaded - Add Another Child');
             console.log('  - Available Children:', availableChildren);
             console.log('  - Checked In IDs:', allCheckedInIds);
             console.log('  - Current Child ID:', currentChildId);
@@ -1254,7 +1254,7 @@
             location.reload();
         }, 30000);
 
-        console.log('✅ Add Another Child loaded successfully!');
+        console.log('<i class="fas fa-check-circle"></i> Add Another Child loaded successfully!');
     </script>
 </body>
 </html>

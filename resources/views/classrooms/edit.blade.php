@@ -246,7 +246,7 @@
 
     {{-- Breadcrumb --}}
     <div class="rg-breadcrumb">
-        <a href="{{ route('classrooms.index') }}">🏫 Classrooms</a>
+        <a href="{{ route('classrooms.index') }}"><i class="fas fa-school"></i> Classrooms</a>
         <span class="sep">›</span>
         <a href="{{ route('classrooms.show', $classroom->id) }}">{{ $classroom->name }}</a>
         <span class="sep">›</span>
@@ -256,7 +256,7 @@
     {{-- Error Alerts --}}
     @if($errors->any())
     <div class="alert-error">
-        <strong>⚠️ Please fix the following errors:</strong>
+        <strong><i class="fas fa-exclamation-triangle"></i> Please fix the following errors:</strong>
         <ul>
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -278,7 +278,7 @@
     {{-- Basic Information --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>🏫</span> Basic Information
+            <span><i class="fas fa-school"></i></span> Basic Information
         </div>
 
         <div class="rg-2col">
@@ -330,7 +330,7 @@
     {{-- Teacher Assignment --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>👩‍🏫</span> Teacher Assignment
+            <span>👩‍<i class="fas fa-school"></i></span> Teacher Assignment
         </div>
 
         <div>
@@ -340,7 +340,7 @@
                 @foreach($teachers as $teacher)
                     <option value="{{ $teacher->id }}" 
                         {{ old('teacher_id', $classroom->teacher_id) == $teacher->id ? 'selected' : '' }}>
-                        👩‍🏫 {{ $teacher->name }} - {{ $teacher->position }}
+                        👩‍<i class="fas fa-school"></i> {{ $teacher->name }} - {{ $teacher->position }}
                     </option>
                 @endforeach
             </select>
@@ -349,7 +349,7 @@
         
         @if($classroom->teacher)
         <div style="margin-top: 10px; font-size: 11px; color: #94a3b8;">
-            Current Teacher: 👩‍🏫 {{ $classroom->teacher->name }} ({{ $classroom->teacher->position }})
+            Current Teacher: 👩‍<i class="fas fa-school"></i> {{ $classroom->teacher->name }} ({{ $classroom->teacher->position }})
         </div>
         @endif
     </div>
@@ -402,11 +402,11 @@
             <div class="status-options">
                 <label class="status-option {{ old('status', $classroom->status) == 'active' ? 'selected' : '' }}">
                     <input type="radio" name="status" value="active" {{ old('status', $classroom->status) == 'active' ? 'checked' : '' }}>
-                    <span>✅ Active</span>
+                    <span><i class="fas fa-check-circle"></i> Active</span>
                 </label>
                 <label class="status-option {{ old('status', $classroom->status) == 'inactive' ? 'selected' : '' }}">
                     <input type="radio" name="status" value="inactive" {{ old('status', $classroom->status) == 'inactive' ? 'checked' : '' }}>
-                    <span>❌ Inactive</span>
+                    <span><i class="fas fa-times-circle"></i> Inactive</span>
                 </label>
             </div>
             @error('status')<span class="invalid-msg">{{ $message }}</span>@enderror
@@ -429,17 +429,17 @@
     {{-- Action Buttons --}}
     <div class="rg-actions">
         <button type="submit" class="btn-update">
-            <span>💾</span> Update Classroom
+            <span><i class="fas fa-save"></i></span> Update Classroom
         </button>
         <a href="{{ route('classrooms.show', $classroom->id) }}" class="btn-cancel">
-            <span>✖️</span> Cancel
+            <span><i class="fas fa-times"></i></span> Cancel
         </a>
     </div>
 
     </form>
 
     <form action="{{ route('classrooms.destroy', $classroom->id) }}" method="POST" style="display: inline;"
-        onsubmit="return confirm('⚠️ Are you sure you want to delete {{ $classroom->name }}?\n\nThis action cannot be undone and will affect all children in this class.')">
+        onsubmit="return confirm('<i class="fas fa-exclamation-triangle"></i> Are you sure you want to delete {{ $classroom->name }}?\n\nThis action cannot be undone and will affect all children in this class.')">
         @csrf
         @method('DELETE')
         <div class="rg-actions">

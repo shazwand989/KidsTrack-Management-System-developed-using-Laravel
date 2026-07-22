@@ -341,10 +341,10 @@ async function checkin(){
         const r=await fetch('/attendance-scan/bulk-checkin',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,Accept:'application/json'},body:JSON.stringify({parent_id:pid,child_ids:ids})});
         const d=await r.json();
         if(d.success){
-            let h=`<div style="font-weight:800;font-size:13px;margin-bottom:6px;">✅ ${d.count} anak check-in!</div>`;
+            let h=`<div style="font-weight:800;font-size:13px;margin-bottom:6px;"><i class="fas fa-check-circle"></i> ${d.count} anak check-in!</div>`;
             if(d.results){d.results.forEach(r=>{
                 const lb=r.is_late?'LATE':'ON TIME',tc=r.is_late?'var(--a)':'var(--g)',bg=r.is_late?'var(--al)':'var(--gl)';
-                h+=`<div class="rm" style="background:${bg}"><div class="ri">${r.is_late?'⏰':'✅'}</div><div class="rd"><b>${r.child_name}</b><u>${r.classroom}</u></div><div class="rs"><span class="lb" style="color:${tc}">${lb}</span><span class="ts">🕐 ${r.checkin_time}</span><span class="hi">⏰ Jadual: ${r.start_time}</span></div></div>`;
+                h+=`<div class="rm" style="background:${bg}"><div class="ri">${r.is_late?'⏰':'<i class="fas fa-check-circle"></i>'}</div><div class="rd"><b>${r.child_name}</b><u>${r.classroom}</u></div><div class="rs"><span class="lb" style="color:${tc}">${lb}</span><span class="ts">🕐 ${r.checkin_time}</span><span class="hi">⏰ Jadual: ${r.start_time}</span></div></div>`;
             });}
             $('ok2').innerHTML=h;$('ok2').classList.add('show');
             if(d.results){d.results.forEach(r=>{const ci=cd.find(x=>x.id==r.child_id);if(ci){ci.checked_in=true;ci.ci_time=r.checkin_time;}})}
@@ -361,10 +361,10 @@ async function checkout(){
         const r=await fetch('/attendance-scan/bulk-checkout',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf,Accept:'application/json'},body:JSON.stringify({parent_id:pid,child_ids:ids})});
         const d=await r.json();
         if(d.success){
-            let h=`<div style="font-weight:800;font-size:13px;margin-bottom:6px;">📤 Check-out berjaya!</div>`;
+            let h=`<div style="font-weight:800;font-size:13px;margin-bottom:6px;"><i class="fas fa-upload"></i> Check-out berjaya!</div>`;
             if(d.results){d.results.forEach(r=>{
                 const ea=r.is_early,bg=ea?'var(--al)':'var(--gl)',lb=ea?'EARLY PICKUP':'ON TIME',tc=ea?'var(--a)':'var(--g)';
-                h+=`<div class="rm" style="background:var(--bl)"><div class="ri">📤</div><div class="rd"><b>${r.child_name}</b><u>${r.classroom} &bull; 👤 ${r.pickup_by||'-'}</u></div><div class="rs"><span class="lb" style="color:var(--b)">CHECKED OUT</span><span class="ts">🕐 ${r.checkout_time}</span><span class="sb ${ea?'in':''}" style="${ea?'background:'+bg+';color:'+tc+'':'background:var(--gl);color:var(--g)'}">${lb}</span><span class="hi">⏰ Until: ${r.end_time}</span></div></div>`;
+                h+=`<div class="rm" style="background:var(--bl)"><div class="ri"><i class="fas fa-upload"></i></div><div class="rd"><b>${r.child_name}</b><u>${r.classroom} &bull; <i class="fas fa-user"></i> ${r.pickup_by||'-'}</u></div><div class="rs"><span class="lb" style="color:var(--b)">CHECKED OUT</span><span class="ts">🕐 ${r.checkout_time}</span><span class="sb ${ea?'in':''}" style="${ea?'background:'+bg+';color:'+tc+'':'background:var(--gl);color:var(--g)'}">${lb}</span><span class="hi">⏰ Until: ${r.end_time}</span></div></div>`;
             });}
             $('ok2').innerHTML=h;$('ok2').classList.add('show');
             if(d.results){d.results.forEach(r=>{const ci=cd.find(x=>x.id==r.child_id);if(ci){ci.checked_out=true;ci.co_time=r.checkout_time;}})}

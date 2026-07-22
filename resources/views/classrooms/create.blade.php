@@ -210,7 +210,7 @@
 
     {{-- Breadcrumb --}}
     <div class="rg-breadcrumb">
-        <a href="{{ route('classrooms.index') }}">🏫 Classrooms</a>
+        <a href="{{ route('classrooms.index') }}"><i class="fas fa-school"></i> Classrooms</a>
         <span class="sep">›</span>
         <strong>Create New Classroom</strong>
     </div>
@@ -218,7 +218,7 @@
     {{-- Error Alerts --}}
     @if($errors->any())
     <div class="alert-error">
-        <strong>⚠️ Please fix the following errors:</strong>
+        <strong><i class="fas fa-exclamation-triangle"></i> Please fix the following errors:</strong>
         <ul>
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -233,7 +233,7 @@
     {{-- Basic Information --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>🏫</span> Basic Information
+            <span><i class="fas fa-school"></i></span> Basic Information
         </div>
 
         <div class="rg-2col">
@@ -285,7 +285,7 @@
     {{-- Teacher Assignment --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>👩‍🏫</span> Teacher Assignment
+            <span>👩‍<i class="fas fa-school"></i></span> Teacher Assignment
         </div>
 
         <div>
@@ -294,7 +294,7 @@
                 <option value="">-- Select Teacher --</option>
                 @foreach($teachers as $teacher)
                     <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>
-                        👩‍🏫 {{ $teacher->name }} - {{ $teacher->position }}
+                        👩‍<i class="fas fa-school"></i> {{ $teacher->name }} - {{ $teacher->position }}
                     </option>
                 @endforeach
             </select>
@@ -350,11 +350,11 @@
             <div class="status-options">
                 <label class="status-option {{ old('status', 'active') == 'active' ? 'selected' : '' }}">
                     <input type="radio" name="status" value="active" {{ old('status', 'active') == 'active' ? 'checked' : '' }}>
-                    <span>✅ Active</span>
+                    <span><i class="fas fa-check-circle"></i> Active</span>
                 </label>
                 <label class="status-option {{ old('status') == 'inactive' ? 'selected' : '' }}">
                     <input type="radio" name="status" value="inactive" {{ old('status') == 'inactive' ? 'checked' : '' }}>
-                    <span>❌ Inactive</span>
+                    <span><i class="fas fa-times-circle"></i> Inactive</span>
                 </label>
             </div>
             @error('status')<span class="invalid-msg">{{ $message }}</span>@enderror
@@ -377,10 +377,10 @@
     {{-- Action Buttons --}}
     <div class="rg-actions">
         <button type="submit" class="btn-save">
-            <span>💾</span> Create Classroom
+            <span><i class="fas fa-save"></i></span> Create Classroom
         </button>
         <a href="{{ route('classrooms.index') }}" class="btn-cancel">
-            <span>✖️</span> Cancel
+            <span><i class="fas fa-times"></i></span> Cancel
         </a>
     </div>
 

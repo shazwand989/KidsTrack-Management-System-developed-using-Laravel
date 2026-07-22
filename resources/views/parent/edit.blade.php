@@ -312,7 +312,7 @@
             </div>
             <div style="flex:1;min-width:200px;" class="member-info-{{ $m['role'] }}">
                 <div style="font-weight:800;font-size:15px;color:#1e293b;">{{ $m['data']->name }}</div>
-                <div style="font-size:12px;color:#94a3b8;">📞 {{ $m['data']->phone_number ?? '-' }} · ✉️ {{ $m['data']->email ?? '-' }}</div>
+                <div style="font-size:12px;color:#94a3b8;"><i class="fas fa-phone"></i> {{ $m['data']->phone_number ?? '-' }} · ✉️ {{ $m['data']->email ?? '-' }}</div>
             </div>
             <button type="button" onclick="toggleMemberEdit('{{ $m['role'] }}')"
                 style="font-size:12px;font-weight:700;color:white;background:linear-gradient(135deg,{{ $m['color'] }});border:none;padding:8px 16px;border-radius:10px;cursor:pointer;white-space:nowrap;">
@@ -336,7 +336,7 @@
             </div>
             <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
                 <button type="button" onclick="toggleMemberEdit('{{ $m['role'] }}')" style="background:#f1f5f9;color:#475569;border:none;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">Cancel</button>
-                <button type="button" onclick="saveMemberEdit('{{ $m['role'] }}', {{ $m['data']->id }})" style="background:linear-gradient(135deg,{{ $m['color'] }});color:white;border:none;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">💾 Save</button>
+                <button type="button" onclick="saveMemberEdit('{{ $m['role'] }}', {{ $m['data']->id }})" style="background:linear-gradient(135deg,{{ $m['color'] }});color:white;border:none;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;"><i class="fas fa-save"></i> Save</button>
             </div>
             <div id="mem-msg-{{ $m['role'] }}" style="font-size:11px;margin-top:6px;display:none;"></div>
         </div>
@@ -375,7 +375,7 @@
             </div>
             <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
                 <button type="button" onclick="toggleRegisterMember('{{ $m['role'] }}')" style="background:#f1f5f9;color:#475569;border:none;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">Cancel</button>
-                <button type="button" onclick="registerMember('{{ $m['role'] }}', '{{ $m['label'] }}', [{{ implode(',', $allFamilyChildIds) }}])" style="background:linear-gradient(135deg,{{ $m['color'] }});color:white;border:none;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">💾 Register & Link</button>
+                <button type="button" onclick="registerMember('{{ $m['role'] }}', '{{ $m['label'] }}', [{{ implode(',', $allFamilyChildIds) }}])" style="background:linear-gradient(135deg,{{ $m['color'] }});color:white;border:none;padding:7px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;"><i class="fas fa-save"></i> Register & Link</button>
             </div>
             <div id="reg-msg-{{ $m['role'] }}" style="font-size:11px;margin-top:6px;display:none;"></div>
         </div>
@@ -418,7 +418,7 @@
                     </div>
                     <div style="display:flex;gap:8px;margin-top:8px;justify-content:flex-end;">
                         <button type="button" onclick="cancelEditChild({{ $child->id }})" style="background:#f1f5f9;color:#475569;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">Cancel</button>
-                        <button type="button" onclick="saveChildEdit({{ $child->id }})" style="background:linear-gradient(135deg,#3b82f6,#60a5fa);color:white;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;">💾 Save</button>
+                        <button type="button" onclick="saveChildEdit({{ $child->id }})" style="background:linear-gradient(135deg,#3b82f6,#60a5fa);color:white;border:none;padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;"><i class="fas fa-save"></i> Save</button>
                     </div>
                     <div id="edit-msg-{{ $child->id }}" style="font-size:11px;margin-top:4px;display:none;"></div>
                 </div>
@@ -433,7 +433,7 @@
         <div style="margin-top:14px;padding-top:14px;border-top:1px dashed #FFE4D6;display:flex;gap:10px;flex-wrap:wrap;">
             <button type="button" onclick="showNewChildForm()"
                 style="background:linear-gradient(135deg,#6d28d9,#9333ea);color:white;border:none;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;box-shadow:0 4px 12px rgba(109,40,217,0.2);">
-                ➕ Register New Child
+                <i class="fas fa-plus"></i> Register New Child
             </button>
         </div>
 
@@ -450,7 +450,7 @@
             </div>
             <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
                 <button type="button" onclick="hideNewChildForm()" style="background:#f1f5f9;color:#475569;border:none;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">Cancel</button>
-                <button type="button" onclick="registerAndLinkChild({{ $currentUser->id }})" style="background:linear-gradient(135deg,#6d28d9,#9333ea);color:white;border:none;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;">💾 Register & Link to Family</button>
+                <button type="button" onclick="registerAndLinkChild({{ $currentUser->id }})" style="background:linear-gradient(135deg,#6d28d9,#9333ea);color:white;border:none;padding:8px 16px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;"><i class="fas fa-save"></i> Register & Link to Family</button>
             </div>
             <div id="newChildMsg" style="margin-top:8px;font-size:12px;display:none;"></div>
         </div>
@@ -495,13 +495,13 @@
             // Update visible info
             const info = document.querySelector('.member-info-' + role);
             if (info) {
-                info.innerHTML = '<div style="font-weight:800;font-size:15px;color:#1e293b;">' + name + '</div><div style="font-size:12px;color:#94a3b8;">📞 ' + phone + ' · ✉️ ' + email + '</div>';
+                info.innerHTML = '<div style="font-weight:800;font-size:15px;color:#1e293b;">' + name + '</div><div style="font-size:12px;color:#94a3b8;"><i class="fas fa-phone"></i> ' + phone + ' · ✉️ ' + email + '</div>';
             }
 
-            msg.style.color = '#16a34a'; msg.textContent = '✅ Updated!';
+            msg.style.color = '#16a34a'; msg.textContent = '<i class="fas fa-check-circle"></i> Updated!';
             setTimeout(() => { document.getElementById('edit-member-' + role).style.display = 'none'; msg.style.display = 'none'; }, 800);
         } catch(e) {
-            msg.style.color = '#dc2626'; msg.textContent = '❌ Error.';
+            msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> Error.';
         }
     }
 
@@ -533,13 +533,13 @@
             });
             const data = await res.json();
             if (res.ok && data.success) {
-                msg.style.color = '#16a34a'; msg.textContent = '✅ ' + label + ' registered & linked! Reloading...';
+                msg.style.color = '#16a34a'; msg.textContent = '<i class="fas fa-check-circle"></i> ' + label + ' registered & linked! Reloading...';
                 setTimeout(() => location.reload(), 800);
             } else {
-                msg.style.color = '#dc2626'; msg.textContent = '❌ ' + (data.message || 'Failed.');
+                msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> ' + (data.message || 'Failed.');
             }
         } catch(e) {
-            msg.style.color = '#dc2626'; msg.textContent = '❌ Network error.';
+            msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> Network error.';
         }
     }
 
@@ -598,10 +598,10 @@
                 }
             }
 
-            msg.style.color = '#16a34a'; msg.textContent = '✅ Saved!';
+            msg.style.color = '#16a34a'; msg.textContent = '<i class="fas fa-check-circle"></i> Saved!';
             setTimeout(() => { document.getElementById('edit-form-' + childId).style.display = 'none'; msg.style.display = 'none'; }, 1000);
         } catch(e) {
-            msg.style.color = '#dc2626'; msg.textContent = '❌ Error saving.';
+            msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> Error saving.';
         }
     }
 
@@ -661,13 +661,13 @@
             const data = await res.json();
             if (res.ok && data.child_id) {
                 // Success — reload to show new child in list
-                msg.style.color = '#16a34a'; msg.textContent = '✅ Child registered & linked! Reloading...';
+                msg.style.color = '#16a34a'; msg.textContent = '<i class="fas fa-check-circle"></i> Child registered & linked! Reloading...';
                 setTimeout(() => location.reload(), 800);
             } else {
-                msg.style.color = '#dc2626'; msg.textContent = '❌ ' + (data.message || 'Registration failed.');
+                msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> ' + (data.message || 'Registration failed.');
             }
         } catch(e) {
-            msg.style.color = '#dc2626'; msg.textContent = '❌ Network error.';
+            msg.style.color = '#dc2626'; msg.textContent = '<i class="fas fa-times-circle"></i> Network error.';
         }
     }
 </script>

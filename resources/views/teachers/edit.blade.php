@@ -261,7 +261,7 @@
 
     {{-- Breadcrumb --}}
     <div class="rg-breadcrumb">
-        <a href="{{ route('teachers.index') }}">👩‍🏫 Teachers</a>
+        <a href="{{ route('teachers.index') }}">👩‍<i class="fas fa-school"></i> Teachers</a>
         <span class="sep">›</span>
         <a href="{{ route('teachers.show', $teacher->id) }}">{{ $teacher->name }}</a>
         <span class="sep">›</span>
@@ -271,7 +271,7 @@
     {{-- Error Alerts --}}
     @if($errors->any())
     <div class="alert-error">
-        <strong>⚠️ Please fix the following errors:</strong>
+        <strong><i class="fas fa-exclamation-triangle"></i> Please fix the following errors:</strong>
         <ul>
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -287,7 +287,7 @@
     {{-- Teacher Information --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>👩‍🏫</span> Teacher Information
+            <span>👩‍<i class="fas fa-school"></i></span> Teacher Information
         </div>
 
         <div class="card-inner">
@@ -296,11 +296,11 @@
                     @if($teacher->photo)
                         <img src="{{ asset('storage/'.$teacher->photo) }}" alt="">
                     @else
-                        <span>👩‍🏫</span>
+                        <span>👩‍<i class="fas fa-school"></i></span>
                     @endif
                 </div>
                 <div class="upload-zone" onclick="document.getElementById('teacherPhoto').click()">
-                    <span>📸</span>
+                    <span><i class="fas fa-camera"></i></span>
                     <p>Change Photo</p>
                     <small>JPG/PNG · 2MB</small>
                 </div>
@@ -323,8 +323,8 @@
                         <label class="rg-label">Position / Jawatan <span class="req">*</span></label>
                         <select name="position" style="width:100%;">
                             <option value="">-- Select Position --</option>
-                            <option value="Head Teacher" {{ old('position', $teacher->position) == 'Head Teacher' ? 'selected' : '' }}>👩‍🏫 Head Teacher</option>
-                            <option value="Senior Teacher" {{ old('position', $teacher->position) == 'Senior Teacher' ? 'selected' : '' }}>👩‍🏫 Senior Teacher</option>
+                            <option value="Head Teacher" {{ old('position', $teacher->position) == 'Head Teacher' ? 'selected' : '' }}>👩‍<i class="fas fa-school"></i> Head Teacher</option>
+                            <option value="Senior Teacher" {{ old('position', $teacher->position) == 'Senior Teacher' ? 'selected' : '' }}>👩‍<i class="fas fa-school"></i> Senior Teacher</option>
                             <option value="Class Teacher" {{ old('position', $teacher->position) == 'Class Teacher' ? 'selected' : '' }}>📚 Class Teacher</option>
                             <option value="Assistant Teacher" {{ old('position', $teacher->position) == 'Assistant Teacher' ? 'selected' : '' }}>📖 Assistant Teacher</option>
                             <option value="Nursery Teacher" {{ old('position', $teacher->position) == 'Nursery Teacher' ? 'selected' : '' }}>🍼 Nursery Teacher</option>
@@ -368,7 +368,7 @@
     {{-- Teaching Assignment --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>🏫</span> Teaching Assignment
+            <span><i class="fas fa-school"></i></span> Teaching Assignment
         </div>
 
         <div class="rg-2col">
@@ -378,7 +378,7 @@
                     <option value="">-- Select Classroom --</option>
                     @foreach($classrooms as $classroom)
                         <option value="{{ $classroom->id }}" {{ old('classroom_id', $teacher->classroom_id) == $classroom->id ? 'selected' : '' }}>
-                            🏫 {{ $classroom->name }} ({{ $classroom->code }}) - Age: {{ $classroom->min_age }}-{{ $classroom->max_age }} yrs
+                            <i class="fas fa-school"></i> {{ $classroom->name }} ({{ $classroom->code }}) - Age: {{ $classroom->min_age }}-{{ $classroom->max_age }} yrs
                         </option>
                     @endforeach
                 </select>
@@ -389,11 +389,11 @@
                 <div class="status-options">
                     <label class="status-option {{ old('status', $teacher->status) == 'active' ? 'selected' : '' }}">
                         <input type="radio" name="status" value="active" {{ old('status', $teacher->status) == 'active' ? 'checked' : '' }}>
-                        <span>✅ Active</span>
+                        <span><i class="fas fa-check-circle"></i> Active</span>
                     </label>
                     <label class="status-option {{ old('status', $teacher->status) == 'inactive' ? 'selected' : '' }}">
                         <input type="radio" name="status" value="inactive" {{ old('status', $teacher->status) == 'inactive' ? 'checked' : '' }}>
-                        <span>❌ Inactive</span>
+                        <span><i class="fas fa-times-circle"></i> Inactive</span>
                     </label>
                     <label class="status-option {{ old('status', $teacher->status) == 'on_leave' ? 'selected' : '' }}">
                         <input type="radio" name="status" value="on_leave" {{ old('status', $teacher->status) == 'on_leave' ? 'checked' : '' }}>
@@ -427,10 +427,10 @@
     {{-- Action Buttons --}}
     <div class="rg-actions">
         <button type="submit" class="btn-update">
-            <span>💾</span> Update Teacher
+            <span><i class="fas fa-save"></i></span> Update Teacher
         </button>
         <a href="{{ route('teachers.show', $teacher->id) }}" class="btn-cancel">
-            <span>✖️</span> Cancel
+            <span><i class="fas fa-times"></i></span> Cancel
         </a>
         <form action="{{ route('teachers.destroy', $teacher->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{ $teacher->name }}? This action cannot be undone.')">
             @csrf

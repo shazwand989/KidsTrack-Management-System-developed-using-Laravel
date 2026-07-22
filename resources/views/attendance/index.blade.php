@@ -496,7 +496,7 @@
 {{-- Header --}}
 <div class="pg-header">
     <div class="pg-header-left">
-        <h2><span>📋</span> Attendance Records</h2>
+        <h2><span><i class="fas fa-clipboard-list"></i></span> Attendance Records</h2>
         <p>Manage daily attendance for children</p>
     </div>
     <div class="pg-header-right">
@@ -517,7 +517,7 @@
 <div class="row g-3 mb-4">
     <div class="col-3">
         <div class="stat-card">
-            <div class="stat-icon pink"><span>📋</span></div>
+            <div class="stat-icon pink"><span><i class="fas fa-clipboard-list"></i></span></div>
             <div>
                 <div class="stat-num">{{ $stats['total'] ?? 0 }}</div>
                 <div class="stat-label">Total Records</div>
@@ -535,7 +535,7 @@
     </div>
     <div class="col-3">
         <div class="stat-card">
-            <div class="stat-icon blue"><span>📤</span></div>
+            <div class="stat-icon blue"><span><i class="fas fa-upload"></i></span></div>
             <div>
                 <div class="stat-num">{{ $stats['checkout'] ?? 0 }}</div>
                 <div class="stat-label">Check-outs</div>
@@ -563,21 +563,21 @@
 
     {{-- FILTER BY CLASSROOM --}}
     <select class="filter-select" id="filterClassroom">
-        <option value="">🏫 All Classrooms</option>
+        <option value=""><i class="fas fa-school"></i> All Classrooms</option>
         @foreach($classrooms ?? [] as $classroom)
             <option value="{{ $classroom->id }}" {{ request('classroom_id') == $classroom->id ? 'selected' : '' }}>
-                🏫 {{ $classroom->name }}
+                <i class="fas fa-school"></i> {{ $classroom->name }}
             </option>
         @endforeach
     </select>
 
     <select class="filter-select" id="filterStatus">
         <option value="">All Status</option>
-        <option value="checkin" {{ request('status') == 'checkin' ? 'selected' : '' }}>✅ Check-in</option>
-        <option value="present" {{ request('status') == 'present' ? 'selected' : '' }}>✅ Present</option>
-        <option value="checkout" {{ request('status') == 'checkout' ? 'selected' : '' }}>📤 Check-out</option>
+        <option value="checkin" {{ request('status') == 'checkin' ? 'selected' : '' }}><i class="fas fa-check-circle"></i> Check-in</option>
+        <option value="present" {{ request('status') == 'present' ? 'selected' : '' }}><i class="fas fa-check-circle"></i> Present</option>
+        <option value="checkout" {{ request('status') == 'checkout' ? 'selected' : '' }}><i class="fas fa-upload"></i> Check-out</option>
         <option value="late" {{ request('status') == 'late' ? 'selected' : '' }}>⏰ Late</option>
-        <option value="absent" {{ request('status') == 'absent' ? 'selected' : '' }}>❌ Absent</option>
+        <option value="absent" {{ request('status') == 'absent' ? 'selected' : '' }}><i class="fas fa-times-circle"></i> Absent</option>
     </select>
 
     <input type="date" class="date-input" id="filterDate" value="{{ request('date', now()->toDateString()) }}" max="{{ now()->toDateString() }}" placeholder="Filter by date">
@@ -592,7 +592,7 @@
             <tr>
                 <th>#</th>
                 <th>Child</th>
-                <th>🏫 Classroom</th>
+                <th><i class="fas fa-school"></i> Classroom</th>
                 <th>Date</th>
                 <th>Status</th>
                 <th>Check-in Time</th>
@@ -641,17 +641,17 @@
 
                 // 🔥 CHECK-IN BADGE
                 $checkinBadgeClass = 'absent';
-                $checkinBadgeIcon = '❌';
+                $checkinBadgeIcon = '<i class="fas fa-times-circle"></i>';
                 $checkinBadgeText = 'Absent';
 
                 if (in_array($status, ['checkin', 'present'])) {
                     $checkinBadgeClass = 'checkin';
-                    $checkinBadgeIcon = '✅';
+                    $checkinBadgeIcon = '<i class="fas fa-check-circle"></i>';
                     $checkinBadgeText = 'Check-in';
                 } elseif ($status == 'checkout') {
                     // If status is checkout, it means they checked in earlier (show present for check-in part)
                     $checkinBadgeClass = 'checkin';
-                    $checkinBadgeIcon = '✅';
+                    $checkinBadgeIcon = '<i class="fas fa-check-circle"></i>';
                     $checkinBadgeText = 'Check-in';
                 } elseif ($status == 'late') {
                     $checkinBadgeClass = 'late';
@@ -662,7 +662,7 @@
                 // 🔥 CHECK-OUT BADGE
                 $hasCheckout = $attendance->checkout_time ? true : false;
                 $checkoutBadgeClass = 'checkout';
-                $checkoutBadgeIcon = '📤';
+                $checkoutBadgeIcon = '<i class="fas fa-upload"></i>';
                 $checkoutBadgeText = 'Check-out';
             @endphp
             <tr
@@ -685,7 +685,7 @@
                         <div>
                             <p class="child-name">{{ $child->name ?? 'Child not found' }}</p>
                             <p class="child-sub">
-                                👶 {{ $child->age ?? 'N/A' }} years old
+                                <i class="fas fa-child"></i> {{ $child->age ?? 'N/A' }} years old
                             </p>
                         </div>
                     </div>
@@ -752,7 +752,7 @@
             <tr>
                 <td colspan="10">
                     <div class="empty-state">
-                        <div class="empty-icon">📋</div>
+                        <div class="empty-icon"><i class="fas fa-clipboard-list"></i></div>
                         <h5>No attendance records found</h5>
                         <p>Start by taking attendance for today.</p>
                         <a href="{{ route('attendance.create') }}">📝 Take Attendance</a>

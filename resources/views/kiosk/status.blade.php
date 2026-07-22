@@ -412,20 +412,20 @@
     @php
         // Determine header class
         $headerClass = 'weekday-morning';
-        $iconBig = '📍';
+        $iconBig = '<i class="fas fa-map-marker-alt"></i>';
         $badgeText = 'Status';
         $greetingText = "Status Kehadiran";
         $subText = $child->name ?? 'Anak';
         
         if ($userRole == 'unknown') {
             $headerClass = 'unauthorized-mode';
-            $iconBig = '⚠️';
+            $iconBig = '<i class="fas fa-exclamation-triangle"></i>';
             $badgeText = 'Akses Dihalang';
             $greetingText = 'Akses Tidak Dibenarkan!';
             $subText = 'Sila log masuk untuk melihat status.';
         } elseif ($isBirthday) {
             $headerClass = 'birthday-mode';
-            $iconBig = '🎉';
+            $iconBig = '<i class="fas fa-party-horn"></i>';
             $badgeText = '🎂 Hari Lahir!';
             $greetingText = "Selamat Hari Lahir, {$child->name}!";
             $subText = $birthdayMessage;
@@ -438,12 +438,12 @@
         } elseif ($isMainParent) {
             $headerClass = 'main-parent';
             $iconBig = $timeMode == 'morning' ? '☀️' : ($timeMode == 'afternoon' ? '🌤️' : '🌙');
-            $badgeText = $timeStatus == 'already_checkout' ? '✅ Selesai' : ($timeStatus == 'already_checkin' ? '✅ Checked In' : '📌 Status');
+            $badgeText = $timeStatus == 'already_checkout' ? '<i class="fas fa-check-circle"></i> Selesai' : ($timeStatus == 'already_checkin' ? '<i class="fas fa-check-circle"></i> Checked In' : '📌 Status');
             $greetingText = "Status Kehadiran";
             $subText = $child->name;
         } elseif ($isSecondParent || $isGuardian) {
             $headerClass = 'guardian-mode';
-            $iconBig = '👤';
+            $iconBig = '<i class="fas fa-user"></i>';
             $badgeText = 'Status (Wakil)';
             $greetingText = "Status Kehadiran";
             $subText = $child->name . ' - Penjaga Berdaftar';
@@ -499,22 +499,22 @@
                 
                 <div class="status-box">
                     <div class="status-item">
-                        <span class="label">📍 GPS</span>
-                        <span class="value" style="color:#16a34a;">✅ Kawasan taska</span>
+                        <span class="label"><i class="fas fa-map-marker-alt"></i> GPS</span>
+                        <span class="value" style="color:#16a34a;"><i class="fas fa-check-circle"></i> Kawasan taska</span>
                     </div>
                     <div class="status-item">
                         <span class="label">🕐 Masa</span>
                         <span class="value">{{ $currentTime }}</span>
                     </div>
                     <div class="status-item">
-                        <span class="label">📊 Status</span>
+                        <span class="label"><i class="fas fa-chart-bar"></i> Status</span>
                         <span class="value">
                             @if($timeStatus == 'already_checkout')
-                                <span style="color:#16a34a;">✅ Anak sudah check-out</span>
+                                <span style="color:#16a34a;"><i class="fas fa-check-circle"></i> Anak sudah check-out</span>
                             @elseif($timeStatus == 'already_checkin')
-                                <span style="color:#1e40af;">✅ Anak sudah check-in</span>
+                                <span style="color:#1e40af;"><i class="fas fa-check-circle"></i> Anak sudah check-in</span>
                             @elseif($timeStatus == 'checkin_on_time')
-                                <span style="color:#16a34a;">✅ Check-in (On-Time)</span>
+                                <span style="color:#16a34a;"><i class="fas fa-check-circle"></i> Check-in (On-Time)</span>
                             @elseif($timeStatus == 'checkin_late')
                                 <span style="color:#d97706;">⏰ Check-in (Late)</span>
                             @else
@@ -538,11 +538,11 @@
                 STATUS BADGE
                 ========================================== -->
                 @if($timeStatus == 'already_checkout')
-                    <div class="badge-status checkout">✅ Check-out Selesai</div>
+                    <div class="badge-status checkout"><i class="fas fa-check-circle"></i> Check-out Selesai</div>
                 @elseif($timeStatus == 'already_checkin')
-                    <div class="badge-status checked">✅ Sudah Check-in</div>
+                    <div class="badge-status checked"><i class="fas fa-check-circle"></i> Sudah Check-in</div>
                 @elseif($timeStatus == 'checkin_on_time')
-                    <div class="badge-status on-time">✅ On Time</div>
+                    <div class="badge-status on-time"><i class="fas fa-check-circle"></i> On Time</div>
                 @elseif($timeStatus == 'checkin_late')
                     <div class="badge-status late">⏰ Late</div>
                 @else
@@ -563,7 +563,7 @@
                         📌 Seterusnya →
                     </button>
                 @else
-                    <button class="btn-next" disabled>✅ Selesai</button>
+                    <button class="btn-next" disabled><i class="fas fa-check-circle"></i> Selesai</button>
                 @endif
                 
                 <!-- ==========================================
@@ -571,7 +571,7 @@
                 ========================================== -->
                 @if(isset($otherChildren) && $otherChildren->count() > 0)
                     <button class="btn-add-another" onclick="toggleOtherChildren()">
-                        👶 Add Another Child ({{ $otherChildren->count() }})
+                        <i class="fas fa-child"></i> Add Another Child ({{ $otherChildren->count() }})
                     </button>
                 @endif
                 
@@ -589,20 +589,20 @@
                 ========================================== -->
                 <div class="other-children-section" id="otherChildrenSection">
                     @if(isset($otherChildren) && $otherChildren->count() > 0)
-                        <div class="other-children-title">👶 Pilih Anak Lain:</div>
+                        <div class="other-children-title"><i class="fas fa-child"></i> Pilih Anak Lain:</div>
                         @foreach($otherChildren as $otherChild)
                             <div class="other-child-item" 
                                  onclick="window.location.href='{{ route('kiosk.confirm.child', $otherChild->id) }}'">
                                 <div class="info">
                                     <div class="name">{{ $otherChild->name }}</div>
-                                    <div class="class">🏫 {{ $otherChild->classroom->name ?? 'Tiada kelas' }}</div>
+                                    <div class="class"><i class="fas fa-school"></i> {{ $otherChild->classroom->name ?? 'Tiada kelas' }}</div>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:10px;">
                                     @if($otherChild->checked_in_today ?? false)
                                         @if($otherChild->checked_out_today ?? false)
-                                            <span class="badge badge-checkout-done">📤 Checkout</span>
+                                            <span class="badge badge-checkout-done"><i class="fas fa-upload"></i> Checkout</span>
                                         @else
-                                            <span class="badge badge-checked">✅ Checked</span>
+                                            <span class="badge badge-checked"><i class="fas fa-check-circle"></i> Checked</span>
                                         @endif
                                     @else
                                         <span class="badge badge-available">⏳ Available</span>
@@ -620,7 +620,7 @@
             <!-- ==========================================
             BUTTON BACK
             ========================================== -->
-            <button class="btn-back" onclick="window.location.href='/kiosk'">🔙 Kembali ke Kiosk</button>
+            <button class="btn-back" onclick="window.location.href='/kiosk'"><i class="fas fa-arrow-left"></i> Kembali ke Kiosk</button>
             
         </div>
     </div>
@@ -628,7 +628,7 @@
     <!-- Popup Bulk Check-in Success -->
     <div class="popup-overlay" id="bulkSuccessPopup">
         <div class="popup-box">
-            <div class="popup-icon">✅</div>
+            <div class="popup-icon"><i class="fas fa-check-circle"></i></div>
             <h2>Check-in Berjaya!</h2>
             <p class="popup-sub" id="bulkPopupSub">Semua anak telah berjaya check-in.</p>
             <div id="bulkResults"></div>
@@ -668,16 +668,16 @@
             .then(data => {
                 if (data.success) {
                     showBulkPopup(data);
-                    btn.textContent = '✅ Selesai!';
+                    btn.textContent = '<i class="fas fa-check-circle"></i> Selesai!';
                 } else {
-                    alert('❌ ' + data.message);
+                    alert('<i class="fas fa-times-circle"></i> ' + data.message);
                     btn.disabled = false;
                     btn.textContent = '⚡ Check-in Semua ({{ $allChildren->count() ?? 0 }})';
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('❌ Ralat: ' + error.message);
+                alert('<i class="fas fa-times-circle"></i> Ralat: ' + error.message);
                 btn.disabled = false;
                 btn.textContent = '⚡ Check-in Semua ({{ $allChildren->count() ?? 0 }})';
             });
@@ -689,7 +689,7 @@
             
             let html = `
                 <div class="result-stats">
-                    <span class="stat checked">✅ ${data.checked_count || 0} Checked In</span>
+                    <span class="stat checked"><i class="fas fa-check-circle"></i> ${data.checked_count || 0} Checked In</span>
                     ${data.late_count > 0 ? `<span class="stat late">⏰ ${data.late_count} Late</span>` : ''}
                     ${data.already_count > 0 ? `<span class="stat already">📌 ${data.already_count} Already</span>` : ''}
                 </div>
@@ -700,7 +700,7 @@
                     let statusText = '';
                     let statusClass = '';
                     if (item.status === 'checked_in') {
-                        statusText = '✅ Checked In';
+                        statusText = '<i class="fas fa-check-circle"></i> Checked In';
                         statusClass = 'checked_in';
                     } else if (item.status === 'late') {
                         statusText = '⏰ Late';

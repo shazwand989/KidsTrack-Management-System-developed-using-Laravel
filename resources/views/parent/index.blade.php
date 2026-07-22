@@ -514,7 +514,7 @@
                     <th>Main Parent</th>
                     <th>Second Parent</th>
                     <th>Guardian</th>
-                    <th>👶 Children</th>
+                    <th><i class="fas fa-child"></i> Children</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -538,7 +538,7 @@
 
 {{-- Empty State (hidden by default) --}}
 <div id="emptyState" class="empty-state" style="display:none;margin-top:20px;">
-    <div class="empty-icon">👨‍👩‍👧‍👦</div>
+    <div class="empty-icon"><i class="fas fa-users"></i></div>
     <h5>No families found</h5>
     <p>Try adjusting your search or <a href="{{ route('parents.create') }}">register a parent</a>.</p>
 </div>
@@ -605,7 +605,7 @@ function loadFamilies() {
         if (res.data.length === 0) {
             // Search returned nothing
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:60px 20px;">
-                <div style="font-size:48px;margin-bottom:12px;">🔍</div>
+                <div style="font-size:48px;margin-bottom:12px;"><i class="fas fa-search"></i></div>
                 <h5 style="color:#1e293b;font-weight:800;">No families match your search</h5>
                 <p style="color:#94a3b8;">Try a different keyword.</p>
             </td></tr>`;
@@ -667,7 +667,7 @@ function renderTable(families, startIndex) {
                     </div>
                     <div>
                         <p class="parent-name" style="font-size:13px;">${main.name}</p>
-                        <p class="parent-sub">📞 ${main.phone_number || '-'}</p>
+                        <p class="parent-sub"><i class="fas fa-phone"></i> ${main.phone_number || '-'}</p>
                         ${main.verified ? '<span class="status-badge verified" style="font-size:9px;padding:1px 6px;">✓</span>' : ''}
                     </div>
                 </div>
@@ -680,7 +680,7 @@ function renderTable(families, startIndex) {
                     </div>
                     <div>
                         <p class="parent-name" style="font-size:12px;">${second.name}</p>
-                        <p class="parent-sub">📞 ${second.phone_number || '-'}</p>
+                        <p class="parent-sub"><i class="fas fa-phone"></i> ${second.phone_number || '-'}</p>
                     </div>
                 </div>` : '<span style="color:#cbd5e1;font-size:12px;">—</span>'}
             </td>
@@ -692,7 +692,7 @@ function renderTable(families, startIndex) {
                     </div>
                     <div>
                         <p class="parent-name" style="font-size:12px;">${guardian.name}</p>
-                        <p class="parent-sub">📞 ${guardian.phone_number || '-'}</p>
+                        <p class="parent-sub"><i class="fas fa-phone"></i> ${guardian.phone_number || '-'}</p>
                     </div>
                 </div>` : '<span style="color:#cbd5e1;font-size:12px;">—</span>'}
             </td>

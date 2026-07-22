@@ -363,7 +363,7 @@
 {{-- Header --}}
 <div class="pg-header">
     <div class="pg-header-left">
-        <h2><span>🏫</span> Classrooms</h2>
+        <h2><span><i class="fas fa-school"></i></span> Classrooms</h2>
         <p>Manage nursery classes, view statistics and seatmaps</p>
     </div>
     <div class="pg-header-right">
@@ -384,28 +384,28 @@
 
 <div class="stats-row">
     <div class="stat-card">
-        <div class="stat-icon pink"><span>🏫</span></div>
+        <div class="stat-icon pink"><span><i class="fas fa-school"></i></span></div>
         <div class="stat-info">
             <div class="stat-number">{{ $totalClassrooms }}</div>
             <div class="stat-label">Total Classrooms</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon blue"><span>👶</span></div>
+        <div class="stat-icon blue"><span><i class="fas fa-child"></i></span></div>
         <div class="stat-info">
             <div class="stat-number">{{ $totalChildren }}</div>
             <div class="stat-label">Total Children</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon green"><span>🏫</span></div>
+        <div class="stat-icon green"><span><i class="fas fa-school"></i></span></div>
         <div class="stat-info">
             <div class="stat-number">{{ $classrooms->where('status', 'active')->count() }}</div>
             <div class="stat-label">Active Classrooms</div>
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon orange"><span>📊</span></div>
+        <div class="stat-icon orange"><span><i class="fas fa-chart-bar"></i></span></div>
         <div class="stat-info">
             <div class="stat-number">{{ $totalClassrooms > 0 ? round($totalChildren / $totalClassrooms) : 0 }}</div>
             <div class="stat-label">Avg per Class</div>
@@ -422,8 +422,8 @@
     </div>
     <select class="filter-select" id="filterStatus">
         <option value="">All Status</option>
-        <option value="active">✅ Active</option>
-        <option value="inactive">❌ Inactive</option>
+        <option value="active"><i class="fas fa-check-circle"></i> Active</option>
+        <option value="inactive"><i class="fas fa-times-circle"></i> Inactive</option>
     </select>
     <span class="record-count" id="recordCount">{{ $classrooms->count() }} classrooms</span>
 </div>
@@ -521,8 +521,8 @@
                 {{-- Status --}}
                 <td>
                     <span class="status-badge {{ $classroom->status }}">
-                        @if($classroom->status == 'active') ✅ Active
-                        @else ❌ Inactive
+                        @if($classroom->status == 'active') <i class="fas fa-check-circle"></i> Active
+                        @else <i class="fas fa-times-circle"></i> Inactive
                         @endif
                     </span>
                 </td>
@@ -551,10 +551,10 @@
             <tr>
                 <td colspan="8">
                     <div class="empty-state">
-                        <div class="empty-icon">🏫</div>
+                        <div class="empty-icon"><i class="fas fa-school"></i></div>
                         <h5>No classrooms created yet</h5>
                         <p>Start by creating your first classroom.</p>
-                        <a href="{{ route('classrooms.create') }}">➕ Create New Classroom</a>
+                        <a href="{{ route('classrooms.create') }}"><i class="fas fa-plus"></i> Create New Classroom</a>
                     </div>
                 </td>
             </tr>
@@ -618,7 +618,7 @@
             emptyRow.innerHTML = `
                 <td colspan="8">
                     <div class="empty-state" style="padding: 40px;">
-                        <div class="empty-icon">🔍</div>
+                        <div class="empty-icon"><i class="fas fa-search"></i></div>
                         <h5>No matching classrooms found</h5>
                         <p>Try adjusting your search or filter criteria</p>
                     </div>

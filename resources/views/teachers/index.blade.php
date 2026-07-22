@@ -323,7 +323,7 @@
 {{-- Header --}}
 <div class="pg-header">
     <div class="pg-header-left">
-        <h2><span>👩‍🏫</span> Our Teachers</h2>
+        <h2><span>👩‍<i class="fas fa-school"></i></span> Our Teachers</h2>
         <p>Dedicated educators shaping young minds</p>
     </div>
     <div class="pg-header-right">
@@ -346,7 +346,7 @@
 
 <div class="stat-row">
     <div class="stat-card">
-        <div class="stat-icon pink"><span>👩‍🏫</span></div>
+        <div class="stat-icon pink"><span>👩‍<i class="fas fa-school"></i></span></div>
         <div>
             <div class="stat-num">{{ $total }}</div>
             <div class="stat-label">Total Teachers</div>
@@ -367,7 +367,7 @@
         </div>
     </div>
     <div class="stat-card">
-        <div class="stat-icon blue"><span>🏫</span></div>
+        <div class="stat-icon blue"><span><i class="fas fa-school"></i></span></div>
         <div>
             <div class="stat-num">{{ $classroomsCount }}</div>
             <div class="stat-label">Classrooms</div>
@@ -384,8 +384,8 @@
     </div>
     <select class="filter-select" id="filterPosition">
         <option value="">All Positions</option>
-        <option value="Head Teacher">👩‍🏫 Head Teacher</option>
-        <option value="Senior Teacher">⭐ Senior Teacher</option>
+        <option value="Head Teacher">👩‍<i class="fas fa-school"></i> Head Teacher</option>
+        <option value="Senior Teacher"><i class="fas fa-star"></i> Senior Teacher</option>
         <option value="Class Teacher">📚 Class Teacher</option>
         <option value="Assistant Teacher">📖 Assistant Teacher</option>
         <option value="Nursery Teacher">🍼 Nursery Teacher</option>
@@ -394,8 +394,8 @@
     </select>
     <select class="filter-select" id="filterStatus">
         <option value="">All Status</option>
-        <option value="active">✅ Active</option>
-        <option value="inactive">❌ Inactive</option>
+        <option value="active"><i class="fas fa-check-circle"></i> Active</option>
+        <option value="inactive"><i class="fas fa-times-circle"></i> Inactive</option>
         <option value="on_leave">⏳ On Leave</option>
     </select>
     <span class="record-count" id="recordCount">{{ $total }} records</span>
@@ -455,12 +455,12 @@
                 {{-- Position --}}
                 <td>
                     <span class="position-badge {{ $positionClass }}">
-                        @if($positionClass == 'head') 👩‍🏫
-                        @elseif($positionClass == 'senior') ⭐
+                        @if($positionClass == 'head') 👩‍<i class="fas fa-school"></i>
+                        @elseif($positionClass == 'senior') <i class="fas fa-star"></i>
                         @elseif($positionClass == 'class') 📚
                         @elseif($positionClass == 'assistant') 📖
                         @elseif($positionClass == 'nursery') 🍼
-                        @else 👩‍🏫
+                        @else 👩‍<i class="fas fa-school"></i>
                         @endif
                         {{ $teacher->position }}
                     </span>
@@ -476,7 +476,7 @@
                 <td>
                     @if($teacher->classroom)
                         <span class="classroom-badge">
-                            🏫 {{ $teacher->classroom->name }}
+                            <i class="fas fa-school"></i> {{ $teacher->classroom->name }}
                             <span style="font-size:10px; color:#94a3b8;">({{ $teacher->classroom->code }})</span>
                         </span>
                     @else
@@ -487,8 +487,8 @@
                 {{-- Status --}}
                 <td>
                     <span class="status-badge {{ $teacher->status_color }}">
-                        @if($teacher->status == 'active') ✅ Active
-                        @elseif($teacher->status == 'inactive') ❌ Inactive
+                        @if($teacher->status == 'active') <i class="fas fa-check-circle"></i> Active
+                        @elseif($teacher->status == 'inactive') <i class="fas fa-times-circle"></i> Inactive
                         @else ⏳ On Leave
                         @endif
                     </span>
@@ -521,10 +521,10 @@
             <tr>
                 <td colspan="8">
                     <div class="empty-state">
-                        <div class="empty-icon">👩‍🏫</div>
+                        <div class="empty-icon">👩‍<i class="fas fa-school"></i></div>
                         <h5>No teachers registered yet</h5>
                         <p>Start by registering your first teacher to the nursery.</p>
-                        <a href="{{ route('teachers.create') }}">➕ Register New Teacher</a>
+                        <a href="{{ route('teachers.create') }}"><i class="fas fa-plus"></i> Register New Teacher</a>
                     </div>
                 </td>
             </tr>
@@ -582,7 +582,7 @@
             emptyRow.innerHTML = `
                 <td colspan="8">
                     <div class="empty-state" style="padding: 40px;">
-                        <div class="empty-icon">🔍</div>
+                        <div class="empty-icon"><i class="fas fa-search"></i></div>
                         <h5>No matching records found</h5>
                         <p>Try adjusting your search or filter criteria</p>
                     </div>

@@ -117,9 +117,9 @@ document.addEventListener('DOMContentLoaded',function(){
             // Check-in row
             var ciStatus=p.checkin_status||'unknown';
             var ciBadge='<span style="color:#94a3b8;">—</span>';
-            if(ciStatus==='on_time') ciBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟢 On Time</span>';
-            else if(ciStatus==='late') ciBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟡 Late</span>';
-            else if(ciStatus==='absent') ciBadge='<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🔴 Absent</span>';
+            if(ciStatus==='on_time') ciBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> On Time</span>';
+            else if(ciStatus==='late') ciBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> Late</span>';
+            else if(ciStatus==='absent') ciBadge='<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> Absent</span>';
             document.getElementById('modalCheckinStatus').innerHTML=ciBadge;
             document.getElementById('modalCheckinTime').textContent=p.checkin_time||'—';
             var ciMins=p.checkin_minutes||0;
@@ -129,10 +129,10 @@ document.addEventListener('DOMContentLoaded',function(){
             // Check-out row
             var coStatus=p.checkout_status||'unknown';
             var coBadge='<span style="color:#94a3b8;">—</span>';
-            if(coStatus==='on_time') coBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟢 On Time</span>';
-            else if(coStatus==='early') coBadge='<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🔴 Early</span>';
-            else if(coStatus==='late') coBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟡 Late</span>';
-            else if(coStatus==='not_checked_out') coBadge='<span style="background:#f3e8ff;color:#6d28d9;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟣 Not Out</span>';
+            if(coStatus==='on_time') coBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> On Time</span>';
+            else if(coStatus==='early') coBadge='<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> Early</span>';
+            else if(coStatus==='late') coBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> Late</span>';
+            else if(coStatus==='not_checked_out') coBadge='<span style="background:#f3e8ff;color:#6d28d9;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> Not Out</span>';
             document.getElementById('modalCheckoutStatus').innerHTML=coBadge;
             document.getElementById('modalCheckoutTime').textContent=p.checkout_time||'—';
             var coMins=p.checkout_minutes||0;
@@ -169,7 +169,7 @@ function closeModal(){document.getElementById('attendanceModal').classList.remov
 
         {{-- Check-in Detail --}}
         <div style="margin-top:12px;padding:12px;background:#f8fafc;border-radius:12px;">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;">📥 Check-in</div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;"><i class="fas fa-download"></i> Check-in</div>
             <table style="width:100%;font-size:12px;border-collapse:collapse;">
                 <tr>
                     <td style="padding:4px 0;color:#94a3b8;">Schedule</td>
@@ -192,7 +192,7 @@ function closeModal(){document.getElementById('attendanceModal').classList.remov
 
         {{-- Check-out Detail --}}
         <div style="margin-top:10px;padding:12px;background:#f8fafc;border-radius:12px;">
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;">📤 Check-out</div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#94a3b8;margin-bottom:8px;"><i class="fas fa-upload"></i> Check-out</div>
             <table style="width:100%;font-size:12px;border-collapse:collapse;">
                 <tr>
                     <td style="padding:4px 0;color:#94a3b8;">Schedule</td>

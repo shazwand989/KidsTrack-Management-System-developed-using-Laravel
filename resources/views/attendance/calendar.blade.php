@@ -358,7 +358,7 @@ function toMinutes(t){
 
 function showAttModal(name, classroom, date, status, ciTime, coTime, classStart, classEnd){
     document.getElementById('amName').textContent=name;
-    document.getElementById('amClass').textContent='🏫 '+classroom+' · 📅 '+date;
+    document.getElementById('amClass').textContent='<i class="fas fa-school"></i> '+classroom+' · <i class="fas fa-calendar-alt"></i> '+date;
 
     var s=status||'No record';
     var sColor='#FF6B6B';
@@ -375,10 +375,10 @@ function showAttModal(name, classroom, date, status, ciTime, coTime, classStart,
     if(ciMin!==null&&schInMin!==null&&ciTime&&classStart){
         var diff=ciMin-schInMin;
         if(diff>0){
-            ciBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟡 Late</span>';
+            ciBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> Late</span>';
             ciMins='+'+diff+'m late';
         }else{
-            ciBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟢 On Time</span>';
+            ciBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> On Time</span>';
         }
     }
     document.getElementById('amCiTime').textContent=ciTime||'—';
@@ -392,13 +392,13 @@ function showAttModal(name, classroom, date, status, ciTime, coTime, classStart,
     if(coMin!==null&&schOutMin!==null&&coTime&&classEnd){
         var coDiff=coMin-schOutMin;
         if(coDiff<0){
-            coBadge='<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🔴 Early</span>';
+            coBadge='<span style="background:#fce4ec;color:#c62828;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> Early</span>';
             coMins=Math.abs(coDiff)+'m early';
         }else if(coDiff>0){
-            coBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟡 Late</span>';
+            coBadge='<span style="background:#fff3e0;color:#e65100;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> Late</span>';
             coMins='+'+coDiff+'m late';
         }else{
-            coBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;">🟢 On Time</span>';
+            coBadge='<span style="background:#e8f5e9;color:#2e7d32;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:700;"> On Time</span>';
         }
     }
     document.getElementById('amCoTime').textContent=coTime||'—';
@@ -420,14 +420,14 @@ function closeAttModal(){document.getElementById('attModal').classList.remove('s
         <div style="display:inline-block;padding:4px 14px;border-radius:10px;font-size:12px;font-weight:700;background:#FFF5F2;color:#FF6B6B;margin-bottom:16px;" id="amStatus"></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div style="background:#f8fafc;border-radius:12px;padding:12px;text-align:center;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;">📥 Check-in</div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;"><i class="fas fa-download"></i> Check-in</div>
                 <div style="font-size:20px;font-weight:800;color:#1e293b;margin:4px 0;" id="amCiTime">—</div>
                 <div style="font-size:11px;color:#64748b;">Schedule: <span id="amCiSched" style="font-weight:700;">—</span></div>
                 <div style="margin-top:6px;" id="amCiBadge"></div>
                 <div style="font-size:11px;font-weight:700;color:#c62828;margin-top:2px;" id="amCiMins"></div>
             </div>
             <div style="background:#f8fafc;border-radius:12px;padding:12px;text-align:center;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;">📤 Check-out</div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#94a3b8;"><i class="fas fa-upload"></i> Check-out</div>
                 <div style="font-size:20px;font-weight:800;color:#1e293b;margin:4px 0;" id="amCoTime">—</div>
                 <div style="font-size:11px;color:#64748b;">Schedule: <span id="amCoSched" style="font-weight:700;">—</span></div>
                 <div style="margin-top:6px;" id="amCoBadge"></div>

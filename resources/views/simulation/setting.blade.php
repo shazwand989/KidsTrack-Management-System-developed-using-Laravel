@@ -67,7 +67,7 @@
 <div class="sim-wrap">
 
     @if(session('success'))
-        <div class="alert success">✅ {{ session('success') }}</div>
+        <div class="alert success"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
     @endif
 
     <form action="{{ route('simulation.save') }}" method="POST">
@@ -121,7 +121,7 @@
 
         <div class="btn-row">
             <a href="{{ route('simulation.dashboard') }}" class="btn-back">← Back</a>
-            <button type="submit" class="btn-save">💾 Save Settings</button>
+            <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Settings</button>
         </div>
     </form>
 

@@ -226,18 +226,18 @@
             <p>{{ $child->classroom->name ?? 'No classroom' }} • Age {{ $child->age }}</p>
             @if($child->parent)
             <p style="font-size:12px; opacity:0.85; margin-top:4px;">
-                👨‍👩‍👧 Ibu/Bapa: <strong>{{ $child->parent->name }}</strong>
+                <i class="fas fa-users"></i> Ibu/Bapa: <strong>{{ $child->parent->name }}</strong>
             </p>
             @endif
         </div>
 
         {{-- Alerts --}}
         @if(session('success'))
-        <div class="alert alert-success">✅ {{ session('success') }}</div>
+        <div class="alert alert-success"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
         @endif
 
         @if(session('error'))
-        <div class="alert alert-error">⚠️ {{ session('error') }}</div>
+        <div class="alert alert-error"><i class="fas fa-exclamation-triangle"></i> {{ session('error') }}</div>
         @endif
 
         {{-- VERIFY PHONE -- tunjuk kalau belum verified --}}
@@ -272,7 +272,7 @@
         @else
         {{-- STATUS -- tunjuk lepas verified --}}
         <div class="status-section">
-            <div class="verified-badge">✅ Identiti Disahkan</div>
+            <div class="verified-badge"><i class="fas fa-check-circle"></i> Identiti Disahkan</div>
 
             <div style="margin-top: 20px;">
                 @php
@@ -284,9 +284,9 @@
                 @endphp
 
                 @if(in_array($status, ['checkin', 'present']))
-                    <div class="status-badge status-checked-in">✅ Checked In (On Time)</div>
+                    <div class="status-badge status-checked-in"><i class="fas fa-check-circle"></i> Checked In (On Time)</div>
                     <div class="time-info">
-                        📅 Check-in: {{ $checkinTime ? date('h:i A', strtotime($checkinTime)) : '-' }}
+                        <i class="fas fa-calendar-alt"></i> Check-in: {{ $checkinTime ? date('h:i A', strtotime($checkinTime)) : '-' }}
                     </div>
                     @if($dropOffBy)
                     <div class="time-info">� Dihantar oleh: {{ $dropOffBy }}</div>
@@ -295,28 +295,28 @@
                 @elseif($status == 'late')
                     <div class="status-badge status-late">⏰ Check-in Lambat!</div>
                     <div class="time-info">
-                        📅 Check-in: {{ $checkinTime ? date('h:i A', strtotime($checkinTime)) : '-' }}
+                        <i class="fas fa-calendar-alt"></i> Check-in: {{ $checkinTime ? date('h:i A', strtotime($checkinTime)) : '-' }}
                     </div>
                     @if($dropOffBy)
-                    <div class="time-info">👤 Dihantar oleh: {{ $dropOffBy }}</div>
+                    <div class="time-info"><i class="fas fa-user"></i> Dihantar oleh: {{ $dropOffBy }}</div>
                     @endif
 
                 @elseif($status == 'checkout')
-                    <div class="status-badge status-checked-out">📤 Checked Out (On Time)</div>
+                    <div class="status-badge status-checked-out"><i class="fas fa-upload"></i> Checked Out (On Time)</div>
                     <div class="time-info">
-                        📅 Check-out: {{ $checkoutTime ? date('h:i A', strtotime($checkoutTime)) : '-' }}
+                        <i class="fas fa-calendar-alt"></i> Check-out: {{ $checkoutTime ? date('h:i A', strtotime($checkoutTime)) : '-' }}
                     </div>
                     @if($pickupBy)
-                    <div class="time-info">👤 Dijemput oleh: {{ $pickupBy }}</div>
+                    <div class="time-info"><i class="fas fa-user"></i> Dijemput oleh: {{ $pickupBy }}</div>
                     @endif
 
                 @elseif($status == 'late_checkout')
                     <div class="status-badge status-late">⏰ Check-out Lambat!</div>
                     <div class="time-info">
-                        📅 Check-out: {{ $checkoutTime ? date('h:i A', strtotime($checkoutTime)) : '-' }}
+                        <i class="fas fa-calendar-alt"></i> Check-out: {{ $checkoutTime ? date('h:i A', strtotime($checkoutTime)) : '-' }}
                     </div>
                     @if($pickupBy)
-                    <div class="time-info">👤 Dijemput oleh: {{ $pickupBy }}</div>
+                    <div class="time-info"><i class="fas fa-user"></i> Dijemput oleh: {{ $pickupBy }}</div>
                     @endif
 
                 @else
@@ -335,13 +335,13 @@
             <button class="btn btn-checkin {{ $status == 'checkin' ? 'btn-disabled' : '' }}"
                     {{ $status == 'checkin' ? 'disabled' : '' }}
                     onclick="doAction('checkin', {{ $child->id }})">
-                ✅ {{ $status == 'checkin' ? 'Dah Check In' : 'CHECK IN' }}
+                <i class="fas fa-check-circle"></i> {{ $status == 'checkin' ? 'Dah Check In' : 'CHECK IN' }}
             </button>
 
             <button class="btn btn-checkout {{ $status != 'checkin' ? 'btn-disabled' : '' }}"
                     {{ $status != 'checkin' ? 'disabled' : '' }}
                     onclick="doAction('checkout', {{ $child->id }})">
-                📤 {{ $status == 'checkout' ? 'Dah Check Out' : ($status == 'checkin' ? 'CHECK OUT' : 'Check In Dulu') }}
+                <i class="fas fa-upload"></i> {{ $status == 'checkout' ? 'Dah Check Out' : ($status == 'checkin' ? 'CHECK OUT' : 'Check In Dulu') }}
             </button>
         </div>
 
@@ -395,7 +395,7 @@ async function doAction(action, id) {
         if (data.success) {
             // Show detailed result with late/on-time status
             const msgDiv = document.getElementById('resultMsg');
-            const statusIcon = data.is_late ? '⏰' : '✅';
+            const statusIcon = data.is_late ? '⏰' : '<i class="fas fa-check-circle"></i>';
             const statusColor = data.is_late ? '#fef3c7' : '#dcfce7';
             const statusText = data.is_late ? 'LATE' : 'ON TIME';
             const statusTextColor = data.is_late ? '#d97706' : '#16a34a';
@@ -415,14 +415,14 @@ async function doAction(action, id) {
             // Reload after showing result
             setTimeout(() => { location.reload(); }, 2000);
         } else {
-            showResult(data.message || '❌ Gagal', 'error');
+            showResult(data.message || '<i class="fas fa-times-circle"></i> Gagal', 'error');
             btnCheckin.disabled = false;
             btnCheckout.disabled = false;
             btnCheckin.textContent = origIn;
             btnCheckout.textContent = origOut;
         }
     } catch (err) {
-        showResult('⚠️ Ralat sambungan. Cuba semula.', 'error');
+        showResult('<i class="fas fa-exclamation-triangle"></i> Ralat sambungan. Cuba semula.', 'error');
         btnCheckin.disabled = false;
         btnCheckout.disabled = false;
         btnCheckin.textContent = origIn;

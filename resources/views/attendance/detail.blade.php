@@ -8,15 +8,15 @@
 <div class="container">
     <div class="card">
         <div class="card-header">
-            <h3>📅 Attendance Detail - {{ $date }}</h3>
+            <h3><i class="fas fa-calendar-alt"></i> Attendance Detail - {{ $date }}</h3>
             <a href="{{ route('attendance.calendar') }}" class="btn btn-back">⬅️ Back to Calendar</a>
         </div>
 
         <div class="stats">
-            <div class="stat"><span class="num" style="color:#16a34a;">{{ $present }}</span> ✅ Present</div>
+            <div class="stat"><span class="num" style="color:#16a34a;">{{ $present }}</span> <i class="fas fa-check-circle"></i> Present</div>
             <div class="stat"><span class="num" style="color:#dc2626;">{{ $late }}</span> ⏰ Late</div>
-            <div class="stat"><span class="num" style="color:#2563eb;">{{ $checkout }}</span> 👋 Checkout</div>
-            <div class="stat"><span class="num" style="color:#d97706;">{{ $absent }}</span> ❌ Absent</div>
+            <div class="stat"><span class="num" style="color:#2563eb;">{{ $checkout }}</span> <i class="fas fa-hand-wave"></i> Checkout</div>
+            <div class="stat"><span class="num" style="color:#d97706;">{{ $absent }}</span> <i class="fas fa-times-circle"></i> Absent</div>
         </div>
 
         <table class="table">
@@ -37,13 +37,13 @@
                         <td>{{ $att->child->classroom->name ?? '-' }}</td>
                         <td>
                             @if($att->status == 'present' || $att->status == 'checkin')
-                                <span style="color:#16a34a;">✅ Present</span>
+                                <span style="color:#16a34a;"><i class="fas fa-check-circle"></i> Present</span>
                             @elseif($att->status == 'late')
                                 <span style="color:#dc2626;">⏰ Late</span>
                             @elseif($att->status == 'checkout')
-                                <span style="color:#2563eb;">👋 Checkout</span>
+                                <span style="color:#2563eb;"><i class="fas fa-hand-wave"></i> Checkout</span>
                             @else
-                                <span style="color:#d97706;">❌ Absent</span>
+                                <span style="color:#d97706;"><i class="fas fa-times-circle"></i> Absent</span>
                             @endif
                         </td>
                         <td>{{ $att->checkin_time ?? $att->checkout_time ?? '-' }}</td>

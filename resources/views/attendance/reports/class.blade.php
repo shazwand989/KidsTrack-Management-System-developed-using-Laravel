@@ -51,7 +51,7 @@
 
     {{-- Filters --}}
     <div class="rp-card">
-        <h4><i class="material-symbols-rounded" style="font-size:16px;vertical-align:middle;">filter_alt</i> Filters</h4>
+        <h4><i class="fas fa-filter"></i> Filters</h4>
         <form method="GET" class="filter-bar">
             <select name="month"><option value="">Month</option>
                 @for($m=1;$m<=12;$m++)
@@ -73,13 +73,13 @@
             <input type="date" name="date_to" value="{{ $filters['date_to']??'' }}" title="To">
             <button type="submit">Apply</button>
             <a href="?" class="btn-export csv">Reset</a>
-            <a href="{{ route('reports.class.export') }}?{{ $queryStr }}" class="btn-export csv"><i class="material-symbols-rounded" style="font-size:14px;">download</i> CSV</a>
+            <a href="{{ route('reports.class.export') }}?{{ $queryStr }}" class="btn-export csv"><i class="fas fa-download"></i> CSV</a>
         </form>
     </div>
 
     {{-- Table --}}
     <div class="rp-card">
-        <h4><i class="material-symbols-rounded" style="font-size:16px;vertical-align:middle;">table_chart</i> Class Attendance Report</h4>
+        <h4><i class="fas fa-table"></i> Class Attendance Report</h4>
         <div style="overflow-x:auto">
             <table class="rp-table">
                 <thead><tr>

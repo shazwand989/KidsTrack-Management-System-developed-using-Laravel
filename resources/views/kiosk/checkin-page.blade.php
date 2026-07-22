@@ -767,7 +767,7 @@
             <button class="nav-btn" onclick="changeDate(-1)">◀</button>
             <span class="date-label" id="dateLabel">{{ \Carbon\Carbon::parse($selectedDate ?? now())->format('d M Y (l)') }}</span>
             <button class="nav-btn" onclick="changeDate(1)">▶</button>
-            <button class="today-btn" onclick="goToToday()">📅 Hari Ini</button>
+            <button class="today-btn" onclick="goToToday()"><i class="fas fa-calendar-alt"></i> Hari Ini</button>
         </div>
 
         <!-- ============================================
@@ -781,12 +781,12 @@
             <div id="timerInfoContent">
                 @if($timerSetting)
                 <div style="text-align:center; font-weight:600; color:#065f46; margin-bottom:8px; font-size:14px; background:#d1fae5; padding:4px; border-radius:8px;">
-                    📅 {{ \Carbon\Carbon::parse($selectedDate ?? now())->format('d/m/Y') }} ({{ $now->format('l') }})
+                    <i class="fas fa-calendar-alt"></i> {{ \Carbon\Carbon::parse($selectedDate ?? now())->format('d/m/Y') }} ({{ $now->format('l') }})
                 </div>
                 <div class="timer-row">
                     <span class="slot-label">🌅 Morning (Check-in)</span>
                     <span class="slot-time">{{ $timerSetting->morning_start }} - {{ $timerSetting->morning_end }}</span>
-                    <span class="slot-status active">🟢 Aktif</span>
+                    <span class="slot-status active"> Aktif</span>
                 </div>
                 <div class="timer-row">
                     <span class="slot-label">🌙 Evening (Check-out)</span>
@@ -817,7 +817,7 @@
         🔥 WARNING BOX
         ============================================ -->
         <div class="warning-box" id="warningBox">
-            <span class="warning-icon">⚠️</span>
+            <span class="warning-icon"><i class="fas fa-exclamation-triangle"></i></span>
             <span id="warningMessage">Di luar waktu operasi!</span>
         </div>
 
@@ -833,7 +833,7 @@
 
         <div class="checked-in-list-container">
             <div class="header">
-                <span class="title">✅ Telah Check-in Hari Ini</span>
+                <span class="title"><i class="fas fa-check-circle"></i> Telah Check-in Hari Ini</span>
                 <span class="count-badge">{{ $allCheckedIn->count() }} anak</span>
             </div>
             <div class="checked-in-list-scroll">
@@ -844,10 +844,10 @@
                                 <div class="avatar-small">{{ strtoupper(substr($checkedChild->name, 0, 1)) }}</div>
                                 <div>
                                     <div class="name">{{ $checkedChild->name }}</div>
-                                    <div class="class">🏫 {{ $checkedChild->classroom->name ?? '-' }}</div>
+                                    <div class="class"><i class="fas fa-school"></i> {{ $checkedChild->classroom->name ?? '-' }}</div>
                                 </div>
                             </div>
-                            <span class="time">✅ {{ \Carbon\Carbon::parse($checkedChild->checked_in_time)->format('h:i A') }}</span>
+                            <span class="time"><i class="fas fa-check-circle"></i> {{ \Carbon\Carbon::parse($checkedChild->checked_in_time)->format('h:i A') }}</span>
                         </div>
                     @endforeach
                 @else
@@ -870,7 +870,7 @@
 
             // Allow checkout anytime after check-in
             $canCheckout = $hasCheckin && !$hasCheckout;
-            $checkoutMessage = '✅ Sedia untuk check-out';
+            $checkoutMessage = '<i class="fas fa-check-circle"></i> Sedia untuk check-out';
             $checkoutInfoClass = 'active';
             $isLateCheckout = false;
 
@@ -890,29 +890,29 @@
                     $checkoutInfoClass = 'active late';
                 } else {
                     // On-time checkout
-                    $checkoutMessage = '✅ Waktu checkout: ' . date('H:i', strtotime($timerSetting->evening_start)) . ' - ' . date('H:i', strtotime($timerSetting->evening_end));
+                    $checkoutMessage = '<i class="fas fa-check-circle"></i> Waktu checkout: ' . date('H:i', strtotime($timerSetting->evening_start)) . ' - ' . date('H:i', strtotime($timerSetting->evening_end));
                     $checkoutInfoClass = 'active';
                 }
             }
         @endphp
 
         @if($hasCheckout)
-        <div class="status-badge checkout-done">👋 Sudah Check-out</div>
-        <button class="btn-done" disabled>✅ Selesai</button>
+        <div class="status-badge checkout-done"><i class="fas fa-hand-wave"></i> Sudah Check-out</div>
+        <button class="btn-done" disabled><i class="fas fa-check-circle"></i> Selesai</button>
 
         @elseif($hasCheckin)
-        <div class="status-badge checked">✅ Sudah Check-in</div>
+        <div class="status-badge checked"><i class="fas fa-check-circle"></i> Sudah Check-in</div>
 
         <button class="btn-checkout" id="btnCheckout" onclick="submitAttendance('checkout')"
                 style="display: block;">
-            👋 Confirm Check-out
+            <i class="fas fa-hand-wave"></i> Confirm Check-out
         </button>
 
         <div class="checkout-info active" id="checkoutInfo">
             @if($isLateCheckout)
             ⏰ Late Checkout (Melebihi waktu operasi)
             @else
-            ✅ Sedia untuk check-out
+            <i class="fas fa-check-circle"></i> Sedia untuk check-out
             @endif
         </div>
 
@@ -934,7 +934,7 @@
             <textarea id="lateReasonDetail" placeholder="Sila nyatakan sebab lain (jika ada)..."></textarea>
         </div>
         @else
-        <div class="status-badge on-time">✅ On Time</div>
+        <div class="status-badge on-time"><i class="fas fa-check-circle"></i> On Time</div>
         @endif
 
         @if(isset($allChildren) && $allChildren->count() > 1)
@@ -944,31 +944,31 @@
         @endif
 
         <button class="btn-confirm" onclick="submitAttendance('checkin')" id="btnCheckin">
-            ✅ Confirm Check-in
+            <i class="fas fa-check-circle"></i> Confirm Check-in
         </button>
         @endif
 
-        <button class="btn-back" onclick="window.location.href='/kiosk'">🔙 Kembali ke Kiosk</button>
+        <button class="btn-back" onclick="window.location.href='/kiosk'"><i class="fas fa-arrow-left"></i> Kembali ke Kiosk</button>
     </div>
 
     <!-- POPUP CHECKIN SUCCESS -->
     <div class="popup-overlay" id="successPopup">
         <div class="popup-box" id="popupBox">
-            <div class="popup-icon" id="popupIcon">✅</div>
+            <div class="popup-icon" id="popupIcon"><i class="fas fa-check-circle"></i></div>
             <h2 id="popupTitle">Check-in Berjaya!</h2>
             <p class="popup-sub" id="popupSub">Anak anda telah berjaya check-in.</p>
 
             <div class="popup-child-detail" id="popupDetail">
                 <div class="child-name" id="popupChildName">🧸 Nama Anak</div>
-                <div class="child-class" id="popupChildClass">🏫 Kelas</div>
+                <div class="child-class" id="popupChildClass"><i class="fas fa-school"></i> Kelas</div>
             </div>
 
             <div class="popup-checked-list">
-                <div class="list-title">📋 Anak yang telah check-in hari ini</div>
+                <div class="list-title"><i class="fas fa-clipboard-list"></i> Anak yang telah check-in hari ini</div>
                 <div id="popupCheckedItems"></div>
             </div>
 
-            <div class="popup-status on-time" id="popupStatus">✅ On Time</div>
+            <div class="popup-status on-time" id="popupStatus"><i class="fas fa-check-circle"></i> On Time</div>
             <div class="popup-time" id="popupTime">🕐 Masa: --:--</div>
 
             <div class="popup-btn-group">
@@ -985,7 +985,7 @@
     <!-- POPUP BULK CHECKIN -->
     <div class="popup-overlay" id="bulkSuccessPopup">
         <div class="popup-box">
-            <div class="popup-icon">✅</div>
+            <div class="popup-icon"><i class="fas fa-check-circle"></i></div>
             <h2>Check-in Berjaya!</h2>
             <p class="popup-sub" id="bulkPopupSub">Semua anak telah berjaya check-in.</p>
             <div id="bulkResults"></div>
@@ -1018,13 +1018,13 @@
         let currentSlot = null;
         let isSubmitting = false; // 🔥 Prevent double submission
 
-        console.log('🔍 Initial canCheckout from PHP:', canCheckout);
-        console.log('🔍 hasCheckin:', hasCheckin);
-        console.log('🔍 hasCheckout:', hasCheckout);
+        console.log('<i class="fas fa-search"></i> Initial canCheckout from PHP:', canCheckout);
+        console.log('<i class="fas fa-search"></i> hasCheckin:', hasCheckin);
+        console.log('<i class="fas fa-search"></i> hasCheckout:', hasCheckout);
 
         // 🔥 IMMEDIATE: If already checked in/out, handle properly
         if (hasCheckout) {
-            updateCheckinStatus('closed', '👋 Sudah Check-out', 'Anak ini sudah check-out hari ini');
+            updateCheckinStatus('closed', '<i class="fas fa-hand-wave"></i> Sudah Check-out', 'Anak ini sudah check-out hari ini');
             document.getElementById('btnCheckin')?.setAttribute('disabled', 'disabled');
             document.getElementById('btnCheckinAll')?.setAttribute('disabled', 'disabled');
             document.getElementById('btnCheckin') && (document.getElementById('btnCheckin').style.display = 'none');
@@ -1034,7 +1034,7 @@
             if (btn) btn.style.display = 'none';
             if (btnDisabled) btnDisabled.style.display = 'none';
         } else if (hasCheckin && !hasCheckout) {
-            updateCheckinStatus('closed', '✅ Sudah Check-in', 'Sila checkout untuk balik');
+            updateCheckinStatus('closed', '<i class="fas fa-check-circle"></i> Sudah Check-in', 'Sila checkout untuk balik');
             document.getElementById('btnCheckin')?.setAttribute('disabled', 'disabled');
             document.getElementById('btnCheckinAll')?.setAttribute('disabled', 'disabled');
             canCheckout = true;
@@ -1061,29 +1061,29 @@
             const eveningStartInt = parseInt(eveningStart.replace(':', ''));
             const eveningEndInt = parseInt(eveningEnd.replace(':', ''));
 
-            console.log('🔍 Checking checkout - currentTime:', currentTime, 'eveningStart:', eveningStartInt, 'eveningEnd:', eveningEndInt);
-            console.log('🔍 hasCheckin:', hasCheckin, 'hasCheckout:', hasCheckout);
+            console.log('<i class="fas fa-search"></i> Checking checkout - currentTime:', currentTime, 'eveningStart:', eveningStartInt, 'eveningEnd:', eveningEndInt);
+            console.log('<i class="fas fa-search"></i> hasCheckin:', hasCheckin, 'hasCheckout:', hasCheckout);
 
             // 🔥🔥🔥 TETAPKAN canCheckout — BOLEH CHECKOUT BILA-BILA SELEPAS CHECKIN 🔥🔥🔥
             if (hasCheckout) {
                 canCheckout = false;
-                console.log('❌ canCheckout = FALSE (Sudah checkout)');
+                console.log('<i class="fas fa-times-circle"></i> canCheckout = FALSE (Sudah checkout)');
             } else if (hasCheckin) {
                 // Allow checkout anytime after check-in
                 canCheckout = true;
                 if (currentTime >= eveningStartInt && currentTime <= eveningEndInt) {
                     isLateCheckout = false;
-                    console.log('✅ canCheckout = TRUE (On-time checkout)');
+                    console.log('<i class="fas fa-check-circle"></i> canCheckout = TRUE (On-time checkout)');
                 } else if (currentTime > eveningEndInt) {
                     isLateCheckout = true;
-                    console.log('✅ canCheckout = TRUE (Late Checkout)');
+                    console.log('<i class="fas fa-check-circle"></i> canCheckout = TRUE (Late Checkout)');
                 } else {
                     isLateCheckout = false;
-                    console.log('✅ canCheckout = TRUE (Early Checkout)');
+                    console.log('<i class="fas fa-check-circle"></i> canCheckout = TRUE (Early Checkout)');
                 }
             } else {
                 canCheckout = false;
-                console.log('❌ canCheckout = FALSE (Belum check-in)');
+                console.log('<i class="fas fa-times-circle"></i> canCheckout = FALSE (Belum check-in)');
             }
 
             // 🔥 UPDATE UI BUTTON CHECKOUT
@@ -1098,12 +1098,12 @@
             const checkoutDisabled = document.getElementById('btnCheckoutDisabled');
             const checkoutInfo = document.getElementById('checkoutInfo');
 
-            console.log('🔍 updateCheckoutButton - canCheckout:', canCheckout);
-            console.log('🔍 checkoutBtn exists:', !!checkoutBtn);
-            console.log('🔍 checkoutDisabled exists:', !!checkoutDisabled);
+            console.log('<i class="fas fa-search"></i> updateCheckoutButton - canCheckout:', canCheckout);
+            console.log('<i class="fas fa-search"></i> checkoutBtn exists:', !!checkoutBtn);
+            console.log('<i class="fas fa-search"></i> checkoutDisabled exists:', !!checkoutDisabled);
 
             if (!checkoutBtn && !checkoutDisabled) {
-                console.log('⚠️ No checkout button found');
+                console.log('<i class="fas fa-exclamation-triangle"></i> No checkout button found');
                 return;
             }
 
@@ -1112,7 +1112,7 @@
                 if (checkoutBtn) {
                     checkoutBtn.style.display = 'block';
                     checkoutBtn.disabled = false;
-                    console.log('✅ Checkout button ENABLED');
+                    console.log('<i class="fas fa-check-circle"></i> Checkout button ENABLED');
                 }
                 if (checkoutDisabled) {
                     checkoutDisabled.style.display = 'none';
@@ -1122,7 +1122,7 @@
                         checkoutInfo.textContent = '⏰ Late Checkout (Melebihi waktu operasi)';
                         checkoutInfo.className = 'checkout-info active late';
                     } else {
-                        checkoutInfo.textContent = '✅ Waktu checkout: ' + eveningStart + ' - ' + eveningEnd;
+                        checkoutInfo.textContent = '<i class="fas fa-check-circle"></i> Waktu checkout: ' + eveningStart + ' - ' + eveningEnd;
                         checkoutInfo.className = 'checkout-info active';
                     }
                 }
@@ -1130,12 +1130,12 @@
                 // 🔥 Tunjuk button disabled
                 if (checkoutBtn) {
                     checkoutBtn.style.display = 'none';
-                    console.log('❌ Checkout button HIDDEN');
+                    console.log('<i class="fas fa-times-circle"></i> Checkout button HIDDEN');
                 }
                 if (checkoutDisabled) {
                     checkoutDisabled.style.display = 'block';
                     checkoutDisabled.disabled = true;
-                    console.log('❌ Checkout disabled button SHOWN');
+                    console.log('<i class="fas fa-times-circle"></i> Checkout disabled button SHOWN');
                 }
                 if (checkoutInfo) {
                     checkoutInfo.textContent = '🕐 Checkout bermula pada ' + eveningStart;
@@ -1174,13 +1174,13 @@
                         checkCheckoutStatus();
                     } else {
                         document.getElementById('timerInfoContent').innerHTML =
-                            '<div class="no-timer">⚠️ Gagal memuat waktu operasi</div>';
+                            '<div class="no-timer"><i class="fas fa-exclamation-triangle"></i> Gagal memuat waktu operasi</div>';
                     }
                 })
                 .catch(error => {
                     console.error('Error loading timer info:', error);
                     document.getElementById('timerInfoContent').innerHTML =
-                        '<div class="no-timer">⚠️ Ralat memuat waktu operasi</div>';
+                        '<div class="no-timer"><i class="fas fa-exclamation-triangle"></i> Ralat memuat waktu operasi</div>';
                 });
         }
 
@@ -1197,7 +1197,7 @@
 
             if (!timer) {
                 document.getElementById('timerInfoContent').innerHTML =
-                    '<div class="no-timer">📅 Tiada waktu operasi untuk ' + selectedDay + '</div>';
+                    '<div class="no-timer"><i class="fas fa-calendar-alt"></i> Tiada waktu operasi untuk ' + selectedDay + '</div>';
                 return;
             }
 
@@ -1219,7 +1219,7 @@
             if (eveningStartLocal !== '--:--' && eveningEndLocal !== '--:--') {
                 eveningStart = eveningStartLocal;
                 eveningEnd = eveningEndLocal;
-                console.log('🔍 Evening slot updated:', eveningStart, '-', eveningEnd);
+                console.log('<i class="fas fa-search"></i> Evening slot updated:', eveningStart, '-', eveningEnd);
 
                 // 🔥🔥🔥 CHECK CHECKOUT STATUS SELEPAS DAPAT TIMER 🔥🔥🔥
                 checkCheckoutStatus();
@@ -1247,7 +1247,7 @@
 
             function getStatusLabel(status) {
                 const map = {
-                    'active': '🟢 Aktif',
+                    'active': ' Aktif',
                     'soon': '⏳ Akan Datang',
                     'closed': '🔒 Tutup'
                 };
@@ -1265,7 +1265,7 @@
 
             let html = `
                 <div style="text-align:center; font-weight:600; color:#065f46; margin-bottom:8px; font-size:14px; background:#d1fae5; padding:4px; border-radius:8px;">
-                    📅 ${selectedDate} (${selectedDay})
+                    <i class="fas fa-calendar-alt"></i> ${selectedDate} (${selectedDay})
                 </div>
                 <div class="timer-row">
                     <span class="slot-label">🌅 Morning (Check-in)</span>
@@ -1337,7 +1337,7 @@
             }
 
             if (!timer) {
-                updateCheckinStatus('closed', '📅 Tiada waktu operasi', 'Sila hubungi admin');
+                updateCheckinStatus('closed', '<i class="fas fa-calendar-alt"></i> Tiada waktu operasi', 'Sila hubungi admin');
                 return;
             }
 
@@ -1366,14 +1366,14 @@
             const isEvening = isInSlot(eveningStartLocal, eveningEndLocal);
 
             if (hasCheckout) {
-                updateCheckinStatus('closed', '👋 Sudah Check-out', 'Anak ini sudah check-out hari ini');
+                updateCheckinStatus('closed', '<i class="fas fa-hand-wave"></i> Sudah Check-out', 'Anak ini sudah check-out hari ini');
                 document.getElementById('btnCheckin')?.setAttribute('disabled', 'disabled');
                 document.getElementById('btnCheckinAll')?.setAttribute('disabled', 'disabled');
                 return;
             }
 
             if (hasCheckin) {
-                updateCheckinStatus('closed', '✅ Sudah Check-in', 'Sila checkout untuk balik');
+                updateCheckinStatus('closed', '<i class="fas fa-check-circle"></i> Sudah Check-in', 'Sila checkout untuk balik');
                 document.getElementById('btnCheckin')?.setAttribute('disabled', 'disabled');
                 document.getElementById('btnCheckinAll')?.setAttribute('disabled', 'disabled');
                 // 🔥 Enable checkout always when already checked in
@@ -1391,11 +1391,11 @@
 
                 if (isLateCheck) {
                     updateCheckinStatus('late', '⏰ Check-in Late!', 'Melebihi waktu yang ditetapkan');
-                    showWarning('⚠️ Anda check-in lewat! Sila beri alasan.');
+                    showWarning('<i class="fas fa-exclamation-triangle"></i> Anda check-in lewat! Sila beri alasan.');
                     document.getElementById('lateReasonSection')?.classList.add('show');
                     isLate = true;
                 } else {
-                    updateCheckinStatus('on-time', '✅ Check-in On Time', 'Dalam waktu yang ditetapkan');
+                    updateCheckinStatus('on-time', '<i class="fas fa-check-circle"></i> Check-in On Time', 'Dalam waktu yang ditetapkan');
                     hideWarning();
                     document.getElementById('lateReasonSection')?.classList.remove('show');
                     isLate = false;
@@ -1412,7 +1412,7 @@
             } else {
                 // 🔥 OUTSIDE ANY SLOT → ALLOW LATE CHECK-IN
                 updateCheckinStatus('late', '⏰ Check-in Late!', 'Di luar waktu operasi — late check-in dibenarkan');
-                showWarning('⚠️ Anda check-in lewat! Di luar waktu operasi.');
+                showWarning('<i class="fas fa-exclamation-triangle"></i> Anda check-in lewat! Di luar waktu operasi.');
                 document.getElementById('lateReasonSection')?.classList.add('show');
                 isLate = true;
                 document.getElementById('btnCheckin')?.removeAttribute('disabled');
@@ -1433,7 +1433,7 @@
 
             if (type === 'on-time') {
                 box.classList.add('on-time');
-                icon.textContent = '✅';
+                icon.textContent = '<i class="fas fa-check-circle"></i>';
                 statusText.className = 'status-text on-time';
                 statusText.textContent = text;
             } else if (type === 'late') {
@@ -1468,19 +1468,19 @@
         // 🔥 SUBMIT ATTENDANCE
         // ============================================
         function submitAttendance(action) {
-            if (isSubmitting) { console.log('⚠️ Already submitting, ignored'); return; }
+            if (isSubmitting) { console.log('<i class="fas fa-exclamation-triangle"></i> Already submitting, ignored'); return; }
             isSubmitting = true;
 
             // 🔥 Immediately disable ALL buttons
             document.querySelectorAll('button').forEach(b => { b.disabled = true; b.style.opacity = '0.6'; });
 
-            console.log('🔍 submitAttendance called - action:', action);
-            console.log('🔍 canCheckout:', canCheckout);
-            console.log('🔍 hasCheckin:', hasCheckin);
+            console.log('<i class="fas fa-search"></i> submitAttendance called - action:', action);
+            console.log('<i class="fas fa-search"></i> canCheckout:', canCheckout);
+            console.log('<i class="fas fa-search"></i> hasCheckin:', hasCheckin);
 
             if (action == 'checkout') {
                 if (!hasCheckin) {
-                    alert('⚠️ Anak ini belum check-in hari ini! Sila check-in dahulu.');
+                    alert('<i class="fas fa-exclamation-triangle"></i> Anak ini belum check-in hari ini! Sila check-in dahulu.');
                     return;
                 }
                 if (!canCheckout) {
@@ -1495,7 +1495,7 @@
                 const select = document.getElementById('lateReasonSelect');
                 const detail = document.getElementById('lateReasonDetail');
                 if (!select.value) {
-                    alert('⚠️ Sila pilih sebab anda lewat!');
+                    alert('<i class="fas fa-exclamation-triangle"></i> Sila pilih sebab anda lewat!');
                     select.focus();
                     return;
                 }
@@ -1548,23 +1548,23 @@
                             action: action,
                             is_auto: data.is_auto || false
                         });
-                        if (btn) btn.innerHTML = '✅ Berjaya!';
+                        if (btn) btn.innerHTML = '<i class="fas fa-check-circle"></i> Berjaya!';
 
                         setTimeout(() => { window.location.reload(); }, 2500);
                     } else {
-                        alert('❌ ' + data.message);
+                        alert('<i class="fas fa-times-circle"></i> ' + data.message);
                         if (btn) {
                             btn.disabled = false;
-                            btn.innerHTML = action == 'checkin' ? '✅ Confirm Check-in' : '👋 Confirm Check-out';
+                            btn.innerHTML = action == 'checkin' ? '<i class="fas fa-check-circle"></i> Confirm Check-in' : '<i class="fas fa-hand-wave"></i> Confirm Check-out';
                         }
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('❌ Ralat: ' + error.message);
+                    alert('<i class="fas fa-times-circle"></i> Ralat: ' + error.message);
                     if (btn) {
                         btn.disabled = false;
-                        btn.innerHTML = action == 'checkin' ? '✅ Confirm Check-in' : '👋 Confirm Check-out';
+                        btn.innerHTML = action == 'checkin' ? '<i class="fas fa-check-circle"></i> Confirm Check-in' : '<i class="fas fa-hand-wave"></i> Confirm Check-out';
                     }
                 });
         }
@@ -1600,16 +1600,16 @@
                 .then(data => {
                     if (data.success) {
                         showBulkPopup(data);
-                        btn.textContent = '✅ Selesai!';
+                        btn.textContent = '<i class="fas fa-check-circle"></i> Selesai!';
                     } else {
-                        alert('❌ ' + data.message);
+                        alert('<i class="fas fa-times-circle"></i> ' + data.message);
                         btn.disabled = false;
                         btn.textContent = '⚡ Check-in Semua ({{ $allChildren->count() ?? 0 }})';
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('❌ Ralat: ' + error.message);
+                    alert('<i class="fas fa-times-circle"></i> Ralat: ' + error.message);
                     btn.disabled = false;
                     btn.textContent = '⚡ Check-in Semua ({{ $allChildren->count() ?? 0 }})';
                 });
@@ -1624,7 +1624,7 @@
 
             let html = `
                 <div class="result-stats">
-                    <span class="stat checked">✅ ${data.checked_count || 0} Checked In</span>
+                    <span class="stat checked"><i class="fas fa-check-circle"></i> ${data.checked_count || 0} Checked In</span>
                     ${data.late_count > 0 ? `<span class="stat late">⏰ ${data.late_count} Late</span>` : ''}
                     ${data.already_count > 0 ? `<span class="stat already">📌 ${data.already_count} Already</span>` : ''}
                 </div>
@@ -1635,7 +1635,7 @@
                     let statusText = '';
                     let statusClass = '';
                     if (item.status === 'checked_in') {
-                        statusText = '✅ Checked In';
+                        statusText = '<i class="fas fa-check-circle"></i> Checked In';
                         statusClass = 'checked_in';
                     } else if (item.status === 'late') {
                         statusText = '⏰ Late';
@@ -1680,9 +1680,9 @@
             popupTitle.className = '';
 
             if (data.action == 'checkin') {
-                popupTitle.textContent = '✅ Check-in Berjaya!';
+                popupTitle.textContent = '<i class="fas fa-check-circle"></i> Check-in Berjaya!';
                 popupSub.textContent = 'Anak anda telah berjaya check-in.';
-                popupIcon.textContent = '✅';
+                popupIcon.textContent = '<i class="fas fa-check-circle"></i>';
             } else {
                 if (data.is_auto) {
                     popupTitle.textContent = '🤖 Auto Check-out Berjaya!';
@@ -1693,14 +1693,14 @@
                     popupBtn.classList.add('auto-checkout-btn');
                     popupTitle.className = 'auto-checkout';
                 } else {
-                    popupTitle.textContent = '👋 Check-out Berjaya!';
+                    popupTitle.textContent = '<i class="fas fa-hand-wave"></i> Check-out Berjaya!';
                     popupSub.textContent = 'Anak anda telah berjaya check-out.';
-                    popupIcon.textContent = '👋';
+                    popupIcon.textContent = '<i class="fas fa-hand-wave"></i>';
                 }
             }
 
             document.getElementById('popupChildName').textContent = '🧸 ' + data.child_name;
-            document.getElementById('popupChildClass').textContent = '🏫 ' + data.child_class;
+            document.getElementById('popupChildClass').textContent = '<i class="fas fa-school"></i> ' + data.child_class;
 
             renderCheckedInList();
 
@@ -1712,7 +1712,7 @@
                     popupStatus.textContent = '🤖 Auto Checkout';
                     popupStatus.className = 'popup-status auto-checkout-status';
                 } else {
-                    popupStatus.textContent = '✅ On Time';
+                    popupStatus.textContent = '<i class="fas fa-check-circle"></i> On Time';
                     popupStatus.className = 'popup-status on-time';
                 }
             }
@@ -1740,8 +1740,8 @@
             checkedInChildren.forEach(child => {
                 html += `
                     <div class="popup-checked-item">
-                        <span class="name">👶 ${child.name}</span>
-                        <span class="time">✅ ${child.time}</span>
+                        <span class="name"><i class="fas fa-child"></i> ${child.name}</span>
+                        <span class="time"><i class="fas fa-check-circle"></i> ${child.time}</span>
                     </div>
                 `;
             });
@@ -1783,7 +1783,7 @@
                 loadTimerInfo();
                 checkCheckoutStatus();
             }, 30000);
-            console.log('✅ Page loaded - waiting for timer info...');
+            console.log('<i class="fas fa-check-circle"></i> Page loaded - waiting for timer info...');
         });
     </script>
 

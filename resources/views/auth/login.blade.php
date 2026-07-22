@@ -226,7 +226,7 @@
 
     <div class="right">
 
-        <h2>Welcome Back 👋</h2>
+        <h2>Welcome Back <i class="fas fa-hand-wave"></i></h2>
         <p class="subtitle">Please select your role and login to continue.</p>
 
         @if(session('error'))

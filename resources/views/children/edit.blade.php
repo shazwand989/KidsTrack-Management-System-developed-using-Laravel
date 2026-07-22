@@ -415,7 +415,7 @@
 
     {{-- DEBUG BOX --}}
     <div class="debug-box" style="display:none;">
-        <strong>🔍 Family Links:</strong><br>
+        <strong><i class="fas fa-search"></i> Family Links:</strong><br>
         Main Parent: {{ $child->parent?->name ?? 'None' }} (ID: {{ $child->parent?->id ?? 'N/A' }})<br>
         Second Parent: {{ $child->secondParent?->name ?? 'None' }} (ID: {{ $child->secondParent?->id ?? 'N/A' }})<br>
         Guardian: {{ $child->guardian?->name ?? 'None' }} (ID: {{ $child->guardian?->id ?? 'N/A' }})
@@ -423,7 +423,7 @@
 
     {{-- Breadcrumb --}}
     <div class="rg-breadcrumb">
-        <a href="{{ route('children.index') }}">👶 Children</a>
+        <a href="{{ route('children.index') }}"><i class="fas fa-child"></i> Children</a>
         <span class="sep">›</span>
         <a href="{{ route('children.show', hash_id($child->id)) }}">{{ $child->name }}</a>
         <span class="sep">›</span>
@@ -440,7 +440,7 @@
     {{-- Error Alerts --}}
     @if($errors->any())
     <div class="alert-error">
-        <strong>⚠️ Please fix the following errors:</strong>
+        <strong><i class="fas fa-exclamation-triangle"></i> Please fix the following errors:</strong>
         <ul>
             @foreach($errors->all() as $error)
                 <li>{{ $error }}</li>
@@ -456,7 +456,7 @@
     {{-- CHILD INFORMATION --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>👶</span> Child Information
+            <span><i class="fas fa-child"></i></span> Child Information
         </div>
 
         <div class="card-inner">
@@ -465,11 +465,11 @@
                     @if($child->photo)
                         <img src="{{ asset('storage/'.$child->photo) }}" alt="">
                     @else
-                        <span>👶</span>
+                        <span><i class="fas fa-child"></i></span>
                     @endif
                 </div>
                 <div class="upload-zone" onclick="document.getElementById('childPhoto').click()">
-                    <span>📸</span>
+                    <span><i class="fas fa-camera"></i></span>
                     <p>Change Photo</p>
                     <small>JPG/PNG · 2MB</small>
                 </div>
@@ -509,7 +509,7 @@
                 <div class="rg-group">
                     <label class="rg-label">Home Address</label>
                     <div style="padding:10px 14px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;color:#475569;font-size:13px;">
-                        📍 {{ $child->parent->address ?? 'No address set for parent' }}
+                        <i class="fas fa-map-marker-alt"></i> {{ $child->parent->address ?? 'No address set for parent' }}
                     </div>
                     <small style="color:#94a3b8;font-size:11px;display:block;margin-top:4px;">Address is managed from parent profile.</small>
                 </div>
@@ -520,14 +520,14 @@
     {{-- CLASSROOM ASSIGNMENT --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>🏫</span> Classroom Assignment
+            <span><i class="fas fa-school"></i></span> Classroom Assignment
         </div>
 
         <div class="classroom-grid" id="classroomGrid">
             @foreach($classrooms as $classroom)
             <label class="classroom-option {{ old('classroom_id', $child->classroom_id) == $classroom->id ? 'selected' : '' }}">
                 <input type="radio" name="classroom_id" value="{{ $classroom->id }}" {{ old('classroom_id', $child->classroom_id) == $classroom->id ? 'checked' : '' }}>
-                <span class="classroom-icon">🏫</span>
+                <span class="classroom-icon"><i class="fas fa-school"></i></span>
                 <div class="classroom-name">{{ $classroom->name }}</div>
                 <div class="classroom-age">Age: {{ $classroom->min_age }}-{{ $classroom->max_age }} yrs</div>
                 <div class="classroom-age">Code: {{ $classroom->code }}</div>
@@ -540,7 +540,7 @@
     {{-- PARENT & GUARDIAN ASSIGNMENT --}}
     <div class="rg-card">
         <div class="rg-section-title">
-            <span>👨‍👩‍👧‍👦</span> Parent & Guardian Assignment
+            <span><i class="fas fa-users"></i></span> Parent & Guardian Assignment
         </div>
 
         {{-- Main Parent --}}
@@ -554,7 +554,7 @@
                         @elseif($child->parent)
                             <span>{{ strtoupper(substr($child->parent->name, 0, 1)) }}</span>
                         @else
-                            <span>👤</span>
+                            <span><i class="fas fa-user"></i></span>
                         @endif
                     </div>
                     <div class="guardian-info">
@@ -563,10 +563,10 @@
                         </div>
                         <div class="guardian-detail" id="parentDetail">
                             @if($child->parent)
-                                <span>📞 {{ $child->parent->phone_number }}</span>
+                                <span><i class="fas fa-phone"></i> {{ $child->parent->phone_number }}</span>
                                 <span class="guardian-badge">Main Parent</span>
                             @else
-                                <span>📞 Click to select</span>
+                                <span><i class="fas fa-phone"></i> Click to select</span>
                             @endif
                         </div>
                     </div>
@@ -585,12 +585,12 @@
                         <div class="option-info">
                             <div class="option-name">{{ $parent->name }}</div>
                             <div class="option-detail">
-                                📞 {{ $parent->phone_number }}
+                                <i class="fas fa-phone"></i> {{ $parent->phone_number }}
                                 @if($parent->verified)
-                                <span class="option-badge">✅ Verified</span>
+                                <span class="option-badge"><i class="fas fa-check-circle"></i> Verified</span>
                                 @endif
                                 @if($parent->emergency)
-                                <span class="option-badge">⚠️ Emergency</span>
+                                <span class="option-badge"><i class="fas fa-exclamation-triangle"></i> Emergency</span>
                                 @endif
                             </div>
                         </div>
@@ -613,7 +613,7 @@
                         @elseif($child->secondParent)
                             <span>{{ strtoupper(substr($child->secondParent->name, 0, 1)) }}</span>
                         @else
-                            <span>👤</span>
+                            <span><i class="fas fa-user"></i></span>
                         @endif
                     </div>
                     <div class="guardian-info">
@@ -622,10 +622,10 @@
                         </div>
                         <div class="guardian-detail" id="secondParentDetail">
                             @if($child->secondParent)
-                                <span>📞 {{ $child->secondParent->phone_number }}</span>
+                                <span><i class="fas fa-phone"></i> {{ $child->secondParent->phone_number }}</span>
                                 <span class="guardian-badge">Second Parent</span>
                             @else
-                                <span>📞 Please select main parent first</span>
+                                <span><i class="fas fa-phone"></i> Please select main parent first</span>
                             @endif
                         </div>
                     </div>
@@ -667,10 +667,10 @@
                         </div>
                         <div class="guardian-detail" id="guardianDetail">
                             @if($child->guardian)
-                                <span>📞 {{ $child->guardian->phone_number }}</span>
+                                <span><i class="fas fa-phone"></i> {{ $child->guardian->phone_number }}</span>
                                 <span class="guardian-badge">Guardian</span>
                             @else
-                                <span>📞 Please select main parent first</span>
+                                <span><i class="fas fa-phone"></i> Please select main parent first</span>
                             @endif
                         </div>
                     </div>
@@ -727,11 +727,11 @@
             @csrf
             @method('PUT')
             <button type="submit" class="btn-update">
-                <span>💾</span> Update Child
+                <span><i class="fas fa-save"></i></span> Update Child
             </button>
         </form>
         <a href="{{ route('children.show', hash_id($child->id)) }}" class="btn-cancel">
-            <span>✖️</span> Cancel
+            <span><i class="fas fa-times"></i></span> Cancel
         </a>
         <form action="{{ route('children.destroy', hash_id($child->id)) }}" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete {{ $child->name }}? This action cannot be undone.')">
             @csrf
@@ -814,7 +814,7 @@
     function selectParent(id, name, phone, photo, parentId) {
         document.getElementById('parent_id').value = id;
         document.getElementById('parentName').innerHTML = name;
-        document.getElementById('parentDetail').innerHTML = `<span>📞 ${phone}</span><span class="guardian-badge">Main Parent</span>`;
+        document.getElementById('parentDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${phone}</span><span class="guardian-badge">Main Parent</span>`;
 
         const avatarDiv = document.getElementById('parentAvatar');
         if (photo) {
@@ -852,13 +852,13 @@
                         <div class="option-avatar">${photoHtml}</div>
                         <div class="option-info">
                             <div class="option-name">${sp.name}</div>
-                            <div class="option-detail">📞 ${phone}</div>
+                            <div class="option-detail"><i class="fas fa-phone"></i> ${phone}</div>
                         </div>
                     </div>
                 `;
             });
             listContainer.innerHTML = html;
-            hint.innerHTML = '✅ ' + filtered.length + ' Second Parent(s) available for this Main Parent.';
+            hint.innerHTML = '<i class="fas fa-check-circle"></i> ' + filtered.length + ' Second Parent(s) available for this Main Parent.';
         } else {
             listContainer.innerHTML = `
                 <div class="guardian-option" style="cursor:default; opacity:0.6;">
@@ -877,8 +877,8 @@
         if (!stillValid && currentSecondParentId) {
             document.getElementById('second_parent_id').value = '';
             document.getElementById('secondParentName').innerHTML = '-- Select Second Parent --';
-            document.getElementById('secondParentDetail').innerHTML = '<span>📞 Click to select</span>';
-            document.getElementById('secondParentAvatar').innerHTML = '<span>👤</span>';
+            document.getElementById('secondParentDetail').innerHTML = '<span><i class="fas fa-phone"></i> Click to select</span>';
+            document.getElementById('secondParentAvatar').innerHTML = '<span><i class="fas fa-user"></i></span>';
         }
     }
 
@@ -905,13 +905,13 @@
                         <div class="option-avatar">${photoHtml}</div>
                         <div class="option-info">
                             <div class="option-name">${g.name}</div>
-                            <div class="option-detail">📞 ${phone}</div>
+                            <div class="option-detail"><i class="fas fa-phone"></i> ${phone}</div>
                         </div>
                     </div>
                 `;
             });
             listContainer.innerHTML = html;
-            hint.innerHTML = '✅ ' + filtered.length + ' Guardian(s) available for this Main Parent.';
+            hint.innerHTML = '<i class="fas fa-check-circle"></i> ' + filtered.length + ' Guardian(s) available for this Main Parent.';
         } else {
             listContainer.innerHTML = `
                 <div class="guardian-option" style="cursor:default; opacity:0.6;">
@@ -930,7 +930,7 @@
         if (!stillValid && currentGuardianId) {
             document.getElementById('guardian_id').value = '';
             document.getElementById('guardianName').innerHTML = '-- Select Guardian --';
-            document.getElementById('guardianDetail').innerHTML = '<span>📞 Click to select</span>';
+            document.getElementById('guardianDetail').innerHTML = '<span><i class="fas fa-phone"></i> Click to select</span>';
             document.getElementById('guardianAvatar').innerHTML = '<span>🛡️</span>';
         }
     }
@@ -945,7 +945,7 @@ function selectSecondParent(id, name, phone, photo) {
     if (sp) {
         // 🔥🔥🔥 GUNA sp.parent_id (BUKAN sp.id!) 🔥🔥🔥
         document.getElementById('second_parent_id').value = sp.parent_id;
-        console.log('✅ Second Parent selected:', {
+        console.log('<i class="fas fa-check-circle"></i> Second Parent selected:', {
             id: sp.id,
             parent_id: sp.parent_id,
             name: sp.name
@@ -956,11 +956,11 @@ function selectSecondParent(id, name, phone, photo) {
 
     if (id === '' || !sp) {
         document.getElementById('secondParentName').innerHTML = '-- None / Skip --';
-        document.getElementById('secondParentDetail').innerHTML = '<span>📞 No second parent selected</span>';
-        document.getElementById('secondParentAvatar').innerHTML = '<span>👤</span>';
+        document.getElementById('secondParentDetail').innerHTML = '<span><i class="fas fa-phone"></i> No second parent selected</span>';
+        document.getElementById('secondParentAvatar').innerHTML = '<span><i class="fas fa-user"></i></span>';
     } else {
         document.getElementById('secondParentName').innerHTML = name;
-        document.getElementById('secondParentDetail').innerHTML = `<span>📞 ${phone}</span><span class="guardian-badge">Second Parent</span>`;
+        document.getElementById('secondParentDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${phone}</span><span class="guardian-badge">Second Parent</span>`;
         const avatarDiv = document.getElementById('secondParentAvatar');
         if (photo) {
             avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
@@ -978,11 +978,11 @@ function selectSecondParent(id, name, phone, photo) {
         document.getElementById('guardian_id').value = id;
         if (id === '') {
             document.getElementById('guardianName').innerHTML = '-- None / Skip --';
-            document.getElementById('guardianDetail').innerHTML = '<span>📞 No guardian selected</span>';
+            document.getElementById('guardianDetail').innerHTML = '<span><i class="fas fa-phone"></i> No guardian selected</span>';
             document.getElementById('guardianAvatar').innerHTML = '<span>🛡️</span>';
         } else {
             document.getElementById('guardianName').innerHTML = name;
-            document.getElementById('guardianDetail').innerHTML = `<span>📞 ${phone}</span><span class="guardian-badge">Guardian</span>`;
+            document.getElementById('guardianDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${phone}</span><span class="guardian-badge">Guardian</span>`;
             const avatarDiv = document.getElementById('guardianAvatar');
             if (photo) {
                 avatarDiv.innerHTML = `<img src="/storage/${photo}" alt="">`;
@@ -1007,7 +1007,7 @@ function selectSecondParent(id, name, phone, photo) {
             const parentOption = document.querySelector(`#parentDropdown .guardian-option[onclick*="selectParent(${currentParentId}"]`);
             if (parentOption) {
                 const name = parentOption.querySelector('.option-name').textContent;
-                const phone = parentOption.querySelector('.option-detail')?.textContent?.replace('📞 ', '') || '-';
+                const phone = parentOption.querySelector('.option-detail')?.textContent?.replace('<i class="fas fa-phone"></i> ', '') || '-';
                 const photo = parentOption.querySelector('.option-avatar img')?.getAttribute('src')?.replace('/storage/', '') || '';
                 selectParent(currentParentId, name, phone, photo, currentParentId);
             } else {
@@ -1023,7 +1023,7 @@ function selectSecondParent(id, name, phone, photo) {
             const sp = allSecondParents.find(item => item.parent_id == secondParentId);
             if (sp) {
                 document.getElementById('secondParentName').innerHTML = sp.name;
-                document.getElementById('secondParentDetail').innerHTML = `<span>📞 ${sp.phone || '-'}</span><span class="guardian-badge">Second Parent</span>`;
+                document.getElementById('secondParentDetail').innerHTML = `<span><i class="fas fa-phone"></i> ${sp.phone || '-'}</span><span class="guardian-badge">Second Parent</span>`;
                 const avatarDiv = document.getElementById('secondParentAvatar');
                 if (sp.photo) {
                     avatarDiv.innerHTML = `<img src="/storage/${sp.photo}" alt="">`;

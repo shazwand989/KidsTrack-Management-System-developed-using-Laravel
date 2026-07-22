@@ -328,7 +328,7 @@
                 </div>
                 <div class="ci-time {{ in_array($att->status, ['late','late_checkout']) ? 'late' : '' }}">
                     {{ $att->checkin_time ? \Carbon\Carbon::parse($att->checkin_time)->format('h:i A') : '--:--' }}
-                    @if($att->status == 'late') ⚠️ @endif
+                    @if($att->status == 'late') <i class="fas fa-exclamation-triangle"></i> @endif
                 </div>
             </div>
             @empty

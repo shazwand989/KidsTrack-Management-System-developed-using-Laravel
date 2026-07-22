@@ -111,7 +111,7 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>📤 Checkout</h1>
+        <h1><i class="fas fa-upload"></i> Checkout</h1>
         <p>Pilih anak untuk check-out</p>
     </div>
 
@@ -127,7 +127,7 @@
             <div class="child-info">
                 <div class="child-name">{{ $child->name }}</div>
                 <div class="child-meta">
-                    <span>🏫 {{ $child->classroom->name ?? '-' }}</span>
+                    <span><i class="fas fa-school"></i> {{ $child->classroom->name ?? '-' }}</span>
                 </div>
             </div>
             <span class="checkin-time-badge">
