@@ -40,7 +40,7 @@ class HolidayHelper
     /**
      * Manual holidays for Malaysia (fallback)
      */
-    private static function getManualHolidays($year)
+    private static function getManualHolidays(int $year): array
     {
         $holidays = [
             // National Holidays (fixed dates)
@@ -58,7 +58,7 @@ class HolidayHelper
     /**
      * Check if a specific date is a holiday
      */
-    public static function isHoliday($date)
+    public static function isHoliday(string $date): bool
     {
         $year = date('Y', strtotime($date));
         $holidays = self::getHolidays($year);
@@ -68,7 +68,7 @@ class HolidayHelper
     /**
      * Get holiday name for a specific date
      */
-    public static function getHolidayName($date)
+    public static function getHolidayName(string $date): ?string
     {
         $year = date('Y', strtotime($date));
         $holidays = self::getHolidays($year);

@@ -209,7 +209,7 @@ class AttendanceSummaryService
      * MySQL TIME fields lack a date, so Carbon may use 1970-01-01.
      * This ensures both times share the same date for accurate comparison.
      */
-    private function normalizeTime($time): Carbon
+    private function normalizeTime(Carbon|string $time): Carbon
     {
         $carbon = $time instanceof Carbon ? $time->copy() : Carbon::parse($time);
         // Force both times to the same reference date for accurate comparison

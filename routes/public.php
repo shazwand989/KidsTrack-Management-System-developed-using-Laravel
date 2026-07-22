@@ -221,7 +221,7 @@ Route::prefix('holidays')->group(function () {
 // ============================================
 // LOCAL HOLIDAYS HELPER
 // ============================================
-function getLocalHolidays($year, $month)
+function getLocalHolidays(int $year, int $month): array
 {
     $holidays = [];
     $allHolidays = [

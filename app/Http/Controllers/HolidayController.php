@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class HolidayController extends Controller
 {
-    public function getHolidays($year)
+    public function getHolidays(int $year): \Illuminate\Http\JsonResponse
     {
         $holidays = HolidayHelper::getHolidays($year);
         return response()->json([
@@ -17,7 +17,7 @@ class HolidayController extends Controller
         ]);
     }
 
-    public function checkDate($date)
+    public function checkDate(string $date): \Illuminate\Http\JsonResponse
     {
         return response()->json([
             'date' => $date,

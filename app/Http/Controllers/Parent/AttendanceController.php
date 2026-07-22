@@ -19,7 +19,7 @@ class AttendanceController extends Controller
     {
         $this->summaryService = $summaryService;
     }
-    private function getChildren($user)
+    private function getChildren(\App\Models\User $user): \Illuminate\Support\Collection
     {
         if (!$user) {
             return collect();
@@ -52,7 +52,7 @@ class AttendanceController extends Controller
         return view('parent.attendance.calendar', compact('children'));
     }
 
-    public function childAttendance($id)
+    public function childAttendance(int $id)
     {
         $children = $this->getChildren(Auth::user());
         $child = Child::whereIn('id', $children->pluck('id'))->with('classroom')->findOrFail($id);

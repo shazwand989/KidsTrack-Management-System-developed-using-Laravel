@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 
 class CheckinController extends Controller
 {
-    protected $telegram;
+    protected TelegramService $telegram;
 
     public function __construct(TelegramService $telegram)
     {
@@ -92,7 +92,7 @@ class CheckinController extends Controller
         return $currentTimeInt > $eveningEnd;
     }
 
-    private function isWithinGracePeriod($slotType)
+    private function isWithinGracePeriod(string $slotType): bool
     {
         $timer = $this->getTimerForToday();
         if (!$timer) return false;
@@ -328,7 +328,7 @@ class CheckinController extends Controller
     // ============================================
     // 🔥 PROCESS CHECKIN
     // ============================================
-    private function processCheckin($child, $parentId, $today, $now)
+    private function processCheckin(\App\Models\Child $child, int $parentId, string $today, \Carbon\Carbon $now): \Illuminate\Http\JsonResponse
     {
         // Check already checked in — use DATE() to handle timezone
         $existing = Attendance::where('child_id', $child->id)
@@ -418,7 +418,7 @@ class CheckinController extends Controller
     // ============================================
     // 🔥 PROCESS CHECKOUT
     // ============================================
-    private function processCheckout($child, $parentId, $today, $now)
+    private function processCheckout(\App\Models\Child $child, int $parentId, string $today, \Carbon\Carbon $now): \Illuminate\Http\JsonResponse
     {
         $attendance = Attendance::where('child_id', $child->id)
             ->whereRaw('DATE(date) = ?', [$today])
@@ -675,7 +675,7 @@ class CheckinController extends Controller
     // 🔥 HELPER FUNCTIONS
     // ============================================
 
-    private function getUserRole($user, $child)
+    private function getUserRole(\App\Models\User $user, \App\Models\Child $child): string
     {
         if (!$user) return 'guest';
 
@@ -701,7 +701,7 @@ class CheckinController extends Controller
         return 'guest';
     }
 
-    private function getRoleData($role)
+    private function getRoleData(string $role): array
     {
         $roleMap = [
             'main_parent' => [
@@ -753,7 +753,7 @@ class CheckinController extends Controller
         return $roleMap[$role] ?? $roleMap['main_parent'];
     }
 
-    private function getParentName($user, $child)
+    private function getParentName(\App\Models\User $user, \App\Models\Child $child): string
     {
         if (!$user) return 'Parent';
 
@@ -778,7 +778,7 @@ class CheckinController extends Controller
         return 'Parent';
     }
 
-    private function getAllChildren($user, $currentChild)
+    private function getAllChildren(\App\Models\User $user, \App\Models\Child $currentChild): \Illuminate\Support\Collection
     {
         $allChildren = collect();
 
@@ -803,7 +803,7 @@ class CheckinController extends Controller
         return $allChildren;
     }
 
-    private function getCheckedInData($allChildren, $today)
+    private function getCheckedInData(\Illuminate\Support\Collection $allChildren, string $today): array
     {
         $checkedInData = [];
 
@@ -825,7 +825,7 @@ class CheckinController extends Controller
         return $checkedInData;
     }
 
-    private function sendTelegramNotification($child, $parentName, $action, $isLate = false)
+    private function sendTelegramNotification(\App\Models\Child $child, string $parentName, string $action, bool $isLate = false): void
     {
         $parent = $child->parent;
         $now = Carbon::now('Asia/Kuala_Lumpur');

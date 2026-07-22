@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\LateCheckoutPenalty;
 use App\Models\PenaltySetting;
+use App\Models\User;
 use App\Services\PenaltyService;
 use App\Services\ToyyibPayService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PenaltyController extends Controller
 {
@@ -43,7 +45,8 @@ class PenaltyController extends Controller
     // ============================================
     public function parentIndex(Request $request)
     {
-        $user = auth()->user();
+        /** @var User $user */
+        $user = Auth::user();
         $childIds = $user->children()->pluck('children.id')->toArray();
 
         $penalties = LateCheckoutPenalty::whereIn('child_id', $childIds)
@@ -61,7 +64,7 @@ class PenaltyController extends Controller
         ));
     }
 
-    public function payPenalty($id)
+    public function payPenalty(int $id)
     {
         $penalty = LateCheckoutPenalty::with('child')->findOrFail($id);
         if ($penalty->payment_status === 'paid') {
@@ -88,14 +91,14 @@ class PenaltyController extends Controller
     // ============================================
     // ADMIN: MANAGE PENALTIES
     // ============================================
-    public function markPaid($id)
+    public function markPaid(int $id)
     {
         $penalty = LateCheckoutPenalty::findOrFail($id);
         $penalty->update(['payment_status' => 'paid', 'paid_at' => now()]);
         return back()->with('success', 'Marked as paid.');
     }
 
-    public function destroy($id)
+    public function destroy(int $id)
     {
         LateCheckoutPenalty::findOrFail($id)->delete();
         return back()->with('success', 'Penalty deleted.');

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Child;
 use App\Models\Attendance;
 use App\Models\LateCheckoutPenalty;
+use App\Models\TimerSetting;
 use App\Models\User;
 use App\Services\PenaltyService;
 use App\Services\TelegramService;
@@ -15,8 +16,8 @@ use Illuminate\Support\Facades\Log;
 
 class QRScanController extends Controller
 {
-    protected $telegram;
-    protected $penaltyService;
+    protected TelegramService $telegram;
+    protected PenaltyService $penaltyService;
 
     public function __construct(TelegramService $telegram, PenaltyService $penaltyService)
     {
@@ -160,7 +161,7 @@ class QRScanController extends Controller
         return $currentTimeInt > $eveningEnd;
     }
 
-    private function isWithinGracePeriod($slotType)
+    private function isWithinGracePeriod(string $slotType): bool
     {
         $timer = $this->getTimerForToday();
         if (!$timer) {
@@ -181,7 +182,7 @@ class QRScanController extends Controller
         }
     }
 
-    public static function getRoleDataStatic($role)
+    public static function getRoleDataStatic(string $role): array
     {
         $roleMap = [
             'parent1' => ['badge_class' => 'main-parent', 'badge_text' => '👨‍👩‍👦 Main Parent', 'icon' => '👨‍👩‍👦', 'display_name' => 'Main Parent', 'name_class' => 'main'],
@@ -374,7 +375,7 @@ class QRScanController extends Controller
     // ============================================
     // STEP 3: SHOW CHECKIN PAGE
     // ============================================
-    public function showCheckinPage($childId)
+    public function showCheckinPage(int|string $childId)
     {
         $child = Child::with(['parent', 'classroom'])->findOrFail($childId);
         /** @var User|null $user */
@@ -650,7 +651,7 @@ class QRScanController extends Controller
     // ============================================
     // SEND TELEGRAM NOTIFICATION
     // ============================================
-    private function sendTelegramNotification($child, $parentId, $action, $isLate = false, $lateReason = null)
+    private function sendTelegramNotification(\App\Models\Child $child, int $parentId, string $action, bool $isLate = false, ?string $lateReason = null): void
     {
         $parent = \App\Models\User::find($parentId);
         $now = Carbon::now('Asia/Kuala_Lumpur');
@@ -924,7 +925,7 @@ class QRScanController extends Controller
     // LEGACY FUNCTIONS
     // ============================================
 
-    public function showChildProfile($childId)
+    public function showChildProfile(int|string $childId)
     {
         $child = Child::with(['parent', 'classroom', 'attendances'])->findOrFail($childId);
         $today = Carbon::now('Asia/Kuala_Lumpur')->toDateString();
@@ -938,7 +939,7 @@ class QRScanController extends Controller
         return view('kiosk.child-profile', compact('child', 'todayAttendance', 'hasFeeWarning', 'feeMessage'));
     }
 
-    public function show($qrCode)
+    public function show(string $qrCode)
     {
         $child = Child::where('qr_code', $qrCode)->first();
         if (!$child) {
@@ -1272,7 +1273,7 @@ class QRScanController extends Controller
         }
     }
 
-    public function getAttendance($childId)
+    public function getAttendance(int|string $childId)
     {
         $attendance = Attendance::where('child_id', $childId)
             ->whereDate('date', Carbon::now('Asia/Kuala_Lumpur')->toDateString())
@@ -1296,7 +1297,7 @@ class QRScanController extends Controller
         ]);
     }
 
-    private function isChildCheckedInToday($childId)
+    private function isChildCheckedInToday(int|string $childId): bool
     {
         return Attendance::where('child_id', $childId)
             ->whereDate('date', Carbon::now('Asia/Kuala_Lumpur')->toDateString())
@@ -1304,7 +1305,7 @@ class QRScanController extends Controller
             ->exists();
     }
 
-    private function processCheckin($childId, $parentId)
+    private function processCheckin(int|string $childId, int $parentId): void
     {
         $attendance = Attendance::where('child_id', $childId)
             ->whereDate('date', Carbon::now('Asia/Kuala_Lumpur')->toDateString())
@@ -1328,7 +1329,7 @@ class QRScanController extends Controller
         }
     }
 
-    private function processCheckout($childId, $parentId)
+    private function processCheckout(int|string $childId, int $parentId): void
     {
         $attendance = Attendance::where('child_id', $childId)
             ->whereDate('date', Carbon::now('Asia/Kuala_Lumpur')->toDateString())

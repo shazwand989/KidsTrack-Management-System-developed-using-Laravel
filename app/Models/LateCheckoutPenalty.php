@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class LateCheckoutPenalty extends Model
@@ -24,6 +25,6 @@ class LateCheckoutPenalty extends Model
     public function parent() { return $this->belongsTo(User::class, 'parent_id'); }
     public function creator() { return $this->belongsTo(User::class, 'created_by'); }
 
-    public function scopePending($q) { return $q->where('payment_status', 'pending'); }
-    public function scopePaid($q) { return $q->where('payment_status', 'paid'); }
+    public function scopePending(Builder $q): Builder { return $q->where('payment_status', 'pending'); }
+    public function scopePaid(Builder $q): Builder { return $q->where('payment_status', 'paid'); }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Attendance;
 use App\Models\LateCheckoutPenalty;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class PenaltyService
 {
@@ -82,11 +83,11 @@ class PenaltyService
             'grace_period'      => $calc['grace_period'],
             'penalty_amount'    => $calc['penalty_amount'],
             'payment_status'    => 'pending',
-            'created_by'        => auth()->id() ?? $parentId,
+            'created_by'        => Auth::id() ?? $parentId,
         ]);
     }
 
-    private function normalizeTime($time): Carbon
+    private function normalizeTime(Carbon|string $time): Carbon
     {
         $carbon = $time instanceof Carbon ? $time->copy() : Carbon::parse($time);
         return Carbon::now('Asia/Kuala_Lumpur')->startOfDay()

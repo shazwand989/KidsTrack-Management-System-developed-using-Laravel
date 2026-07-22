@@ -3,19 +3,20 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class TelegramService
 {
-    protected $botToken;
-    protected $apiUrl;
+    protected string $botToken;
+    protected string $apiUrl;
 
     public function __construct()
     {
-        $this->botToken = env('TELEGRAM_BOT_TOKEN');
+        $this->botToken = env('TELEGRAM_BOT_TOKEN', '');
         $this->apiUrl = "https://api.telegram.org/bot{$this->botToken}/";
     }
 
-    public function sendMessage($chatId, $message)
+    public function sendMessage(string $chatId, string $message): ?array
     {
         try {
             $response = Http::post($this->apiUrl . 'sendMessage', [
@@ -26,7 +27,7 @@ class TelegramService
 
             return $response->json();
         } catch (\Exception $e) {
-            \Log::error('Telegram Error: ' . $e->getMessage());
+            Log::error('Telegram Error: ' . $e->getMessage());
             return null;
         }
     }
@@ -34,11 +35,11 @@ class TelegramService
     /**
      * Send notification to admin via TELEGRAM_ADMIN_CHAT_ID env.
      */
-    public function sendToAdmin($message)
+    public function sendToAdmin(string $message): ?array
     {
         $adminChatId = env('TELEGRAM_ADMIN_CHAT_ID');
         if (!$adminChatId) {
-            \Log::warning('Telegram: TELEGRAM_ADMIN_CHAT_ID not set in .env');
+            Log::warning('Telegram: TELEGRAM_ADMIN_CHAT_ID not set in .env');
             return null;
         }
         return $this->sendMessage($adminChatId, $message);

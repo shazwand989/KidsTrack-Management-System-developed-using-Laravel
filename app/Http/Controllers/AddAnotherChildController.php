@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\Log;
 
 class AddAnotherChildController extends Controller
 {
-    protected $telegram;
-    protected $summaryService;
+    protected TelegramService $telegram;
+    protected AttendanceSummaryService $summaryService;
 
     public function __construct(TelegramService $telegram, AttendanceSummaryService $summaryService)
     {
@@ -189,7 +189,7 @@ class AddAnotherChildController extends Controller
     // HELPER FUNCTIONS
     // ============================================
 
-    private function getRoleData($user)
+    private function getRoleData(\App\Models\User $user): array
     {
         $role = $user ? $user->role : 'guest';
 
@@ -296,7 +296,7 @@ class AddAnotherChildController extends Controller
         return $roleMap[$normalized] ?? $roleMap['main_parent'];
     }
 
-    private function normalizeRole($role)
+    private function normalizeRole(string $role): string
     {
         $map = [
             'parent' => 'main_parent',
@@ -314,7 +314,7 @@ class AddAnotherChildController extends Controller
         return $map[$role] ?? 'main_parent';
     }
 
-    private function getUserChildren($user, $currentChild)
+    private function getUserChildren(\App\Models\User $user, \App\Models\Child $currentChild): array
     {
         $allChildren = collect();
         $parentId = 0;
@@ -533,7 +533,7 @@ class AddAnotherChildController extends Controller
         }
     }
 
-    private function sendTelegramNotification($child, $parentId, $action)
+    private function sendTelegramNotification(\App\Models\Child $child, int $parentId, string $action): void
     {
         $parent = \App\Models\User::find($parentId);
         $now = Carbon::now('Asia/Kuala_Lumpur');
