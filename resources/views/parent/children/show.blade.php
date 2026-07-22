@@ -37,7 +37,7 @@
     <div class="info-grid">
         <div class="info-item"><label>Full Name</label><span>{{ $child->name }}</span></div>
         <div class="info-item"><label>Age</label><span>{{ $child->age }}</span></div>
-        <div class="info-item"><label>Date of Birth</label><span>{{ $child->dob ?? 'N/A' }}</span></div>
+        <div class="info-item"><label>Date of Birth</label><span>{{ $child->dob ? \Carbon\Carbon::parse($child->dob)->format('d M Y') : 'N/A' }}</span></div>
         <div class="info-item"><label>Classroom</label><span>{{ $child->classroom->name ?? 'N/A' }}</span></div>
         <div class="info-item"><label>Dietary</label><span>{{ $child->dietary ?? 'None' }}</span></div>
         <div class="info-item"><label>Nursery Type</label><span>{{ $child->nursery_type ?? 'N/A' }}</span></div>
@@ -64,7 +64,7 @@
                     $bg = in_array($att->status, ['checkin','present']) ? '#e8f5e9' : ($att->status == 'checkout' ? '#e3f2fd' : ($att->status == 'late' || $att->status == 'late_checkout' ? '#fce4ec' : '#fff3e0'));
                 @endphp
                 <tr>
-                    <td style="padding:10px 12px;font-size:13px;color:#475569;border-bottom:1px solid #f1f5f9;font-weight:600;">{{ $att->date }}</td>
+                    <td style="padding:10px 12px;font-size:13px;color:#475569;border-bottom:1px solid #f1f5f9;font-weight:600;">{{ \Carbon\Carbon::parse($att->date)->format('d M Y') }}</td>
                     <td style="padding:10px 12px;font-size:13px;border-bottom:1px solid #f1f5f9;">
                         <span style="display:inline-block;padding:3px 10px;border-radius:8px;font-size:11px;font-weight:700;background:{{ $bg }};color:{{ $sc }};">
                             {{ ucfirst(str_replace('_', ' ', $att->status)) }}

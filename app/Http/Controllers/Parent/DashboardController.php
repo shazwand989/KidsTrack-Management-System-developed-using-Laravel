@@ -92,6 +92,17 @@ class DashboardController extends Controller
 
     public function fine()
     {
-        return view('parent.fine', ['user' => Auth::user()]);
+        $user = Auth::user();
+        $childIds = $user->children()->pluck('children.id')->toArray();
+
+        $penalties = \App\Models\LateCheckoutPenalty::whereIn('child_id', $childIds)
+            ->with(['child.classroom'])
+            ->latest()
+            ->get();
+
+        $pendingCount = $penalties->where('payment_status', 'pending')->count();
+        $totalPending = $penalties->where('payment_status', 'pending')->sum('penalty_amount');
+
+        return view('parent.fine', compact('user', 'penalties', 'pendingCount', 'totalPending'));
     }
 }

@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             ChildSeeder::class,
             GuardianshipSeeder::class,
             AttendanceSeeder::class,
+            PenaltySeeder::class,
             TimerSettingSeeder::class,
         ]);
 

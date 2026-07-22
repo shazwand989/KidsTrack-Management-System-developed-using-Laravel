@@ -96,7 +96,7 @@
     <div style="overflow-x:auto;">
         <table class="child-table">
             <thead>
-                <tr><th>#</th><th>Name</th><th>Age</th><th>Class</th><th>Status Today</th><th></th></tr>
+                <tr><th>#</th><th>Name</th><th>Age</th><th>Class</th><th>Enrolled</th><th>Status Today</th><th></th></tr>
             </thead>
             <tbody>
                 @foreach($children as $i => $child)
@@ -110,6 +110,7 @@
                     </td>
                     <td>{{ $child->age }}</td>
                     <td>{{ $child->classroom->name ?? 'N/A' }}</td>
+                    <td>{{ $child->enrollment_date ? \Carbon\Carbon::parse($child->enrollment_date)->format('d M Y') : '—' }}</td>
                     <td>
                         @php
                             $cls = $child->status_class ?? 'pending';
