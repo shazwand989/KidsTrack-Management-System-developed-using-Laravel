@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Http;
 
 class ToyyibPayService
 {
-    protected string $liveUrl = 'https://toyyibpay.com/api/';
-    protected string $devUrl = 'https://dev.toyyibpay.com/api/';
+    protected string $liveUrl = 'https://toyyibpay.com/';
+    protected string $devUrl = 'https://dev.toyyibpay.com/';
     protected PenaltyService $penaltyService;
 
     public function __construct(PenaltyService $penaltyService)
@@ -56,9 +56,9 @@ class ToyyibPayService
         $response = Http::asForm()->post($this->getBaseUrl() . 'index.php/api/createBill', [
             'userSecretKey' => $secret,
             'categoryCode' => $category,
-            'billName' => "Late Pickup Penalty - {$child->name}",
+            'billName' => substr("Late Pickup - {$child->name}", 0, 30),
             'billDescription' => "Late checkout on {$penalty->date->format('d M Y')} — {$penalty->late_minutes} minutes late",
-            'billPriceSetting' => 0,
+            'billPriceSetting' => 1,
             'billPayorInfo' => 1,
             'billAmount' => $penalty->penalty_amount * 100, // ToyyibPay uses cents
             'billReturnUrl' => $settings['return_url'],

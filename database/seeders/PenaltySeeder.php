@@ -15,13 +15,13 @@ class PenaltySeeder extends Seeder
         // ---- Penalty Settings ----
         DB::table('penalty_settings')->insert([
             ['key' => 'enabled',             'value' => 'true'],
-            ['key' => 'grace_period',        'value' => '5'],
-            ['key' => 'penalty_amount',      'value' => '1.00'],
+            ['key' => 'grace_period',        'value' => '10'],
+            ['key' => 'penalty_amount',      'value' => '20.00'],
             ['key' => 'toyyibpay_mode',      'value' => 'sandbox'],
-            ['key' => 'toyyibpay_category',  'value' => ''],
-            ['key' => 'toyyibpay_secret',    'value' => ''],
-            ['key' => 'callback_url',        'value' => ''],
-            ['key' => 'return_url',          'value' => ''],
+            ['key' => 'toyyibpay_category',  'value' => '1h3x8o4a'],
+            ['key' => 'toyyibpay_secret',    'value' => 'wibp6oak-4iwy-ocio-l65c-oletr03exv6e'],
+            ['key' => 'callback_url',        'value' => rtrim(config('app.url'), '/') . '/api/penalty/callback'],
+            ['key' => 'return_url',          'value' => rtrim(config('app.url'), '/') . '/parent/penalties'],
         ]);
 
         // ---- Generate penalties from seeded attendance ----
@@ -41,8 +41,8 @@ class PenaltySeeder extends Seeder
             ->get();
 
         $count = 0;
-        $grace = 5; // minutes (must match the setting above)
-        $penaltyAmount = 1.00;
+        $grace = 10; // minutes (must match the setting above)
+        $penaltyAmount = 20.00;
 
         foreach ($attendances as $att) {
             if (!$att->end_time || !$att->checkout_time) continue;

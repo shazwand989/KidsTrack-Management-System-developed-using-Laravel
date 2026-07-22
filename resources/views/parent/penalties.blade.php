@@ -18,7 +18,16 @@
     .badge.failed{background:#fce4ec;color:#dc2626}
     .btn-pay{background:#16a34a;color:white;border:none;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer}
     .btn-pay:hover{opacity:.9}
+    .alert{background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#dc2626;font-weight:600}
+    .alert.success{background:#f0fdf4;border-color:#bbf7d0;color:#16a34a}
 </style>
+
+@if(session('error'))
+<div class="alert"><i class="fas fa-exclamation-circle"></i> {{ session('error') }}</div>
+@endif
+@if(session('success'))
+<div class="alert success"><i class="fas fa-check-circle"></i> {{ session('success') }}</div>
+@endif
 
 <div class="summary-row">
     <div class="sum-box red"><div class="num">RM {{ number_format($totalPending,2) }}</div><div class="lbl">Outstanding</div></div>
