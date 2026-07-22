@@ -925,22 +925,21 @@
                     </div>
                 </div>
 
-                @if($timerSetting)
+                @php
+                    $clsName = $child->classroom->name ?? 'Kelas';
+                    $clsStart = $classStart;
+                    $clsEnd   = $classEnd;
+                @endphp
                 <div class="timer-display-box">
-                    <div class="timer-title">⏱️ Waktu Operasi Hari Ini ({{ $now->englishDayOfWeek }})</div>
+                    <div class="timer-title">⏱️ Jadual Kelas — {{ $clsName }}</div>
                     <div class="timer-row">
-                        <span class="label"> Morning</span>
-                        <span class="time">{{ $morningStart }} - {{ $morningEnd }}</span>
-                    </div>
-                    <div class="timer-row">
-                        <span class="label">🌙 Evening</span>
-                        <span class="time">{{ $eveningStart }} - {{ $eveningEnd }}</span>
+                        <span class="label"><i class="fas fa-door-open"></i> {{ $clsName }}</span>
+                        <span class="time">{{ $clsStart }} - {{ $clsEnd }}</span>
                     </div>
                     <div class="current-slot outside">
-                        <i class="fas fa-exclamation-triangle"></i> Current: Already Checked Out
+                        <i class="fas fa-check-circle"></i> Current: Already Checked Out
                     </div>
                 </div>
-                @endif
 
                 <div class="btn-group">
                     <a href="{{ route('kiosk.index') }}" class="btn-yes">
@@ -967,34 +966,41 @@
                 </div>
 
                 <!-- ============================================================ -->
-                <!-- TIMER BOX - CHECK-IN / CHECK-OUT VERSION                     -->
+                <!-- CLASSROOM SCHEDULE BOX                                     -->
                 <!-- ============================================================ -->
-                @if($timerSetting)
+                @php
+                    $clsName = $child->classroom->name ?? 'Kelas';
+                    $clsStart = $classStart;
+                    $clsEnd   = $classEnd;
+                    $clsCurrentStatus = 'outside';
+                    if ($currentTimeInt < $classStartInt) {
+                        $clsCurrentStatus = 'upcoming';
+                    } elseif ($currentTimeInt >= $classStartInt && $currentTimeInt <= $classEndInt) {
+                        $clsCurrentStatus = 'active';
+                    } else {
+                        $clsCurrentStatus = 'ended';
+                    }
+                @endphp
                 <div class="timer-display-box {{ $timerBoxClass }}">
-                    <div class="timer-title">⏱️ Waktu Operasi Hari Ini ({{ $now->englishDayOfWeek }})</div>
+                    <div class="timer-title">⏱️ Jadual Kelas — {{ $clsName }}</div>
                     <div class="timer-row">
-                        <span class="label"> Morning (Check-in)</span>
-                        <span class="time">{{ $morningStart }} - {{ $morningEnd }}</span>
-                    </div>
-                    <div class="timer-row">
-                        <span class="label">🌙 Evening (Check-out)</span>
-                        <span class="time">{{ $eveningStart }} - {{ $eveningEnd }}</span>
+                        <span class="label"><i class="fas fa-door-open"></i> {{ $clsName }}</span>
+                        <span class="time">{{ $clsStart }} - {{ $clsEnd }}</span>
                     </div>
                     <div class="current-slot
-                        @if($isMorningSlot) morning
-                        @elseif($isEveningSlot) evening
+                        @if($clsCurrentStatus === 'active') morning
+                        @elseif($clsCurrentStatus === 'upcoming') evening
                         @else outside
                         @endif">
-                        @if($isMorningSlot)
-                             Current: <strong>Morning Slot</strong> (Check-in)
-                        @elseif($isEveningSlot)
-                             Current: <strong>Evening Slot</strong> (Check-out)
+                        @if($clsCurrentStatus === 'active')
+                             Kini: <strong>Sedang Beroperasi</strong>
+                        @elseif($clsCurrentStatus === 'upcoming')
+                             Kini: <strong>Belum Bermula</strong> (Bermula {{ $clsStart }})
                         @else
-                            <i class="fas fa-exclamation-triangle"></i> Current: <strong>Outside Operation Hours</strong> (Still allowed)
+                            <i class="fas fa-check-circle"></i> Kelas tamat pada {{ $clsEnd }}
                         @endif
                     </div>
                 </div>
-                @endif
 
                 @if($hasUnpaidFee)
                     <div class="fee-banner unpaid">

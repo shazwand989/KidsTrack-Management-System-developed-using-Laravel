@@ -6,12 +6,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <title>KidsTrack Kiosk</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    
+
     <!-- QR Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <!-- QR Code Decoder Library -->
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
-    
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -110,6 +110,29 @@
         }
         .timer-info-box .timer-row .slot-status.active { background: #dbeafe; color: #1e40af; }
         .timer-info-box .timer-row .slot-status.info { background: #f3f4f6; color: #6b7280; }
+        .timer-info-box .timer-row .slot-status.upcoming { background: #e0f2fe; color: #0369a1; }
+        .timer-info-box .timer-row .slot-status.ended { background: #f1f5f9; color: #94a3b8; }
+
+        /* Classroom rows in timer */
+        .timer-info-box .timer-row.class-row {
+            padding: 6px 0;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .timer-info-box .timer-row.class-row:last-child { border-bottom: none; }
+        .timer-info-box .timer-row.class-row .slot-label {
+            flex: 1;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-right: 8px;
+        }
+        .timer-info-box .timer-row.class-row .slot-time {
+            font-size: 12px;
+            margin-right: 8px;
+            white-space: nowrap;
+        }
 
         /* QR SCANNER */
         #qr-reader {
@@ -476,88 +499,61 @@
                     if (data.success && data.data) {
                         renderTimerInfo(data.data);
                     } else {
-                        document.getElementById('timerInfoContent').innerHTML = 
+                        document.getElementById('timerInfoContent').innerHTML =
                             '<div class="no-timer"><i class="fas fa-exclamation-triangle"></i> Gagal memuat</div>';
                     }
                 })
                 .catch(() => {
-                    document.getElementById('timerInfoContent').innerHTML = 
+                    document.getElementById('timerInfoContent').innerHTML =
                         '<div class="no-timer"><i class="fas fa-exclamation-triangle"></i> Ralat memuat</div>';
                 });
         }
 
         function renderTimerInfo(timerSettings) {
             const now = new Date();
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const today = days[now.getDay()];
             const currentTime = parseInt(now.getHours().toString().padStart(2,'0') + now.getMinutes().toString().padStart(2,'0'));
-            
-            let timer = null;
-            if (Array.isArray(timerSettings)) {
-                timer = timerSettings.find(t => t.day_name === today);
-            } else {
-                timer = timerSettings[today];
-            }
-            
-            if (!timer) {
-                document.getElementById('timerInfoContent').innerHTML = 
-                    '<div class="no-timer"><i class="fas fa-calendar-alt"></i> Tiada waktu operasi</div>';
+
+            if (!Array.isArray(timerSettings) || timerSettings.length === 0) {
+                document.getElementById('timerInfoContent').innerHTML =
+                    '<div class="no-timer"><i class="fas fa-calendar-alt"></i> Tiada kelas aktif</div>';
                 return;
             }
 
-            let morningStart, morningEnd, eveningStart, eveningEnd;
-            
-            if (timer.morning && typeof timer.morning === 'object') {
-                morningStart = timer.morning.start;
-                morningEnd = timer.morning.end;
-                eveningStart = timer.evening.start;
-                eveningEnd = timer.evening.end;
-            } else {
-                morningStart = timer.morning_start || timer.morning?.start || '--:--';
-                morningEnd = timer.morning_end || timer.morning?.end || '--:--';
-                eveningStart = timer.evening_start || timer.evening?.start || '--:--';
-                eveningEnd = timer.evening_end || timer.evening?.end || '--:--';
-            }
-
-            function checkStatus(start, end) {
-                if (start === '--:--' || end === '--:--') return 'info';
+            function getSlotStatus(start, end) {
+                if (!start || !end || start === '--:--' || end === '--:--') return 'info';
                 const s = parseInt(start.replace(':', ''));
                 const e = parseInt(end.replace(':', ''));
                 if (currentTime >= s && currentTime <= e) return 'active';
-                return 'info';
+                if (currentTime < s) return 'upcoming';
+                return 'ended';
             }
 
-            const morningStatus = checkStatus(morningStart, morningEnd);
-            const eveningStatus = checkStatus(eveningStart, eveningEnd);
-
-            function getLabel(status) {
-                const map = { 
-                    'active': ' Aktif', 
-                    'info': '<i class="fas fa-info-circle"></i> Info' 
+            function getStatusBadge(status) {
+                const map = {
+                    'active': '<span class="slot-status active">🟢 Aktif</span>',
+                    'upcoming': '<span class="slot-status upcoming">🔵 Akan Datang</span>',
+                    'ended': '<span class="slot-status ended">⚫ Tamat</span>',
+                    'info': '<span class="slot-status info"><i class="fas fa-info-circle"></i></span>'
                 };
-                return map[status] || '<i class="fas fa-info-circle"></i>';
+                return map[status] || map['info'];
             }
 
-            function getClass(status) {
-                const map = { 
-                    'active': 'active', 
-                    'info': 'info' 
-                };
-                return map[status] || 'info';
-            }
+            let html = '';
+            timerSettings.forEach(function(cls) {
+                const startTime = cls.start_time || cls.morning?.start || '--:--';
+                const endTime = cls.end_time || cls.evening?.start || '--:--';
+                const status = getSlotStatus(startTime, endTime);
 
-            document.getElementById('timerInfoContent').innerHTML = `
-                <div class="timer-row">
-                    <span class="slot-label"> Morning</span>
-                    <span class="slot-time">${morningStart} - ${morningEnd}</span>
-                    <span class="slot-status ${getClass(morningStatus)}">${getLabel(morningStatus)}</span>
-                </div>
-                <div class="timer-row">
-                    <span class="slot-label">🌙 Evening</span>
-                    <span class="slot-time">${eveningStart} - ${eveningEnd}</span>
-                    <span class="slot-status ${getClass(eveningStatus)}">${getLabel(eveningStatus)}</span>
-                </div>
-            `;
+                html += `
+                <div class="timer-row class-row">
+                    <span class="slot-label"><i class="fas fa-door-open"></i> ${cls.name}</span>
+                    <span class="slot-time">${startTime} - ${endTime}</span>
+                    ${getStatusBadge(status)}
+                </div>`;
+            });
+
+            document.getElementById('timerInfoContent').innerHTML = html;
+        }
         }
 
         // ============================================
@@ -585,7 +581,7 @@
         // ============================================
         function startScanner() {
             const statusDiv = document.getElementById('scannerStatus');
-            
+
             if (isScanning) {
                 statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Kamera sudah aktif';
                 return;
@@ -640,9 +636,9 @@
         function onScanSuccess(decodedText, decodedResult) {
             if (isProcessing) return;
             isProcessing = true;
-            
+
             console.log('<i class="fas fa-check-circle"></i> QR Code detected:', decodedText);
-            
+
             if (html5QrCode && isScanning) {
                 html5QrCode.stop().then(() => {
                     html5QrCode.clear();
@@ -650,9 +646,9 @@
                     isScanning = false;
                 }).catch(() => {});
             }
-            
+
             showScanning(true);
-            
+
             checkAccess(decodedText);
         }
 
@@ -665,7 +661,7 @@
         // ============================================
         function checkAccess(qrData) {
             console.log('<i class="fas fa-upload"></i> Sending to server:', { qr_code: qrData });
-            
+
             fetch('/kiosk/check-access', {
                 method: 'POST',
                 headers: {
@@ -686,14 +682,14 @@
             .then(data => {
                 showScanning(false);
                 console.log('<i class="fas fa-download"></i> Server response:', data);
-                
+
                 if (data.success) {
                     window.location.href = data.redirect;
                 } else {
                     let title = '🚫 Akses Ditolak!';
                     let detail = 'Anda tidak mempunyai akses ke anak ini.';
                     let footer = 'Sila imbas QR Code anak anda sendiri.';
-                    
+
                     if (data.message) {
                         if (data.message.includes('QR')) {
                             title = '<i class="fas fa-times-circle"></i> QR Code Tidak Sah!';
@@ -707,7 +703,7 @@
                             detail = data.message;
                         }
                     }
-                    
+
                     showWarningPopup(title, detail, 'QR: ' + qrData.substring(0, 30) + '...', footer);
                     isProcessing = false;
                 }
@@ -730,7 +726,7 @@
             const previewDiv = document.getElementById('uploadPreview');
             const previewImg = document.getElementById('qrPreviewImage');
             const statusDiv = document.getElementById('uploadStatus');
-            
+
             const reader = new FileReader();
             reader.onload = function(event) {
                 previewImg.src = event.target.result;
@@ -743,10 +739,10 @@
 
         function processUploadedQR() {
             if (isProcessing) return;
-            
+
             const previewImg = document.getElementById('qrPreviewImage');
             const statusDiv = document.getElementById('uploadStatus');
-            
+
             if (!previewImg.src || previewImg.src === '') {
                 statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Sila muat naik gambar QR Code dahulu.';
                 statusDiv.style.color = '#dc2626';
@@ -760,25 +756,25 @@
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             const img = new Image();
-            
+
             img.onload = function() {
                 canvas.width = img.width;
                 canvas.height = img.height;
                 ctx.drawImage(img, 0, 0, img.width, img.height);
-                
+
                 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                
+
                 if (typeof jsQR !== 'undefined') {
                     try {
                         const code = jsQR(imageData.data, imageData.width, imageData.height, {
                             inversionAttempts: "dontInvert",
                         });
-                        
+
                         if (code && code.data) {
                             statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> QR Code dikesan: ' + code.data;
                             statusDiv.style.color = '#16a34a';
                             showScanning(true);
-                            
+
                             checkAccess(code.data);
                         } else {
                             statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Tiada QR Code dikesan. Sila cuba gambar lain.';
@@ -824,10 +820,10 @@
         function processSimulate(parentId) {
             if (isProcessing) return;
             isProcessing = true;
-            
+
             const qrData = 'SIMULATED-' + parentId;
             showScanning(true);
-            
+
             checkAccess(qrData);
         }
 

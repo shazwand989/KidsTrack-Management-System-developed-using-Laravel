@@ -1190,6 +1190,26 @@
             const now = new Date();
             const currentTime = parseInt(now.getHours().toString().padStart(2, '0') + now.getMinutes().toString().padStart(2, '0'));
 
+            // Check if data is classroom-based (has 'name' property) or day-based (has 'day_name')
+            const isClassroomFormat = Array.isArray(timerSettings) && timerSettings.length > 0 && timerSettings[0].name !== undefined;
+
+            if (isClassroomFormat) {
+                // Classroom schedule format — show all classrooms
+                let html = '';
+                timerSettings.forEach(function(cls) {
+                    const startTime = cls.start_time || cls.morning?.start || '--:--';
+                    const endTime = cls.end_time || cls.evening?.start || '--:--';
+                    html += `
+                    <div class="timer-row">
+                        <span class="slot-label"><i class="fas fa-door-open"></i> ${cls.name}</span>
+                        <span class="slot-time">${startTime} - ${endTime}</span>
+                    </div>`;
+                });
+                document.getElementById('timerInfoContent').innerHTML = html;
+                return;
+            }
+
+            // Day-based format (legacy)
             let timer = null;
             if (Array.isArray(timerSettings)) {
                 timer = timerSettings.find(t => t.day_name && t.day_name.toLowerCase().includes(selectedDay.toLowerCase()));

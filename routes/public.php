@@ -39,6 +39,38 @@ Route::get('/api/simulation-time', function () {
 })->name('api.simulation.time');
 
 // ============================================
+// TIMER SETTINGS — Classroom Schedules
+// ============================================
+Route::get('/get-timer-settings', function () {
+    $classrooms = \App\Models\Classroom::where('status', 'active')
+        ->select('id', 'name', 'start_time', 'end_time')
+        ->orderBy('name')
+        ->get();
+
+    $schedules = $classrooms->map(function ($c) {
+        return [
+            'id'    => $c->id,
+            'name'  => $c->name,
+            'morning' => [
+                'start' => $c->start_time ? substr($c->start_time, 0, 5) : '08:00',
+                'end'   => $c->start_time ? substr($c->start_time, 0, 5) : '08:00',
+            ],
+            'evening' => [
+                'start' => $c->end_time ? substr($c->end_time, 0, 5) : '17:00',
+                'end'   => $c->end_time ? substr($c->end_time, 0, 5) : '17:00',
+            ],
+            'start_time' => $c->start_time ? substr($c->start_time, 0, 5) : '08:00',
+            'end_time'   => $c->end_time ? substr($c->end_time, 0, 5) : '17:00',
+        ];
+    });
+
+    return response()->json([
+        'success' => true,
+        'data'    => $schedules->values(),
+    ]);
+})->name('timer.settings');
+
+// ============================================
 // ATTENDANCE SCAN (PUBLIC - NO AUTH)
 // ============================================
 Route::prefix('attendance-scan')->name('attendance-scan.')->group(function () {
