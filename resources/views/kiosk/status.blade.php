@@ -668,7 +668,7 @@
             .then(data => {
                 if (data.success) {
                     showBulkPopup(data);
-                    btn.textContent = '<i class="fas fa-check-circle"></i> Selesai!';
+                    btn.innerHTML = '<i class="fas fa-check-circle"></i> Selesai!';
                 } else {
                     alert('<i class="fas fa-times-circle"></i> ' + data.message);
                     btn.disabled = false;

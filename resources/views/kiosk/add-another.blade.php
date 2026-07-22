@@ -948,11 +948,11 @@
             if (btn) {
                 if (count === 0) {
                     btn.disabled = true;
-                    if (btnText) btnText.textContent = '<i class="fas fa-check-circle"></i> Check In Selected Child';
+                    if (btnText) btnText.innerHTML = '<i class="fas fa-check-circle"></i> Check In Selected Child';
                     console.log('  - Button: DISABLED');
                 } else if (count === 1) {
                     btn.disabled = false;
-                    if (btnText) btnText.textContent = '<i class="fas fa-check-circle"></i> Check In 1 Child';
+                    if (btnText) btnText.innerHTML = '<i class="fas fa-check-circle"></i> Check In 1 Child';
                     console.log('  - Button: ENABLED (Single)');
                 } else {
                     btn.disabled = false;

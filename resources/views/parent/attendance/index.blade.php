@@ -161,7 +161,7 @@
 function showDetailModal(row){
     var d=row.dataset;
     document.getElementById('mdlName').textContent=d.name;
-    document.getElementById('mdlClassDate').textContent='<i class="fas fa-school"></i> '+d.classroom+' · <i class="fas fa-calendar-alt"></i> '+d.date;
+    document.getElementById('mdlClassDate').innerHTML='<i class="fas fa-school"></i> '+d.classroom+' · <i class="fas fa-calendar-alt"></i> '+d.date;
     document.getElementById('mdlLink').href=d.link;
 
     // Check-in

@@ -358,7 +358,7 @@ function toMinutes(t){
 
 function showAttModal(name, classroom, date, status, ciTime, coTime, classStart, classEnd){
     document.getElementById('amName').textContent=name;
-    document.getElementById('amClass').textContent='<i class="fas fa-school"></i> '+classroom+' · <i class="fas fa-calendar-alt"></i> '+date;
+    document.getElementById('amClass').innerHTML='<i class="fas fa-school"></i> '+classroom+' · <i class="fas fa-calendar-alt"></i> '+date;
 
     var s=status||'No record';
     var sColor='#FF6B6B';

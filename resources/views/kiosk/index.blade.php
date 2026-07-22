@@ -564,7 +564,7 @@
         // POPUP
         // ============================================
         function showWarningPopup(title, message, detail, footer) {
-            document.getElementById('popupTitle').textContent = title || '<i class="fas fa-exclamation-triangle"></i> Akses Ditolak!';
+            document.getElementById('popupTitle').innerHTML = title || '<i class="fas fa-exclamation-triangle"></i> Akses Ditolak!';
             document.getElementById('popupMessage').innerHTML = message || 'Maaf, anda tidak mempunyai akses.';
             document.getElementById('popupScannedCode').textContent = detail || '---';
             document.getElementById('popupFooter').textContent = footer || 'Sila imbas QR Code yang sah.';
@@ -614,10 +614,10 @@
                 onScanError
             ).then(() => {
                 isScanning = true;
-                statusDiv.textContent = '<i class="fas fa-check-circle"></i> Kamera aktif. Imbas QR Code!';
+                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Kamera aktif. Imbas QR Code!';
                 statusDiv.style.color = '#16a34a';
             }).catch((err) => {
-                statusDiv.textContent = '<i class="fas fa-times-circle"></i> Gagal akses kamera: ' + err.message;
+                statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Gagal akses kamera: ' + err.message;
                 statusDiv.style.color = '#dc2626';
             });
         }
@@ -748,7 +748,7 @@
             const statusDiv = document.getElementById('uploadStatus');
             
             if (!previewImg.src || previewImg.src === '') {
-                statusDiv.textContent = '<i class="fas fa-times-circle"></i> Sila muat naik gambar QR Code dahulu.';
+                statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Sila muat naik gambar QR Code dahulu.';
                 statusDiv.style.color = '#dc2626';
                 return;
             }
@@ -775,23 +775,23 @@
                         });
                         
                         if (code && code.data) {
-                            statusDiv.textContent = '<i class="fas fa-check-circle"></i> QR Code dikesan: ' + code.data;
+                            statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> QR Code dikesan: ' + code.data;
                             statusDiv.style.color = '#16a34a';
                             showScanning(true);
                             
                             checkAccess(code.data);
                         } else {
-                            statusDiv.textContent = '<i class="fas fa-times-circle"></i> Tiada QR Code dikesan. Sila cuba gambar lain.';
+                            statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Tiada QR Code dikesan. Sila cuba gambar lain.';
                             statusDiv.style.color = '#dc2626';
                             isProcessing = false;
                         }
                     } catch (err) {
-                        statusDiv.textContent = '<i class="fas fa-times-circle"></i> Error: ' + err.message;
+                        statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Error: ' + err.message;
                         statusDiv.style.color = '#dc2626';
                         isProcessing = false;
                     }
                 } else {
-                    statusDiv.textContent = '<i class="fas fa-times-circle"></i> Library jsQR tidak dimuat. Sila refresh.';
+                    statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Library jsQR tidak dimuat. Sila refresh.';
                     statusDiv.style.color = '#dc2626';
                     isProcessing = false;
                 }

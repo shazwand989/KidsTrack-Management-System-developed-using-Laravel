@@ -1122,7 +1122,7 @@
                         checkoutInfo.textContent = ' Late Checkout (Melebihi waktu operasi)';
                         checkoutInfo.className = 'checkout-info active late';
                     } else {
-                        checkoutInfo.textContent = '<i class="fas fa-check-circle"></i> Waktu checkout: ' + eveningStart + ' - ' + eveningEnd;
+                        checkoutInfo.innerHTML = '<i class="fas fa-check-circle"></i> Waktu checkout: ' + eveningStart + ' - ' + eveningEnd;
                         checkoutInfo.className = 'checkout-info active';
                     }
                 }
@@ -1433,22 +1433,22 @@
 
             if (type === 'on-time') {
                 box.classList.add('on-time');
-                icon.textContent = '<i class="fas fa-check-circle"></i>';
+                icon.innerHTML = '<i class="fas fa-check-circle"></i>';
                 statusText.className = 'status-text on-time';
-                statusText.textContent = text;
+                statusText.innerHTML = text;
             } else if (type === 'late') {
                 box.classList.add('late');
                 icon.textContent = '';
                 statusText.className = 'status-text late';
-                statusText.textContent = text;
+                statusText.innerHTML = text;
             } else {
                 box.classList.add('closed');
                 icon.textContent = '🚫';
                 statusText.className = 'status-text closed';
-                statusText.textContent = text;
+                statusText.innerHTML = text;
             }
 
-            statusSub.textContent = sub || '';
+            statusSub.innerHTML = sub || '';
         }
 
         // ============================================
@@ -1600,7 +1600,7 @@
                 .then(data => {
                     if (data.success) {
                         showBulkPopup(data);
-                        btn.textContent = '<i class="fas fa-check-circle"></i> Selesai!';
+                        btn.innerHTML = '<i class="fas fa-check-circle"></i> Selesai!';
                     } else {
                         alert('<i class="fas fa-times-circle"></i> ' + data.message);
                         btn.disabled = false;
@@ -1680,9 +1680,9 @@
             popupTitle.className = '';
 
             if (data.action == 'checkin') {
-                popupTitle.textContent = '<i class="fas fa-check-circle"></i> Check-in Berjaya!';
+                popupTitle.innerHTML = '<i class="fas fa-check-circle"></i> Check-in Berjaya!';
                 popupSub.textContent = 'Anak anda telah berjaya check-in.';
-                popupIcon.textContent = '<i class="fas fa-check-circle"></i>';
+                popupIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
             } else {
                 if (data.is_auto) {
                     popupTitle.textContent = '🤖 Auto Check-out Berjaya!';
@@ -1693,14 +1693,14 @@
                     popupBtn.classList.add('auto-checkout-btn');
                     popupTitle.className = 'auto-checkout';
                 } else {
-                    popupTitle.textContent = '<i class="fas fa-hand-wave"></i> Check-out Berjaya!';
+                    popupTitle.innerHTML = '<i class="fas fa-hand-wave"></i> Check-out Berjaya!';
                     popupSub.textContent = 'Anak anda telah berjaya check-out.';
-                    popupIcon.textContent = '<i class="fas fa-hand-wave"></i>';
+                    popupIcon.innerHTML = '<i class="fas fa-hand-wave"></i>';
                 }
             }
 
             document.getElementById('popupChildName').textContent = '🧸 ' + data.child_name;
-            document.getElementById('popupChildClass').textContent = '<i class="fas fa-school"></i> ' + data.child_class;
+            document.getElementById('popupChildClass').innerHTML = '<i class="fas fa-school"></i> ' + data.child_class;
 
             renderCheckedInList();
 
@@ -1712,7 +1712,7 @@
                     popupStatus.textContent = '🤖 Auto Checkout';
                     popupStatus.className = 'popup-status auto-checkout-status';
                 } else {
-                    popupStatus.textContent = '<i class="fas fa-check-circle"></i> On Time';
+                    popupStatus.innerHTML = '<i class="fas fa-check-circle"></i> On Time';
                     popupStatus.className = 'popup-status on-time';
                 }
             }
