@@ -43,8 +43,8 @@ return new class extends Migration
             ['key' => 'grace_period', 'value' => '10'],
             ['key' => 'penalty_amount', 'value' => '20.00'],
             ['key' => 'toyyibpay_mode', 'value' => 'sandbox'],
-            ['key' => 'toyyibpay_category', 'value' => '1h3x8o4a'],
-            ['key' => 'toyyibpay_secret', 'value' => 'wibp6oak-4iwy-ocio-l65c-oletr03exv6e'],
+            ['key' => 'toyyibpay_category', 'value' => ''],
+            ['key' => 'toyyibpay_secret', 'value' => ''],
             ['key' => 'callback_url', 'value' => rtrim(config('app.url'), '/') . '/api/penalty/callback'],
             ['key' => 'return_url', 'value' => rtrim(config('app.url'), '/') . '/parent/penalties'],
         ]);
